@@ -72,9 +72,6 @@ export function DebloatModule() {
 
   const currentPackages = useMemo(() => BLOATWARE[profile], [profile]);
 
-  const currentProfile = PROFILES.find(p => p.id === profile);
-  const ps = PROFILE_STYLES[profile];
-
   return (
     <div className="space-y-5">
       <AssistantGuide module="debloat" />

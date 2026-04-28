@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, Shield, X } from 'lucide-react';
+import { AlertTriangle, Shield } from 'lucide-react';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { useI18n } from '../hooks/useI18n';
 
 export function Disclaimer() {
-  const { t } = useI18n();
   const [accepted, setAccepted] = useLocalStorage('mejora-disclaimer-accepted', false);
   const [showDetails, setShowDetails] = useState(false);
 

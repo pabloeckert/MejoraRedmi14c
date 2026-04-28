@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { HelpCircle, ChevronRight, Search } from 'lucide-react';
-import { useI18n } from '../hooks/useI18n';
 
 const FAQ_ITEMS = [
   {
@@ -57,7 +56,6 @@ const FAQ_ITEMS = [
 ];
 
 export function FAQ() {
-  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [expanded, setExpanded] = useState(null);
   const [search, setSearch] = useState('');

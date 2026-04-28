@@ -8,53 +8,58 @@ export function UpdateBanner() {
   const [updateState, setUpdateState] = useState('idle'); // idle | checking | available | downloading | downloaded | error
   const [updateInfo, setUpdateInfo] = useState(null);
   const [progress, setProgress] = useState(0);
-  const [error, setError] = useState(null);
+  const [, setError] = useState(null);
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
     if (!isDesktop || !window.electronAPI) return;
 
     // Listen for update events
-    window.electronAPI.onUpdateAvailable((info) => {
+    const unsubAvailable = window.electronAPI.onUpdateAvailable?.((info) => {
       setUpdateState('available');
       setUpdateInfo(info);
       setDismissed(false);
     });
 
-    window.electronAPI.onUpdateProgress((data) => {
+    const unsubProgress = window.electronAPI.onUpdateProgress?.((data) => {
       setUpdateState('downloading');
       setProgress(Math.round(data.percent));
     });
 
-    window.electronAPI.onUpdateDownloaded((info) => {
+    const unsubDownloaded = window.electronAPI.onUpdateDownloaded?.((info) => {
       setUpdateState('downloaded');
       setUpdateInfo(info);
     });
 
-    window.electronAPI.onUpdateError((data) => {
+    const unsubError = window.electronAPI.onUpdateError?.((data) => {
       setUpdateState('error');
       setError(data.message);
     });
 
-    // Check for updates on mount
-    checkForUpdates();
-  }, [isDesktop]);
-
-  const checkForUpdates = async () => {
-    if (!window.electronAPI) return;
-    setUpdateState('checking');
-    try {
-      const result = await window.electronAPI.checkForUpdates();
-      if (result.available) {
-        setUpdateState('available');
-        setUpdateInfo(result);
-      } else {
+    // Check for updates
+    (async () => {
+      if (!window.electronAPI) return;
+      setUpdateState('checking');
+      try {
+        const result = await window.electronAPI.checkForUpdates();
+        if (result.available) {
+          setUpdateState('available');
+          setUpdateInfo(result);
+        } else {
+          setUpdateState('idle');
+        }
+      } catch {
         setUpdateState('idle');
       }
-    } catch {
-      setUpdateState('idle');
-    }
-  };
+    })();
+
+    return () => {
+      unsubAvailable?.();
+      unsubProgress?.();
+      unsubDownloaded?.();
+      unsubError?.();
+    };
+  }, [isDesktop]);
 
   const handleDownload = async () => {
     if (!window.electronAPI) return;
