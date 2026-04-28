@@ -501,11 +501,11 @@ Assertions configuradas:
 ### Área Técnica
 
 #### 🏗️ Software Architect
-**Veredicto:** ✅ Arquitectura modular limpia
+**Veredicto:** ✅ Completo
 - Fortaleza: Descomposición clara por módulos, code-splitting, error boundaries
 - Componentes reutilizables en `ui/`
 - Servicios separados de presentación
-- **Mejora:** ADRs (Architecture Decision Records) documentados
+- 3 ADRs documentados (stack, script generation, bloatware JSON)
 
 #### ☁️ Cloud Architect
 **Veredicto:** ✅ Correcto — deploy estático
@@ -592,10 +592,10 @@ Assertions configuradas:
 - Roadmap visible para la comunidad
 
 #### 🎯 Product Owner
-**Veredicto:** ✅ OK
+**Veredicto:** ✅ Completo
 - Features bien definidos por módulo
 - Priorización clara (backup primero, root último)
-- **Mejora:** User stories con acceptance criteria explícitos
+- 15 user stories con criterios de aceptación explícitos
 
 #### 🏃 Scrum Master / Agile Coach
 **Veredicto:** 🟡 Mejorable
@@ -751,7 +751,7 @@ Assertions configuradas:
 | 8 | ~~FAQ + troubleshooting guide~~ | Customer Success | FAQ flotante con 10 preguntas + búsqueda | ✅ 8d1e087 |
 | 9 | ~~Disclaimer legal más visible en app~~ | Legal | Banner en primera visita + re-visible desde Settings | ✅ daefb30 |
 | 10 | ~~Analytics sin PII~~ | BI Analyst | useAnalytics hook, localStorage only, cero PII | ✅ daefb30 |
-| 11 | User stories con acceptance criteria | Product Owner | Stories documentadas por módulo | ⏳ |
+| 11 | ~~User stories con acceptance criteria~~ | Product Owner | 15 user stories con criterios de aceptación | ✅ 9c78b60 |
 
 #### 🟢 Baja Prioridad (Sprint 8)
 
@@ -764,7 +764,7 @@ Assertions configuradas:
 | 16 | Error tracking (Sentry) | SRE | Sentry integrado en web y Electron | ⏳ |
 | 17 | ~~Más idiomas (PT, FR)~~ | Localization | PT + FR — 4 idiomas en total | ✅ 8d1e087 |
 | 18 | ~~Memoización de componentes pesados~~ | Frontend | memo() en PackageItem/TweakItem + useCallback | ✅ 8d1e087 |
-| 19 | ADRs (Architecture Decision Records) | Software Architect | ≥3 ADRs documentados | ⏳ |
+| 19 | ~~ADRs (Architecture Decision Records)~~ | Software Architect | 3 ADRs: stack, script generation, bloatware JSON | ✅ 9c78b60 |
 
 ---
 
@@ -799,6 +799,7 @@ Assertions configuradas:
 | 29/04 | **documentar** | Optimización: LICENSE MIT, CI con tests, doc reestructurada |
 | 29/04 | Sprint 6 | Disclaimer legal (primera visita + re-visible), analytics sin PII, README mejorado |
 | 29/04 | Sprint 6 | Storybook (5 componentes), memoización, FAQ, visual regression tests, i18n PT+FR (4 idiomas) |
+| 29/04 | Sprint 6 | ADRs (3), User Stories (15), README badges actualizados |
 
 ### Decisiones Técnicas
 
