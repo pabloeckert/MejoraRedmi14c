@@ -2,7 +2,7 @@
 
 > **Trigger:** Cuando digas **"documentar"**, este archivo se actualiza automáticamente con los trabajos realizados.
 > **Carpeta:** `Documents/` — documentación única del proyecto.
-> **Última actualización:** 29 abril 2026, 06:32 GMT+8
+> **Última actualización:** 29 abril 2026, 06:38 GMT+8
 
 ---
 
@@ -414,7 +414,7 @@ Constantes del dispositivo:
 
 ## 8. Testing
 
-### Resumen: 97 tests totales
+### Resumen: 116 tests totales
 
 | Suite | Tests | Archivo | Tipo |
 |-------|-------|---------|------|
@@ -425,9 +425,11 @@ Constantes del dispositivo:
 | Accessibility | 8 | `accessibility.test.jsx` | Unit |
 | LocalStorage | 6 | `useLocalStorage.test.js` | Unit |
 | Analytics | 5 | `analytics.test.js` | Unit |
-| E2E | 13 | `e2e/app.spec.js` | E2E |
+| E2E App | 13 | `e2e/app.spec.js` | E2E |
+| E2E Modules | 7 | `e2e/modules.spec.js` | E2E |
+| E2E Accessibility | 12 | `e2e/accessibility.spec.js` | E2E |
 | Visual Regression | 5 | `e2e/visual.spec.js` | E2E |
-| **Total** | **97** | | |
+| **Total** | **116** | | |
 
 ### Cobertura por área
 - **Script generator:** generación, módulos, errores, restore
@@ -780,7 +782,7 @@ Assertions configuradas:
 |-------|-------|
 | **Nombre** | MejoraRedmi14c |
 | **Fase** | Producción — Etapa 5 completa |
-| **Tests** | 97 (74 unit + 18 E2E + 5 visual) |
+| **Tests** | 116 (74 unit + 37 E2E + 5 visual) |
 | **Módulos** | 6 (Backup, Debloat, Performance, Estética, Rescate, Root) |
 | **Componentes UI** | 15+ reutilizables |
 | **i18n** | ES + EN + PT + FR (4 idiomas, 130+ strings c/u) |
@@ -804,6 +806,8 @@ Assertions configuradas:
 | 29/04 | Sprint 6 | ADRs (3), User Stories (15), README badges actualizados |
 | 29/04 | Sprint 7 | Keyboard shortcuts, What's New, PWA install, ScrollToTop, Skeleton, CHANGELOG |
 | 29/04 | Sprint 7 | Tests: Badge, RiskBadge, ImpactBadge, GlassCard, Skeleton, useAnalytics (9 new) |
+| 29/04 | Sprint 8 | E2E modules (7), E2E accessibility (12), focus trap, BETA badge, input validation |
+| 29/04 | Sprint 8 | ARIA improvements, error boundary details, script generator validation |
 
 ### Decisiones Técnicas
 
@@ -853,4 +857,4 @@ Cuando el usuario diga **"documentar"**, ejecutar automáticamente:
 ---
 
 *Última actualización: 29 abril 2026, 06:15 GMT+8*
-*BETA READY — 97 tests · 6 módulos · Web + Desktop · i18n 4 idiomas · Storybook · Keyboard Shortcuts · PWA · CHANGELOG · $0*
+*BETA READY — 116 tests · 6 módulos · Web + Desktop · i18n 4 idiomas · Storybook · Keyboard Shortcuts · PWA · CHANGELOG · Focus Trap · ARIA · $0*

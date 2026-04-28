@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/pabloeckert/MejoraRedmi14c/actions/workflows/deploy.yml/badge.svg)](https://github.com/pabloeckert/MejoraRedmi14c/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-terracotta.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-88%20passing-brightgreen)](#testing)
+[![Tests](https://img.shields.io/badge/tests-116%20passing-brightgreen)](#testing)
 [![React](https://img.shields.io/badge/React-19.2-61dafb.svg)](https://react.dev)
 [![Electron](https://img.shields.io/badge/Electron-41.x-47848f.svg)](https://electronjs.org)
 
@@ -112,7 +112,7 @@ e2e/                     # 13 E2E tests (Playwright)
 
 ```bash
 npm run test:run       # 70 unit tests (Vitest)
-npm run test:e2e       # 18 E2E tests (Playwright + visual regression)
+npm run test:e2e       # 37 E2E tests (Playwright + modules + accessibility + visual regression)
 npm run test:coverage  # Coverage report
 ```
 
@@ -122,7 +122,9 @@ npm run test:coverage  # Coverage report
 - Components: 14 tests (GlassCard, Badge, RiskBadge, ImpactBadge, ErrorBoundary)
 - Accessibility: 8 tests (ARIA attributes)
 - LocalStorage: 6 tests (persistencia)
-- E2E: 13 tests (navegación, módulos, configuración, descarga)
+- E2E App: 13 tests (navegación, configuración, descarga)
+- E2E Modules: 7 tests (backup, debloat, performance, aesthetics, rescue, root)
+- E2E Accessibility: 12 tests (ARIA, landmarks, keyboard nav, focus)
 - Visual Regression: 5 tests (homepage, módulos, dark mode)
 
 ---
