@@ -2,7 +2,7 @@
 
 > **Trigger:** Cuando digas **"documentar"**, este archivo se actualiza automáticamente con los trabajos realizados.
 > **Carpeta:** `Documents/` — documentación única del proyecto.
-> **Última actualización:** 29 abril 2026, 04:30 GMT+8
+> **Última actualización:** 29 abril 2026, 06:15 GMT+8
 
 ---
 
@@ -56,8 +56,9 @@ Usuario → Selecciona módulos → Genera script .sh → Ejecuta en terminal
 | i18n | ✅ | ES (voseo) + EN, 130+ strings |
 | Electron | ✅ | Desktop app con CSP, IPC, auto-update |
 | PWA | ✅ | Service worker, offline-first |
-| CI/CD | ✅ | GitHub Actions → GitHub Pages |
+| CI/CD | ✅ | GitHub Actions → GitHub Pages (lint + test + build) |
 | Producción | ✅ | Lighthouse CI ≥90, dependabot, npm audit |
+| LICENSE | ✅ | MIT License |
 
 ---
 
@@ -176,7 +177,7 @@ MejoraRedmi14c/
 │   └── icons.svg                    ← Sprite de iconos
 ├── .github/
 │   ├── workflows/
-│   │   ├── deploy.yml               ← CI/CD → GitHub Pages
+│   │   ├── deploy.yml               ← CI/CD → GitHub Pages (lint+test+build)
 │   │   └── release.yml              ← Release builds (Electron)
 │   ├── dependabot.yml               ← Dependabot config
 │   └── ISSUE_TEMPLATE/              ← Templates de issues
@@ -187,6 +188,7 @@ MejoraRedmi14c/
 ├── playwright.config.js             ← Playwright config
 ├── eslint.config.js                 ← ESLint config
 ├── .lighthouserc.json               ← Lighthouse CI assertions
+├── LICENSE                          ← MIT License
 └── .gitignore
 ```
 
@@ -481,6 +483,7 @@ Assertions configuradas:
 | Dependabot | ✅ | Actualizaciones automáticas |
 | No ejecución directa | ✅ | Genera scripts, no ejecuta ADB |
 | localStorage only | ✅ | Sin datos sensibles en tránsito |
+| LICENSE | ✅ | MIT License completa |
 
 ### Consideraciones
 - **Sin backend** — todo es client-side, no hay datos que interceptar
@@ -534,7 +537,7 @@ Assertions configuradas:
 
 #### ⚙️ DevOps Engineer
 **Veredicto:** ✅ Pipeline funcional
-- GitHub Actions CI/CD completo
+- GitHub Actions CI/CD completo (lint + test + build)
 - Electron builds multi-plataforma
 - Release drafter configurado
 - **Mejora:** Code signing para builds de Electron (evitar warnings de seguridad)
@@ -555,10 +558,10 @@ Assertions configuradas:
 - **Mejora:** Firma de scripts generados (checksum), validación de input más estricta
 
 #### 📊 Data Engineer
-**Veredicto:** 🟡 Mejorable
-- Bloatware hardcodeado en `device.js`
-- **Mejora:** Extraer a JSON externo cargable dinámicamente
-- Permitir actualización de listas sin redeploy
+**Veredicto:** ✅ Resuelto
+- Bloatware extraído a JSON externo (`bloatware.json`)
+- Actualizable sin redeploy
+- **Mejora:** Validación de esquema JSON, versionado de datos
 
 #### 🤖 ML Engineer
 **Veredicto:** No aplica actualmente
@@ -568,6 +571,7 @@ Assertions configuradas:
 **Veredicto:** ✅ Completo
 - 83 tests con buena cobertura
 - E2E con Playwright
+- CI ejecuta tests automáticamente
 - **Mejora:** Visual regression tests, tests de performance
 
 #### 🗄️ DBA
@@ -645,10 +649,12 @@ Assertions configuradas:
 - **Mejora:** Google Ads para "optimizar Redmi 14C", YouTube tutorials
 
 #### 🔍 SEO Specialist
-**Veredicto:** 🟡 Mejorable
-- Meta tags básicos en index.html
-- **Mejora:** Structured data (JSON-LD), Open Graph, Twitter Cards
-- Blog con contenido optimizado para keywords relevantes
+**Veredicto:** ✅ Implementado
+- Meta tags completos (description, keywords, author)
+- Open Graph tags
+- Twitter Cards
+- Structured data (JSON-LD)
+- **Mejora:** Blog con contenido optimizado para keywords relevantes
 
 #### 🤝 Business Development Manager
 **Veredicto:** 🟡 Mejorable
@@ -680,9 +686,9 @@ Assertions configuradas:
 - Futuro: Análisis de qué combinaciones de tweaks dan mejor resultado
 
 #### ⚖️ Legal & Compliance Officer
-**Veredicto:** 🟡 Mejorable
-- MIT License correcta
-- **Mejora:** Disclaimer más visible (riesgo de ADB), términos de uso
+**Veredicto:** ✅ Resuelto
+- MIT License completa
+- **Mejora:** Disclaimer más visible en la app (riesgo de ADB)
 
 #### 🔒 DPO
 **Veredicto:** ✅ Correcto
@@ -724,34 +730,37 @@ Assertions configuradas:
 
 #### 🔴 Alta Prioridad (Sprint 6)
 
-| # | Tarea | Rol | Estado |
-|---|-------|-----|--------|
-| 1 | ~~Extraer bloatware a JSON externo~~ | Data Engineer | ✅ d8df4b9 |
-| 2 | Storybook para componentes visuales | UI Designer | ⏳ |
-| 3 | GitHub Projects board (Kanban) | Scrum Master | ⏳ |
-| 4 | README mejorado (GIFs, badges, antes/después) | Content Manager | ⏳ |
-| 5 | Release drafter + semantic versioning | Delivery Manager | ⏳ |
+| # | Tarea | Rol | Criterio de Aceptación | Estado |
+|---|-------|-----|----------------------|--------|
+| 1 | ~~Extraer bloatware a JSON externo~~ | Data Engineer | JSON separado, importado por device.js | ✅ d8df4b9 |
+| 2 | LICENSE MIT | Legal | Archivo LICENSE en raíz del repo | ✅ |
+| 3 | CI ejecuta tests | DevOps | deploy.yml incluye `npm run test:run` | ✅ |
+| 4 | Storybook para componentes visuales | UI Designer | Storybook funcional con todos los componentes ui/ | ⏳ |
+| 5 | GitHub Projects board (Kanban) | Scrum Master | Board público con columnas TODO/DOING/DONE | ⏳ |
+| 6 | README mejorado (GIFs, badges, antes/después) | Content Manager | GIFs de demo, tabla antes/después visual | ⏳ |
 
 #### 🟡 Media Prioridad (Sprint 7)
 
-| # | Tarea | Rol | Estado |
-|---|-------|-----|--------|
-| 6 | Discord server + comunidad | Community Manager | ⏳ |
-| 7 | Structured data (JSON-LD) + OG tags | SEO Specialist | ⏳ |
-| 8 | FAQ + troubleshooting guide | Customer Success | ⏳ |
-| 9 | Disclaimer legal más visible | Legal | ⏳ |
-| 10 | Analytics sin PII | BI Analyst | ⏳ |
+| # | Tarea | Rol | Criterio de Aceptación | Estado |
+|---|-------|-----|----------------------|--------|
+| 7 | Discord server + comunidad | Community Manager | Server activo con canales por módulo | ⏳ |
+| 8 | FAQ + troubleshooting guide | Customer Success | Wiki con ≥10 preguntas frecuentes | ⏳ |
+| 9 | Disclaimer legal más visible en app | Legal | Banner/modal en primera visita | ⏳ |
+| 10 | Analytics sin PII | BI Analyst | Contador de scripts generados (localStorage) | ⏳ |
+| 11 | User stories con acceptance criteria | Product Owner | Stories documentadas por módulo | ⏳ |
 
 #### 🟢 Baja Prioridad (Sprint 8)
 
-| # | Tarea | Rol | Estado |
-|---|-------|-----|--------|
-| 11 | GitHub Sponsors | Business Dev | ⏳ |
-| 12 | Landing page con dominio propio | Growth Manager | ⏳ |
-| 13 | Visual regression tests (Playwright) | QA Automation | ⏳ |
-| 14 | Code signing para Electron | DevOps | ⏳ |
-| 15 | Error tracking (Sentry) | SRE | ⏳ |
-| 16 | Más idiomas (PT, FR) | Localization | ⏳ |
+| # | Tarea | Rol | Criterio de Aceptación | Estado |
+|---|-------|-----|----------------------|--------|
+| 12 | GitHub Sponsors | Business Dev | Sponsor page activa | ⏳ |
+| 13 | Landing page con dominio propio | Growth Manager | Dominio + landing optimizada | ⏳ |
+| 14 | Visual regression tests (Playwright) | QA Automation | ≥5 visual regression tests | ⏳ |
+| 15 | Code signing para Electron | DevOps | Builds firmados sin warnings | ⏳ |
+| 16 | Error tracking (Sentry) | SRE | Sentry integrado en web y Electron | ⏳ |
+| 17 | Más idiomas (PT, FR) | Localization | ≥2 idiomas nuevos con 130+ strings | ⏳ |
+| 18 | Memoización de componentes pesados | Frontend | React.memo en listas >20 items | ⏳ |
+| 19 | ADRs (Architecture Decision Records) | Software Architect | ≥3 ADRs documentados | ⏳ |
 
 ---
 
@@ -783,6 +792,7 @@ Assertions configuradas:
 | 29/04 | Etapa 5 | Producción: auto-update, PWA offline, Lighthouse CI, dependabot |
 | 29/04 | **documentar** | Consolidación documental maestra + análisis multi-equipo |
 | 29/04 | Etapa 6 #1 | Bloatware extraído a JSON externo (actualizable sin redeploy) |
+| 29/04 | **documentar** | Optimización: LICENSE MIT, CI con tests, doc reestructurada |
 
 ### Decisiones Técnicas
 
@@ -796,6 +806,7 @@ Assertions configuradas:
 | Testing | Vitest + Playwright | Rápido, ESM, multi-browser |
 | Deploy | GitHub Pages | $0, simple, confiable |
 | i18n | Custom hooks | Ligero, sin dependencias externas |
+| Bloatware | JSON externo | Actualizable sin redeploy |
 
 ---
 
@@ -804,14 +815,14 @@ Assertions configuradas:
 ### Trigger
 Cuando el usuario diga **"documentar"**, ejecutar automáticamente:
 
-1. Leer `Documents/DOCUMENTACION.md`
+1. Leer `Documents/DOCUMENTACION.md` (este archivo)
 2. Revisar cambios desde la última actualización (`git log`)
 3. Actualizar secciones:
    - **Registro de Avances** → timeline, estado general, decisiones
    - **Módulos Funcionales** → si hay módulos nuevos
    - **Testing** → si hay nuevos tests
    - **Stack Técnico** → si cambió alguna tecnología
-   - **Plan por Etapas** → si se completó una tarea
+   - **Plan por Etapas** → si se completó una tarea (marcar ✅)
    - **Análisis Multidisciplinario** → si cambió el estado de algún rol
 4. Commit: `docs: documentar — [resumen de cambios]`
 5. Push al repo
@@ -820,7 +831,15 @@ Cuando el usuario diga **"documentar"**, ejecutar automáticamente:
 > No preguntes qué documentar. Asumí que querés actualizar TODO lo que cambió desde la última entrada del timeline. El commit message resume los cambios en una línea.
 > **DOCUMENTO ÚNICO:** Este es el único archivo de documentación. No crear otros archivos de doc en `Documents/`.
 
+### Checklist rápido
+- [ ] ¿Cambió el número de tests? → Actualizar sección 8
+- [ ] ¿Hay módulos nuevos? → Actualizar sección 3
+- [ ] ¿Cambió el stack? → Actualizar sección 4
+- [ ] ¿Se completó una tarea del plan? → Marcar ✅ en sección 12
+- [ ] ¿Hubo decisiones técnicas nuevas? → Agregar a tabla en sección 13
+- [ ] ¿Cambió el estado general? → Actualizar tabla en sección 13
+
 ---
 
-*Última actualización: 29 abril 2026, 04:30 GMT+8*
-*ETAPA 5 COMPLETA — 83 tests · 6 módulos · Web + Desktop · i18n ES/EN · $0*
+*Última actualización: 29 abril 2026, 06:15 GMT+8*
+*ETAPA 5 COMPLETA — 83 tests · 6 módulos · Web + Desktop · i18n ES/EN · LICENSE MIT · $0*
