@@ -47,7 +47,7 @@ export function BackupModule() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-5" role="region" aria-label="Módulo de Backup">
       <AssistantGuide module="backup" />
 
       <div className="flex items-center justify-between flex-wrap gap-3">

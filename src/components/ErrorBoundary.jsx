@@ -18,8 +18,8 @@ export class ErrorBoundary extends Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="glass rounded-xl p-6 text-center">
-          <RotateCcw className="w-8 h-8 text-danger mx-auto mb-3" />
+        <div className="glass rounded-xl p-6 text-center" role="alert" aria-live="assertive">
+          <RotateCcw className="w-8 h-8 text-danger mx-auto mb-3" aria-hidden="true" />
           <h3 className="text-lg font-bold text-text-primary mb-2">Algo salió mal</h3>
           <p className="text-sm text-text-secondary mb-4">
             {this.props.module
@@ -29,13 +29,17 @@ export class ErrorBoundary extends Component {
           <button
             onClick={() => this.setState({ hasError: false, error: null })}
             className="px-4 py-2 rounded-lg bg-brand-500 text-white text-sm font-semibold hover:bg-brand-400 transition-colors"
+            aria-label="Reintentar carga del módulo"
           >
             Reintentar
           </button>
           {this.state.error && (
-            <pre className="code-block text-xs mt-4 text-left max-h-32 overflow-y-auto">
-              {this.state.error.message}
-            </pre>
+            <details className="mt-4 text-left">
+              <summary className="text-xs text-text-muted cursor-pointer">Detalles del error</summary>
+              <pre className="code-block text-xs mt-2 max-h-32 overflow-y-auto">
+                {this.state.error.message}
+              </pre>
+            </details>
           )}
         </div>
       );
