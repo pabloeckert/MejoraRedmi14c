@@ -2,7 +2,7 @@
 
 > **Trigger:** Cuando digas **"documentar"**, este archivo se actualiza automáticamente con los trabajos realizados.
 > **Carpeta:** `Documents/` — documentación única del proyecto.
-> **Última actualización:** 29 abril 2026, 06:15 GMT+8
+> **Última actualización:** 29 abril 2026, 06:18 GMT+8
 
 ---
 
@@ -117,6 +117,7 @@ MejoraRedmi14c/
 │   │   │   ├── CopyButton.jsx       ← Botón copiar con feedback
 │   │   │   └── index.js             ← Barrel exports
 │   │   ├── AssistantGuide.jsx       ← Asistente contextual por módulo
+│   │   ├── Disclaimer.jsx           ← Aviso legal (primera visita)
 │   │   ├── DeviceHeader.jsx         ← Header con info del dispositivo
 │   │   ├── ElectronStatusBar.jsx    ← Status bar (Electron only)
 │   │   ├── ErrorBoundary.jsx        ← Error isolation por módulo
@@ -144,6 +145,7 @@ MejoraRedmi14c/
 │   │   ├── device.js                ← Constantes: DEVICE, TWEAKS, BACKUP_TARGETS
 │   │   └── modules.js               ← Configuración de navegación
 │   ├── hooks/
+│   │   ├── useAnalytics.js          ← Analytics local (localStorage, cero PII)
 │   │   ├── useElectron.js           ← IPC bridge (Electron APIs)
 │   │   ├── useHistory.js            ← Historial de scripts
 │   │   ├── useI18n.js               ← Hook de internacionalización
@@ -677,18 +679,18 @@ Assertions configuradas:
 ### Área de Operaciones, Legal y Análisis
 
 #### 📊 BI Analyst
-**Veredicto:** 🟡 Mejorable
-- Sin métricas de uso
-- **Mejora:** Analytics sin PII (page views, module usage, script generation count)
+**Veredicto:** ✅ Implementado
+- useAnalytics hook: cuenta scripts generados y módulos usados
+- localStorage only, cero PII, sin requests de red
 
 #### 🔬 Data Scientist
 **Veredicto:** No aplica actualmente
 - Futuro: Análisis de qué combinaciones de tweaks dan mejor resultado
 
 #### ⚖️ Legal & Compliance Officer
-**Veredicto:** ✅ Resuelto
+**Veredicto:** ✅ Completo
 - MIT License completa
-- **Mejora:** Disclaimer más visible en la app (riesgo de ADB)
+- Disclaimer legal en primera visita (re-visible desde Settings)
 
 #### 🔒 DPO
 **Veredicto:** ✅ Correcto
@@ -737,7 +739,7 @@ Assertions configuradas:
 | 3 | CI ejecuta tests | DevOps | deploy.yml incluye `npm run test:run` | ✅ |
 | 4 | Storybook para componentes visuales | UI Designer | Storybook funcional con todos los componentes ui/ | ⏳ |
 | 5 | GitHub Projects board (Kanban) | Scrum Master | Board público con columnas TODO/DOING/DONE | ⏳ |
-| 6 | README mejorado (GIFs, badges, antes/después) | Content Manager | GIFs de demo, tabla antes/después visual | ⏳ |
+| 6 | ~~README mejorado~~ | Content Manager | Diagrama de flujo, sección seguridad, badges, antes/después | ✅ daefb30 |
 
 #### 🟡 Media Prioridad (Sprint 7)
 
@@ -745,8 +747,8 @@ Assertions configuradas:
 |---|-------|-----|----------------------|--------|
 | 7 | Discord server + comunidad | Community Manager | Server activo con canales por módulo | ⏳ |
 | 8 | FAQ + troubleshooting guide | Customer Success | Wiki con ≥10 preguntas frecuentes | ⏳ |
-| 9 | Disclaimer legal más visible en app | Legal | Banner/modal en primera visita | ⏳ |
-| 10 | Analytics sin PII | BI Analyst | Contador de scripts generados (localStorage) | ⏳ |
+| 9 | ~~Disclaimer legal más visible en app~~ | Legal | Banner en primera visita + re-visible desde Settings | ✅ daefb30 |
+| 10 | ~~Analytics sin PII~~ | BI Analyst | useAnalytics hook, localStorage only, cero PII | ✅ daefb30 |
 | 11 | User stories con acceptance criteria | Product Owner | Stories documentadas por módulo | ⏳ |
 
 #### 🟢 Baja Prioridad (Sprint 8)
@@ -793,6 +795,7 @@ Assertions configuradas:
 | 29/04 | **documentar** | Consolidación documental maestra + análisis multi-equipo |
 | 29/04 | Etapa 6 #1 | Bloatware extraído a JSON externo (actualizable sin redeploy) |
 | 29/04 | **documentar** | Optimización: LICENSE MIT, CI con tests, doc reestructurada |
+| 29/04 | Sprint 6 | Disclaimer legal (primera visita + re-visible), analytics sin PII, README mejorado |
 
 ### Decisiones Técnicas
 
