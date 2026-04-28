@@ -92,16 +92,28 @@ function generateTweakSection(mod) {
  * @returns {string} Bash script content
  */
 export function generateScript(modules, deviceName = 'Redmi14C') {
-  if (!modules || modules.length === 0) {
+  if (!modules || !Array.isArray(modules) || modules.length === 0) {
     throw new Error('Se requiere al menos un módulo');
   }
 
   // Validate all modules
   modules.forEach(validateModule);
 
+  // Filter out empty modules
+  const validModules = modules.filter(mod => {
+    if (mod.type === 'backup') return mod.targets && mod.targets.length > 0;
+    if (mod.type === 'debloat') return mod.packages && mod.packages.length > 0;
+    if (mod.type === 'tweak') return mod.tweaks && mod.tweaks.length > 0;
+    return false;
+  });
+
+  if (validModules.length === 0) {
+    throw new Error('Ningún módulo tiene contenido seleccionado');
+  }
+
   const lines = generateHeader(deviceName);
 
-  for (const mod of modules) {
+  for (const mod of validModules) {
     lines.push(`# ${'='.repeat(50)}`);
     lines.push(`# ${mod.name}`);
     lines.push(`# ${'='.repeat(50)}`);

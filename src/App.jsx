@@ -130,6 +130,9 @@ function AppContent() {
             transition={{ delay: 0.15 }}
           >
             Mejora<span className="text-brand-500">Redmi</span>14c
+            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[0.6rem] font-semibold bg-accent-400/15 text-accent-400 border border-accent-400/20 align-top">
+              BETA
+            </span>
           </motion.h1>
 
           <motion.p

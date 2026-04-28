@@ -54,9 +54,14 @@ export function RescueModule() {
   ];
 
   const restoreSingle = () => {
-    if (packageName.trim()) {
-      setRestoreCmd(`adb shell pm install-existing --user 0 ${packageName.trim()}`);
+    const pkg = packageName.trim();
+    if (!pkg) return;
+    // Basic validation: package names should contain at least one dot
+    if (!pkg.includes('.')) {
+      setRestoreCmd('⚠️ Nombre de paquete inválido. Usá formato: com.package.name');
+      return;
     }
+    setRestoreCmd(`adb shell pm install-existing --user 0 ${pkg}`);
   };
 
   return (
@@ -80,6 +85,8 @@ export function RescueModule() {
             value={packageName}
             onChange={(e) => setPackageName(e.target.value)}
             placeholder="com.package.name"
+            aria-label="Nombre del paquete a restaurar"
+            aria-describedby="restore-hint"
             className="flex-1 bg-surface-1 border border-surface-3 rounded-lg px-3 py-2 text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:ring-2 focus:ring-brand-500"
           />
           <motion.button
@@ -91,6 +98,9 @@ export function RescueModule() {
             Restaurar
           </motion.button>
         </div>
+        <p id="restore-hint" className="text-[0.65rem] text-text-muted mt-1">
+          Formato: com.package.name (ej: com.miui.gallery)
+        </p>
         {restoreCmd && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3">
             <div className="flex items-center justify-between mb-1">
