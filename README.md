@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/pabloeckert/MejoraRedmi14c/actions/workflows/deploy.yml/badge.svg)](https://github.com/pabloeckert/MejoraRedmi14c/actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-terracotta.svg)](LICENSE)
-[![Tests](https://img.shields.io/badge/tests-83%20passing-brightgreen)](#testing)
+[![Tests](https://img.shields.io/badge/tests-88%20passing-brightgreen)](#testing)
 [![React](https://img.shields.io/badge/React-19.2-61dafb.svg)](https://react.dev)
 [![Electron](https://img.shields.io/badge/Electron-41.x-47848f.svg)](https://electronjs.org)
 
@@ -77,9 +77,10 @@ npm run build        # build de producción
 | Frontend | React 19 + Vite 8 + Tailwind CSS 4 |
 | Animaciones | Framer Motion (spring physics) |
 | Desktop | Electron 41 |
-| Testing | Vitest (70 unit) + Playwright (13 E2E) |
+| Testing | Vitest (70 unit) + Playwright (18 E2E) |
+| Component Docs | Storybook 8 |
 | CI/CD | GitHub Actions → GitHub Pages |
-| i18n | Español (voseo) + English |
+| i18n | Español + English + Português + Français |
 
 ---
 
@@ -111,7 +112,7 @@ e2e/                     # 13 E2E tests (Playwright)
 
 ```bash
 npm run test:run       # 70 unit tests (Vitest)
-npm run test:e2e       # 13 E2E tests (Playwright)
+npm run test:e2e       # 18 E2E tests (Playwright + visual regression)
 npm run test:coverage  # Coverage report
 ```
 
@@ -122,6 +123,7 @@ npm run test:coverage  # Coverage report
 - Accessibility: 8 tests (ARIA attributes)
 - LocalStorage: 6 tests (persistencia)
 - E2E: 13 tests (navegación, módulos, configuración, descarga)
+- Visual Regression: 5 tests (homepage, módulos, dark mode)
 
 ---
 
@@ -139,7 +141,7 @@ npm run test:coverage  # Coverage report
 
 ## 🌍 i18n
 
-Soporte para **español** (voseo argentino) e **inglés**.
+Soporte para **español** (voseo argentino), **inglés**, **portugués** y **francés**.
 Cambio de idioma desde Configuración → Idioma.
 
 ---
