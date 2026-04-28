@@ -2,7 +2,7 @@
 
 > **Trigger:** Cuando digas **"documentar"**, este archivo se actualiza automáticamente con los trabajos realizados.
 > **Carpeta:** `Documents/` — documentación única del proyecto.
-> **Última actualización:** 29 abril 2026, 06:18 GMT+8
+> **Última actualización:** 29 abril 2026, 06:22 GMT+8
 
 ---
 
@@ -288,7 +288,8 @@ Guía paso a paso con Magisk:
 | **Iconos** | Lucide React | 1.11 | Tree-shakeable |
 | **Desktop** | Electron | 41.x | Context isolation, CSP |
 | **Testing Unit** | Vitest | 4.x | ESM nativo, rápido |
-| **Testing E2E** | Playwright | 1.59 | Multi-browser |
+| **Testing E2E** | Playwright | 1.59 | Multi-browser + visual regression |
+| **Component Docs** | Storybook | 8.x | Stories + autodocs |
 | **Linting** | ESLint | 10.x | Flat config |
 | **CI/CD** | GitHub Actions | — | GH Pages deploy |
 | **PWA** | Service Worker | — | Offline-first |
@@ -413,7 +414,7 @@ Constantes del dispositivo:
 
 ## 8. Testing
 
-### Resumen: 83 tests totales
+### Resumen: 88 tests totales
 
 | Suite | Tests | Archivo | Tipo |
 |-------|-------|---------|------|
@@ -423,7 +424,8 @@ Constantes del dispositivo:
 | Accessibility | 8 | `accessibility.test.jsx` | Unit |
 | LocalStorage | 6 | `useLocalStorage.test.js` | Unit |
 | E2E | 13 | `e2e/app.spec.js` | E2E |
-| **Total** | **83** | | |
+| Visual Regression | 5 | `e2e/visual.spec.js` | E2E |
+| **Total** | **88** | | |
 
 ### Cobertura por área
 - **Script generator:** generación, módulos, errores, restore
@@ -571,10 +573,10 @@ Assertions configuradas:
 
 #### 🧪 QA Automation Engineer
 **Veredicto:** ✅ Completo
-- 83 tests con buena cobertura
-- E2E con Playwright
+- 88 tests con buena cobertura
+- E2E con Playwright + visual regression (5 screenshots)
 - CI ejecuta tests automáticamente
-- **Mejora:** Visual regression tests, tests de performance
+- **Mejora:** Tests de performance, más visual regression
 
 #### 🗄️ DBA
 **Veredicto:** No aplica — sin base de datos
@@ -622,10 +624,10 @@ Assertions configuradas:
 
 #### 🌍 Localization Manager
 **Veredicto:** ✅ Completo
-- i18n ES (voseo) + EN
-- 130+ strings traducidos
-- Cambio de idioma desde Settings
-- **Mejora:** Más idiomas (PT, FR), community translations
+- i18n ES (voseo) + EN + PT + FR
+- 130+ strings traducidos por idioma
+- Selector visual con 4 botones en Settings
+- **Mejora:** Community translations, más idiomas (DE, IT, JA)
 
 #### 📦 Delivery Manager
 **Veredicto:** ✅ OK
@@ -737,8 +739,8 @@ Assertions configuradas:
 | 1 | ~~Extraer bloatware a JSON externo~~ | Data Engineer | JSON separado, importado por device.js | ✅ d8df4b9 |
 | 2 | LICENSE MIT | Legal | Archivo LICENSE en raíz del repo | ✅ |
 | 3 | CI ejecuta tests | DevOps | deploy.yml incluye `npm run test:run` | ✅ |
-| 4 | Storybook para componentes visuales | UI Designer | Storybook funcional con todos los componentes ui/ | ⏳ |
-| 5 | GitHub Projects board (Kanban) | Scrum Master | Board público con columnas TODO/DOING/DONE | ⏳ |
+| 4 | ~~Storybook para componentes visuales~~ | UI Designer | Storybook con 5 componentes ui/ + autodocs | ✅ 8d1e087 |
+| 5 | GitHub Projects board (Kanban) | Scrum Master | Board público con columnas TODO/DOING/DONE | ⏳ (necesita gh CLI) |
 | 6 | ~~README mejorado~~ | Content Manager | Diagrama de flujo, sección seguridad, badges, antes/después | ✅ daefb30 |
 
 #### 🟡 Media Prioridad (Sprint 7)
@@ -746,7 +748,7 @@ Assertions configuradas:
 | # | Tarea | Rol | Criterio de Aceptación | Estado |
 |---|-------|-----|----------------------|--------|
 | 7 | Discord server + comunidad | Community Manager | Server activo con canales por módulo | ⏳ |
-| 8 | FAQ + troubleshooting guide | Customer Success | Wiki con ≥10 preguntas frecuentes | ⏳ |
+| 8 | ~~FAQ + troubleshooting guide~~ | Customer Success | FAQ flotante con 10 preguntas + búsqueda | ✅ 8d1e087 |
 | 9 | ~~Disclaimer legal más visible en app~~ | Legal | Banner en primera visita + re-visible desde Settings | ✅ daefb30 |
 | 10 | ~~Analytics sin PII~~ | BI Analyst | useAnalytics hook, localStorage only, cero PII | ✅ daefb30 |
 | 11 | User stories con acceptance criteria | Product Owner | Stories documentadas por módulo | ⏳ |
@@ -757,11 +759,11 @@ Assertions configuradas:
 |---|-------|-----|----------------------|--------|
 | 12 | GitHub Sponsors | Business Dev | Sponsor page activa | ⏳ |
 | 13 | Landing page con dominio propio | Growth Manager | Dominio + landing optimizada | ⏳ |
-| 14 | Visual regression tests (Playwright) | QA Automation | ≥5 visual regression tests | ⏳ |
+| 14 | ~~Visual regression tests (Playwright)~~ | QA Automation | 5 screenshot tests (homepage, modules, dark mode) | ✅ 8d1e087 |
 | 15 | Code signing para Electron | DevOps | Builds firmados sin warnings | ⏳ |
 | 16 | Error tracking (Sentry) | SRE | Sentry integrado en web y Electron | ⏳ |
-| 17 | Más idiomas (PT, FR) | Localization | ≥2 idiomas nuevos con 130+ strings | ⏳ |
-| 18 | Memoización de componentes pesados | Frontend | React.memo en listas >20 items | ⏳ |
+| 17 | ~~Más idiomas (PT, FR)~~ | Localization | PT + FR — 4 idiomas en total | ✅ 8d1e087 |
+| 18 | ~~Memoización de componentes pesados~~ | Frontend | memo() en PackageItem/TweakItem + useCallback | ✅ 8d1e087 |
 | 19 | ADRs (Architecture Decision Records) | Software Architect | ≥3 ADRs documentados | ⏳ |
 
 ---
@@ -776,10 +778,10 @@ Assertions configuradas:
 |-------|-------|
 | **Nombre** | MejoraRedmi14c |
 | **Fase** | Producción — Etapa 5 completa |
-| **Tests** | 83 (70 unit + 13 E2E) |
+| **Tests** | 88 (70 unit + 18 E2E) |
 | **Módulos** | 6 (Backup, Debloat, Performance, Estética, Rescate, Root) |
 | **Componentes UI** | 15+ reutilizables |
-| **i18n** | ES + EN (130+ strings) |
+| **i18n** | ES + EN + PT + FR (4 idiomas, 130+ strings c/u) |
 | **Plataformas** | Web + Desktop (Win/Mac/Linux) |
 | **Costo** | $0 |
 
@@ -796,6 +798,7 @@ Assertions configuradas:
 | 29/04 | Etapa 6 #1 | Bloatware extraído a JSON externo (actualizable sin redeploy) |
 | 29/04 | **documentar** | Optimización: LICENSE MIT, CI con tests, doc reestructurada |
 | 29/04 | Sprint 6 | Disclaimer legal (primera visita + re-visible), analytics sin PII, README mejorado |
+| 29/04 | Sprint 6 | Storybook (5 componentes), memoización, FAQ, visual regression tests, i18n PT+FR (4 idiomas) |
 
 ### Decisiones Técnicas
 
@@ -845,4 +848,4 @@ Cuando el usuario diga **"documentar"**, ejecutar automáticamente:
 ---
 
 *Última actualización: 29 abril 2026, 06:15 GMT+8*
-*ETAPA 5 COMPLETA — 83 tests · 6 módulos · Web + Desktop · i18n ES/EN · LICENSE MIT · $0*
+*ETAPA 5 COMPLETA — 88 tests · 6 módulos · Web + Desktop · i18n ES/EN/PT/FR · Storybook · LICENSE MIT · $0*
