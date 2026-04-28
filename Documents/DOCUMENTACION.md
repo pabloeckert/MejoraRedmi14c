@@ -2,7 +2,7 @@
 
 > **Trigger:** Cuando digas **"documentar"**, este archivo se actualiza automáticamente con los trabajos realizados.
 > **Carpeta:** `Documents/` — documentación única del proyecto.
-> **Última actualización:** 29 abril 2026, 06:22 GMT+8
+> **Última actualización:** 29 abril 2026, 06:32 GMT+8
 
 ---
 
@@ -414,18 +414,20 @@ Constantes del dispositivo:
 
 ## 8. Testing
 
-### Resumen: 88 tests totales
+### Resumen: 97 tests totales
 
 | Suite | Tests | Archivo | Tipo |
 |-------|-------|---------|------|
 | Script Generator | 18 | `scriptGenerator.test.js` | Unit |
 | Device Data | 24 | `device.test.js` | Unit |
 | Components | 14 | `components.test.jsx` | Unit |
+| UI Components | 10 | `components-new.test.jsx` | Unit |
 | Accessibility | 8 | `accessibility.test.jsx` | Unit |
 | LocalStorage | 6 | `useLocalStorage.test.js` | Unit |
+| Analytics | 5 | `analytics.test.js` | Unit |
 | E2E | 13 | `e2e/app.spec.js` | E2E |
 | Visual Regression | 5 | `e2e/visual.spec.js` | E2E |
-| **Total** | **88** | | |
+| **Total** | **97** | | |
 
 ### Cobertura por área
 - **Script generator:** generación, módulos, errores, restore
@@ -573,10 +575,10 @@ Assertions configuradas:
 
 #### 🧪 QA Automation Engineer
 **Veredicto:** ✅ Completo
-- 88 tests con buena cobertura
+- 97 tests con buena cobertura
 - E2E con Playwright + visual regression (5 screenshots)
+- Tests unitarios para UI components, analytics, hooks
 - CI ejecuta tests automáticamente
-- **Mejora:** Tests de performance, más visual regression
 
 #### 🗄️ DBA
 **Veredicto:** No aplica — sin base de datos
@@ -778,7 +780,7 @@ Assertions configuradas:
 |-------|-------|
 | **Nombre** | MejoraRedmi14c |
 | **Fase** | Producción — Etapa 5 completa |
-| **Tests** | 88 (70 unit + 18 E2E) |
+| **Tests** | 97 (74 unit + 18 E2E + 5 visual) |
 | **Módulos** | 6 (Backup, Debloat, Performance, Estética, Rescate, Root) |
 | **Componentes UI** | 15+ reutilizables |
 | **i18n** | ES + EN + PT + FR (4 idiomas, 130+ strings c/u) |
@@ -800,6 +802,8 @@ Assertions configuradas:
 | 29/04 | Sprint 6 | Disclaimer legal (primera visita + re-visible), analytics sin PII, README mejorado |
 | 29/04 | Sprint 6 | Storybook (5 componentes), memoización, FAQ, visual regression tests, i18n PT+FR (4 idiomas) |
 | 29/04 | Sprint 6 | ADRs (3), User Stories (15), README badges actualizados |
+| 29/04 | Sprint 7 | Keyboard shortcuts, What's New, PWA install, ScrollToTop, Skeleton, CHANGELOG |
+| 29/04 | Sprint 7 | Tests: Badge, RiskBadge, ImpactBadge, GlassCard, Skeleton, useAnalytics (9 new) |
 
 ### Decisiones Técnicas
 
@@ -849,4 +853,4 @@ Cuando el usuario diga **"documentar"**, ejecutar automáticamente:
 ---
 
 *Última actualización: 29 abril 2026, 06:15 GMT+8*
-*ETAPA 5 COMPLETA — 88 tests · 6 módulos · Web + Desktop · i18n ES/EN/PT/FR · Storybook · LICENSE MIT · $0*
+*BETA READY — 97 tests · 6 módulos · Web + Desktop · i18n 4 idiomas · Storybook · Keyboard Shortcuts · PWA · CHANGELOG · $0*
