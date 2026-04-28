@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Download, CheckCircle2 } from 'lucide-react';
 import { DEVICE, TWEAKS } from '../data/device';
@@ -7,26 +7,57 @@ import { AssistantGuide } from '../components/AssistantGuide';
 import { Badge, RiskBadge, ImpactBadge, CopyButton } from '../components/ui';
 import { useToastContext } from '../hooks/useToastContext';
 
+const TweakItem = memo(function TweakItem({ tweak, isSelected, onToggle, index }) {
+  return (
+    <motion.div
+      className={`glass rounded-lg p-4 cursor-pointer ${isSelected ? 'ring-1 ring-brand-400/40' : 'opacity-60'}`}
+      onClick={() => onToggle(tweak.id)}
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: isSelected ? 1 : 0.6, y: 0 }}
+      transition={{ delay: 0.03 * index }}
+    >
+      <div className="flex items-start justify-between">
+        <div className="flex items-start gap-3">
+          <CheckCircle2 className={`w-5 h-5 mt-0.5 ${isSelected ? 'text-brand-500' : 'text-surface-4'}`} />
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <p className="text-sm font-medium text-text-primary">{tweak.name}</p>
+              <RiskBadge risk={tweak.risk} />
+              <ImpactBadge impact={tweak.impact} />
+            </div>
+            <p className="text-xs text-text-muted mt-1">{tweak.desc}</p>
+            {isSelected && (
+              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2">
+                <pre className="code-block text-xs">{tweak.cmd}</pre>
+              </motion.div>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
 export function PerformanceModule() {
   const [selected, setSelected] = useState(new Set(TWEAKS.performance.map(t => t.id)));
   const [script, setScript] = useState('');
   const toast = useToastContext();
 
-  const toggle = (id) => {
+  const toggle = useCallback((id) => {
     setSelected(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
-  const generate = () => {
+  const generate = useCallback(() => {
     const tweaks = TWEAKS.performance.filter(t => selected.has(t.id));
     const s = generateScript([{ name: 'Performance Tweaks', type: 'tweak', tweaks }]);
     setScript(s);
     toast?.success('Script de performance generado');
-  };
+  }, [selected, toast]);
 
   return (
     <div className="space-y-4">
@@ -42,33 +73,13 @@ export function PerformanceModule() {
 
       <div className="space-y-3">
         {TWEAKS.performance.map((tweak, i) => (
-          <motion.div
+          <TweakItem
             key={tweak.id}
-            className={`glass rounded-lg p-4 cursor-pointer ${selected.has(tweak.id) ? 'ring-1 ring-brand-400/40' : 'opacity-60'}`}
-            onClick={() => toggle(tweak.id)}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: selected.has(tweak.id) ? 1 : 0.6, y: 0 }}
-            transition={{ delay: 0.03 * i }}
-          >
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-3">
-                <CheckCircle2 className={`w-5 h-5 mt-0.5 ${selected.has(tweak.id) ? 'text-brand-500' : 'text-surface-4'}`} />
-                <div className="flex-1">
-                  <div className="flex items-center gap-2">
-                    <p className="text-sm font-medium text-text-primary">{tweak.name}</p>
-                    <RiskBadge risk={tweak.risk} />
-                    <ImpactBadge impact={tweak.impact} />
-                  </div>
-                  <p className="text-xs text-text-muted mt-1">{tweak.desc}</p>
-                  {selected.has(tweak.id) && (
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-2">
-                      <pre className="code-block text-xs">{tweak.cmd}</pre>
-                    </motion.div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
+            tweak={tweak}
+            isSelected={selected.has(tweak.id)}
+            onToggle={toggle}
+            index={i}
+          />
         ))}
       </div>
 

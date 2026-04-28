@@ -106,13 +106,22 @@ export function SettingsPanel({ theme, setTheme, grain, setGrain, animations, se
                   <Globe className="w-4 h-4 text-text-muted" />
                   <span className="text-sm text-text-secondary" id="lang-label">Idioma</span>
                 </div>
-                <button
-                  onClick={() => switchLocale(locale === 'es' ? 'en' : 'es')}
-                  aria-labelledby="lang-label"
-                  className="px-3 py-1 rounded-lg bg-surface-2 text-xs font-semibold text-text-secondary hover:bg-surface-3 transition-colors"
-                >
-                  {locale === 'es' ? 'EN' : 'ES'}
-                </button>
+                <div className="flex gap-1">
+                  {['es', 'en', 'pt', 'fr'].map((lang) => (
+                    <button
+                      key={lang}
+                      onClick={() => switchLocale(lang)}
+                      aria-label={`${lang.toUpperCase()}`}
+                      className={`px-2 py-1 rounded-lg text-xs font-semibold transition-colors ${
+                        locale === lang
+                          ? 'bg-brand-500 text-white'
+                          : 'bg-surface-2 text-text-muted hover:bg-surface-3'
+                      }`}
+                    >
+                      {lang.toUpperCase()}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 

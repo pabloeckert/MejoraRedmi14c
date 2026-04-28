@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Download, CheckCircle2, Shield, ShieldCheck, ShieldAlert, AlertTriangle } from 'lucide-react';
 import { BLOATWARE } from '../data/device';
@@ -19,32 +19,58 @@ const PROFILE_STYLES = {
   aggressive:{ bg: 'bg-rose-50', border: 'border-rose-300', text: 'text-rose-700', icon: 'text-rose-500', darkBg: 'dark:bg-rose-950/30', darkBorder: 'dark:border-rose-700/40' },
 };
 
+// Memoized package item — avoids re-rendering 45+ items on every toggle
+const PackageItem = memo(function PackageItem({ pkg, isSelected, onToggle, index }) {
+  return (
+    <motion.button
+      onClick={() => onToggle(pkg.pkg)}
+      className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
+        isSelected
+          ? 'bg-surface-1 border-brand-400/30 shadow-sm'
+          : 'bg-surface-0 border-glass-border opacity-50 hover:opacity-70'
+      }`}
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: isSelected ? 1 : 0.5, x: 0 }}
+      transition={{ delay: 0.015 * index }}
+    >
+      <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-brand-500' : 'text-surface-4'}`} />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-text-primary">{pkg.name}</p>
+        <p className="text-xs text-text-muted truncate">{pkg.pkg}</p>
+      </div>
+      <RiskBadge risk={pkg.risk} />
+    </motion.button>
+  );
+});
+
 export function DebloatModule() {
   const [profile, setProfile] = useState('safe');
   const [selected, setSelected] = useState(new Set(BLOATWARE.safe.map(p => p.pkg)));
   const [script, setScript] = useState('');
   const toast = useToastContext();
 
-  const switchProfile = (p) => {
+  const switchProfile = useCallback((p) => {
     setProfile(p);
     setSelected(new Set(BLOATWARE[p].map(x => x.pkg)));
-  };
+  }, []);
 
-  const togglePkg = (pkg) => {
+  const togglePkg = useCallback((pkg) => {
     setSelected(prev => {
       const next = new Set(prev);
       if (next.has(pkg)) next.delete(pkg);
       else next.add(pkg);
       return next;
     });
-  };
+  }, []);
 
-  const generate = () => {
+  const generate = useCallback(() => {
     const packages = BLOATWARE[profile].filter(p => selected.has(p.pkg));
     const s = generateScript([{ name: `Debloat (${profile})`, type: 'debloat', packages }]);
     setScript(s);
     toast?.success(`Script de debloat (${profile}) generado`);
-  };
+  }, [profile, selected, toast]);
+
+  const currentPackages = useMemo(() => BLOATWARE[profile], [profile]);
 
   const currentProfile = PROFILES.find(p => p.id === profile);
   const ps = PROFILE_STYLES[profile];
@@ -100,32 +126,17 @@ export function DebloatModule() {
         </motion.div>
       )}
 
-      {/* Package list */}
+      {/* Package list — memoized items for performance */}
       <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-        {BLOATWARE[profile].map((pkg, i) => {
-          const isSelected = selected.has(pkg.pkg);
-          return (
-            <motion.button
-              key={pkg.pkg}
-              onClick={() => togglePkg(pkg.pkg)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl border text-left transition-all ${
-                isSelected
-                  ? 'bg-surface-1 border-brand-400/30 shadow-sm'
-                  : 'bg-surface-0 border-glass-border opacity-50 hover:opacity-70'
-              }`}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: isSelected ? 1 : 0.5, x: 0 }}
-              transition={{ delay: 0.015 * i }}
-            >
-              <CheckCircle2 className={`w-4 h-4 flex-shrink-0 ${isSelected ? 'text-brand-500' : 'text-surface-4'}`} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-text-primary">{pkg.name}</p>
-                <p className="text-xs text-text-muted truncate">{pkg.pkg}</p>
-              </div>
-              <RiskBadge risk={pkg.risk} />
-            </motion.button>
-          );
-        })}
+        {currentPackages.map((pkg, i) => (
+          <PackageItem
+            key={pkg.pkg}
+            pkg={pkg}
+            isSelected={selected.has(pkg.pkg)}
+            onToggle={togglePkg}
+            index={i}
+          />
+        ))}
       </div>
 
       {/* Actions */}

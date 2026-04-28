@@ -1,9 +1,11 @@
 import { useState, useCallback } from 'react';
 import es from '../locales/es.json';
 import en from '../locales/en.json';
+import pt from '../locales/pt.json';
+import fr from '../locales/fr.json';
 import { I18nContext } from '../hooks/useI18n';
 
-const LOCALES = { es, en };
+const LOCALES = { es, en, pt, fr };
 
 export function I18nProvider({ children }) {
   const [locale, setLocale] = useState(() => {

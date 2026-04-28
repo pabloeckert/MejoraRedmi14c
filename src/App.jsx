@@ -17,6 +17,7 @@ import { useI18n } from './hooks/useI18n';
 import { I18nProvider } from './components/I18nProvider';
 import { Onboarding } from './components/Onboarding';
 import { Disclaimer } from './components/Disclaimer';
+import { FAQ } from './components/FAQ';
 import { UpdateBanner } from './components/UpdateBanner';
 
 // Code splitting — módulos cargados bajo demanda
@@ -179,6 +180,7 @@ function AppContent() {
           </p>
         </motion.footer>
 
+        <FAQ />
         <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
       </div>
     </div>
