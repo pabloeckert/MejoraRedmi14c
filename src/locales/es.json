@@ -133,5 +133,25 @@
   "disclaimer.intro": "Esta herramienta genera scripts ADB para optimizar tu dispositivo. Usala bajo tu propio riesgo.",
   "disclaimer.safe": "Todo es reversible. Los scripts generados usan comandos ADB estándar que pueden deshacerse.",
   "disclaimer.review": "Revisá antes de ejecutar. Los scripts se generan para que los leas y ejecutes vos mismo.",
-  "disclaimer.accept": "Entiendo los riesgos, continuar"
+  "disclaimer.accept": "Entiendo los riesgos, continuar",
+
+  "shortcuts.title": "Atajos de Teclado",
+  "shortcuts.backup": "Backup",
+  "shortcuts.debloat": "Debloat",
+  "shortcuts.performance": "Performance",
+  "shortcuts.aesthetics": "Estética",
+  "shortcuts.rescue": "Rescate",
+  "shortcuts.root": "Root",
+  "shortcuts.generate": "Generar script",
+  "shortcuts.settings": "Configuración",
+  "shortcuts.help": "Atajos de teclado",
+
+  "whatsnew.title": "¿Qué hay de nuevo?",
+  "whatsnew.dismiss": "Entendido",
+
+  "install.title": "Instalar MejoraRedmi14c",
+  "install.desc": "Acceso rápido desde tu escritorio o pantalla de inicio",
+  "install.btn": "Instalar",
+
+  "scroll.top": "Volver arriba"
 }

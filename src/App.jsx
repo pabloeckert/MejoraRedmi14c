@@ -1,6 +1,7 @@
-import { useEffect, lazy, Suspense } from 'react';
+import { useEffect, lazy, Suspense, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLocalStorage } from './hooks/useLocalStorage';
+import { useKeyboard } from './hooks/useKeyboard';
 import { DEVICE } from './data/device';
 import { DeviceHeader } from './components/DeviceHeader';
 import { Navigation } from './components/Navigation';
@@ -18,7 +19,11 @@ import { I18nProvider } from './components/I18nProvider';
 import { Onboarding } from './components/Onboarding';
 import { Disclaimer } from './components/Disclaimer';
 import { FAQ } from './components/FAQ';
+import { ShortcutsHelp } from './components/ShortcutsHelp';
+import { WhatsNew } from './components/WhatsNew';
+import { InstallPrompt } from './components/InstallPrompt';
 import { UpdateBanner } from './components/UpdateBanner';
+import { ScrollToTop } from './components/ScrollToTop';
 
 // Code splitting — módulos cargados bajo demanda
 const BackupModule = lazy(() => import('./modules/BackupModule').then(m => ({ default: m.BackupModule })));
@@ -75,6 +80,10 @@ function AppContent() {
     root.setAttribute('data-grain', grain);
     root.setAttribute('data-animations', animations);
   }, [theme, grain, animations]);
+
+  // Keyboard shortcuts
+  const handleModuleSelect = useCallback((mod) => setActiveModule(mod), [setActiveModule]);
+  useKeyboard({ onModuleSelect: handleModuleSelect });
 
   const ActiveModule = MODULE_COMPONENTS[activeModule] || BackupModule;
 
@@ -181,6 +190,10 @@ function AppContent() {
         </motion.footer>
 
         <FAQ />
+        <ShortcutsHelp />
+        <WhatsNew />
+        <InstallPrompt />
+        <ScrollToTop />
         <ToastContainer toasts={toast.toasts} onDismiss={toast.dismiss} />
       </div>
     </div>

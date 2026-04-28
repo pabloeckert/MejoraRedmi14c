@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_STATIC = `mejora-static-${CACHE_VERSION}`;
 const CACHE_DYNAMIC = `mejora-dynamic-${CACHE_VERSION}`;
 const CACHE_FONTS = `mejora-fonts-${CACHE_VERSION}`;
