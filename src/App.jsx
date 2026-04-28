@@ -16,6 +16,7 @@ import { ToastContext } from './hooks/useToastContext';
 import { useI18n } from './hooks/useI18n';
 import { I18nProvider } from './components/I18nProvider';
 import { Onboarding } from './components/Onboarding';
+import { Disclaimer } from './components/Disclaimer';
 import { UpdateBanner } from './components/UpdateBanner';
 
 // Code splitting — módulos cargados bajo demanda
@@ -78,6 +79,7 @@ function AppContent() {
 
   return (
     <div className="min-h-screen bg-gradient-mesh">
+      <Disclaimer />
       <Onboarding />
       <UpdateBanner />
       {/* Skip to content — accesibilidad */}

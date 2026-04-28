@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings, Sun, Moon, Film, Sparkles, Globe } from 'lucide-react';
+import { Settings, Sun, Moon, Film, Sparkles, Globe, AlertTriangle } from 'lucide-react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
 
 export function SettingsPanel({ theme, setTheme, grain, setGrain, animations, setAnimations, locale, switchLocale }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [, setDisclaimerAccepted] = useLocalStorage('mejora-disclaimer-accepted', false);
 
   return (
     <div className="relative">
@@ -113,6 +115,17 @@ export function SettingsPanel({ theme, setTheme, grain, setGrain, animations, se
                 </button>
               </div>
             )}
+
+            {/* Show disclaimer again */}
+            <div className="py-2 border-t border-surface-3">
+              <button
+                onClick={() => { setDisclaimerAccepted(false); setIsOpen(false); }}
+                className="flex items-center gap-2 w-full text-left text-xs text-text-muted hover:text-text-secondary transition-colors"
+              >
+                <AlertTriangle className="w-3.5 h-3.5" />
+                Ver aviso legal
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

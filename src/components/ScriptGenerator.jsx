@@ -5,10 +5,12 @@ import { BLOATWARE, TWEAKS, BACKUP_TARGETS } from '../data/device';
 import { generateScript, downloadScript } from '../services/scriptGenerator';
 import { MODULES } from '../data/modules';
 import { useScriptHistory } from '../hooks/useHistory';
+import { useAnalytics } from '../hooks/useAnalytics';
 
 export function ScriptGenerator({ toast }) {
   const [activeModules, setActiveModules] = useState(['backup', 'performance', 'aesthetics']);
   const { addToHistory } = useScriptHistory();
+  const { trackScriptGeneration } = useAnalytics();
 
   const toggleModule = (id) => {
     setActiveModules(prev =>
@@ -42,6 +44,7 @@ export function ScriptGenerator({ toast }) {
       moduleCount: modules.length,
     });
 
+    trackScriptGeneration(activeModules);
     toast?.success('Script completo descargado correctamente');
   };
 

@@ -127,5 +127,11 @@
   "common.loading": "Loading module...",
   "common.error.title": "Something went wrong",
   "common.error.retry": "Retry",
-  "common.close": "Dismiss notification"
+  "common.close": "Dismiss notification",
+
+  "disclaimer.title": "Legal and Security Notice",
+  "disclaimer.intro": "This tool generates ADB scripts to optimize your device. Use at your own risk.",
+  "disclaimer.safe": "Everything is reversible. Generated scripts use standard ADB commands that can be undone.",
+  "disclaimer.review": "Review before executing. Scripts are generated for you to read and run yourself.",
+  "disclaimer.accept": "I understand the risks, continue"
 }

@@ -14,6 +14,13 @@
 
 ## ¿Qué hace?
 
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐     ┌──────────────┐
+│  Seleccioná │ ──▶ │  Genera un   │ ──▶ │  Conectá el │ ──▶ │  Tu teléfono │
+│  los módulos│     │  script .sh  │     │  teléfono   │     │  como nuevo  │
+└─────────────┘     └──────────────┘     └─────────────┘     └──────────────┘
+```
+
 | Módulo | Qué hace | Riesgo |
 |--------|----------|--------|
 | 🗄️ **Backup** | Respaldar contactos, WhatsApp, fotos, APKs, sistema a PC | Ninguno |
@@ -23,14 +30,17 @@
 | 🔄 **Rescate** | Restaurar apps eliminadas, fixes rápidos, restauración completa | Ninguno |
 | 🔓 **Root** | Guía paso a paso con Magisk + protección anti-bootloop | Avanzado |
 
-## ¿Por qué?
+---
 
-El Redmi 14C es un teléfono capaz con 4GB RAM y 256GB storage, pero viene con:
-- **45+ apps de bloatware** que consumen RAM y batería
-- **Animaciones lentas** que hacen que se sienta lento
-- **RAM virtual activada** que ralentiza el almacenamiento
+## 📊 Antes / Después
 
-**Resultado:** Después de optimizar, el teléfono se siente como un dispositivo de gama alta.
+| Métrica | Antes | Después |
+|---------|-------|---------|
+| Apps en segundo plano | ~15 | ~4 |
+| RAM libre | ~1.2GB | ~2.1GB |
+| Velocidad de animación | 1.0x | 0.5x |
+| Refresh rate | 60Hz (auto) | 90Hz (forzado) |
+| Bloatware activo | 45+ | ~10 |
 
 ---
 
@@ -60,18 +70,6 @@ npm run build        # build de producción
 
 ---
 
-## 📊 Antes / Después
-
-| Métrica | Antes | Después |
-|---------|-------|---------|
-| Apps en segundo plano | ~15 | ~4 |
-| RAM libre | ~1.2GB | ~2.1GB |
-| Velocidad de animación | 1.0x | 0.5x |
-| Refresh rate | 60Hz (auto) | 90Hz (forzado) |
-| Bloatware activo | 45+ | ~10 |
-
----
-
 ## 🏗️ Stack
 
 | Capa | Tecnología |
@@ -93,14 +91,15 @@ src/
 ├── components/          # UI + lógica compartida
 │   ├── ui/              # GlassCard, Badge, RiskBadge, ImpactBadge, CopyButton
 │   ├── AssistantGuide   # Asistente contextual por módulo
+│   ├── Disclaimer       # Aviso legal (primera visita)
 │   ├── ErrorBoundary    # Error isolation por módulo
 │   ├── Toast            # Notificaciones
 │   ├── Onboarding       # Wizard de primera vez
 │   └── SettingsPanel    # Tema, grain, animaciones, idioma
 ├── modules/             # 6 módulos independientes (code-split)
 ├── services/            # scriptGenerator (generación de scripts bash)
-├── data/                # device.js (datos) + modules.js (navegación)
-├── hooks/               # useLocalStorage, useI18n, useToast, useElectron
+├── data/                # device.js (datos) + modules.js (navegación) + bloatware.json
+├── hooks/               # useLocalStorage, useI18n, useToast, useElectron, useAnalytics
 ├── locales/             # es.json + en.json (130+ strings)
 └── test/                # 70 unit tests
 e2e/                     # 13 E2E tests (Playwright)
@@ -123,6 +122,18 @@ npm run test:coverage  # Coverage report
 - Accessibility: 8 tests (ARIA attributes)
 - LocalStorage: 6 tests (persistencia)
 - E2E: 13 tests (navegación, módulos, configuración, descarga)
+
+---
+
+## 🔒 Seguridad
+
+- **Sin ejecución directa** — genera scripts, no ejecuta ADB automáticamente
+- **CSP configurado** — Content Security Policy en Electron
+- **Context isolation** — Electron contextBridge seguro
+- **Sin backend** — todo es client-side, no hay datos que interceptar
+- **Sin telemetría** — analytics local only (localStorage, cero PII)
+- **Disclaimer legal** — aviso de riesgos en primera visita
+- **npm audit limpio** — 0 vulnerabilidades
 
 ---
 

@@ -127,5 +127,11 @@
   "common.loading": "Cargando módulo...",
   "common.error.title": "Algo salió mal",
   "common.error.retry": "Reintentar",
-  "common.close": "Cerrar notificación"
+  "common.close": "Cerrar notificación",
+
+  "disclaimer.title": "Aviso Legal y de Seguridad",
+  "disclaimer.intro": "Esta herramienta genera scripts ADB para optimizar tu dispositivo. Usala bajo tu propio riesgo.",
+  "disclaimer.safe": "Todo es reversible. Los scripts generados usan comandos ADB estándar que pueden deshacerse.",
+  "disclaimer.review": "Revisá antes de ejecutar. Los scripts se generan para que los leas y ejecutes vos mismo.",
+  "disclaimer.accept": "Entiendo los riesgos, continuar"
 }
