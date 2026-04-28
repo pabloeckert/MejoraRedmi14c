@@ -85,14 +85,14 @@ function AppContent() {
         Saltar al contenido principal
       </a>
       <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Header — spacious, bold typography */}
+        {/* Hero header */}
         <motion.div
-          className="text-center mb-12 relative"
+          className="text-center mb-10 relative"
           initial={{ opacity: 0, y: -12 }}
           animate={{ opacity: 1, y: 0 }}
         >
           {/* Settings in top-right corner */}
-          <div className="absolute top-0 right-0">
+          <div className="absolute top-0 right-0 z-10">
             <SettingsPanel
               theme={theme} setTheme={setTheme}
               grain={grain} setGrain={setGrain}
@@ -101,29 +101,34 @@ function AppContent() {
             />
           </div>
 
-          <motion.p
-            className="text-xs font-semibold tracking-[0.2em] uppercase text-brand-400 mb-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
+          {/* Logo/icon */}
+          <motion.div
+            className="w-16 h-16 rounded-2xl bg-gradient-to-br from-brand-500 to-brand-400 flex items-center justify-center mx-auto mb-5 shadow-lg shadow-brand-500/25"
+            initial={{ scale: 0.8, rotate: -10 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20, delay: 0.1 }}
           >
-            Optimización avanzada
-          </motion.p>
+            <span className="text-2xl">📱</span>
+          </motion.div>
+
           <motion.h1
             className="text-4xl sm:text-5xl font-bold text-text-primary leading-none"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.15 }}
           >
-            MejoraRedmi14c
+            Mejora<span className="text-brand-500">Redmi</span>14c
           </motion.h1>
+
           <motion.p
-            className="text-base text-text-secondary mt-4 max-w-lg mx-auto leading-relaxed"
+            className="text-base text-text-secondary mt-3 max-w-md mx-auto leading-relaxed"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.25 }}
           >
-            {DEVICE.name} · ADB · Sin Root · Todo reversible
+            Potenciá tu {DEVICE.name} sin root, sin riesgo.
+            <br />
+            <span className="text-text-muted text-sm">Todo reversible · Scripts ADB automáticos</span>
           </motion.p>
         </motion.div>
 

@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, CheckCircle, Loader2, X } from 'lucide-react';
-import { useElectron } from '../hooks/useElectron';
+import { isElectron } from '../hooks/useElectron';
 
 export function UpdateBanner() {
-  const { isElectron } = useElectron();
+  const isDesktop = isElectron();
   const [updateState, setUpdateState] = useState('idle'); // idle | checking | available | downloading | downloaded | error
   const [updateInfo, setUpdateInfo] = useState(null);
   const [progress, setProgress] = useState(0);
@@ -12,7 +12,7 @@ export function UpdateBanner() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    if (!isElectron || !window.electronAPI) return;
+    if (!isDesktop || !window.electronAPI) return;
 
     // Listen for update events
     window.electronAPI.onUpdateAvailable((info) => {
@@ -38,7 +38,7 @@ export function UpdateBanner() {
 
     // Check for updates on mount
     checkForUpdates();
-  }, [isElectron]);
+  }, [isDesktop]);
 
   const checkForUpdates = async () => {
     if (!window.electronAPI) return;
@@ -69,7 +69,7 @@ export function UpdateBanner() {
     }
   };
 
-  if (!isElectron || dismissed) return null;
+  if (!isDesktop || dismissed) return null;
 
   const variants = {
     initial: { opacity: 0, y: -20, height: 0 },
