@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a1a2e"/>
+      <stop offset="100%" style="stop-color:#16213e"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#7c3aed"/>
+      <stop offset="100%" style="stop-color:#a78bfa"/>
+    </linearGradient>
+  </defs>
+  <!-- Background -->
+  <rect width="512" height="512" rx="100" fill="url(#bg)"/>
+  <!-- Phone outline -->
+  <rect x="156" y="60" width="200" height="392" rx="32" fill="none" stroke="url(#accent)" stroke-width="16"/>
+  <!-- Screen -->
+  <rect x="176" y="100" width="160" height="300" rx="8" fill="#0f0f23"/>
+  <!-- Notch -->
+  <rect x="216" y="72" width="80" height="16" rx="8" fill="url(#accent)"/>
+  <!-- Lightning bolt -->
+  <path d="M256 180 L220 280 L250 280 L240 340 L296 250 L266 250 L280 180 Z" fill="url(#accent)" opacity="0.9"/>
+  <!-- Text -->
+  <text x="256" y="410" text-anchor="middle" font-family="Inter, system-ui, sans-serif" font-weight="700" font-size="28" fill="#e2e8f0">14C</text>
+  <!-- Stars -->
+  <circle cx="120" cy="120" r="4" fill="#7c3aed" opacity="0.6"/>
+  <circle cx="392" cy="150" r="3" fill="#a78bfa" opacity="0.4"/>
+  <circle cx="100" cy="350" r="3" fill="#7c3aed" opacity="0.5"/>
+  <circle cx="410" cy="380" r="4" fill="#a78bfa" opacity="0.3"/>
+</svg>

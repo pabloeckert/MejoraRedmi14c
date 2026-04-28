@@ -1,0 +1,19 @@
+{
+  "name": "MejoraRedmi14c",
+  "short_name": "Mejora14C",
+  "description": "Optimización avanzada para Xiaomi Redmi 14C via ADB. Sin root, todo reversible.",
+  "start_url": "/MejoraRedmi14c/",
+  "display": "standalone",
+  "background_color": "#0d0f14",
+  "theme_color": "#0d0f14",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/MejoraRedmi14c/icons.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["utilities", "productivity"]
+}
