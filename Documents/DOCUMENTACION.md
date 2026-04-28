@@ -2,7 +2,7 @@
 
 > **Trigger:** Cuando digas **"documentar"**, este archivo se actualiza automáticamente con los trabajos realizados.
 > **Carpeta:** `Documents/` — documentación única del proyecto.
-> **Última actualización:** 29 abril 2026, 04:06 GMT+8
+> **Última actualización:** 29 abril 2026, 04:30 GMT+8
 
 ---
 
@@ -820,5 +820,5 @@ Cuando el usuario diga **"documentar"**, ejecutar automáticamente:
 
 ---
 
-*Última actualización: 29 abril 2026, 04:06 GMT+8*
+*Última actualización: 29 abril 2026, 04:30 GMT+8*
 *ETAPA 5 COMPLETA — 83 tests · 6 módulos · Web + Desktop · i18n ES/EN · $0*
