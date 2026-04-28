@@ -43,64 +43,10 @@ export const DEVICE = {
   rootMethod: 'Magisk (via boot.img patch)',
 };
 
-// Bloatware packages specific to Redmi 14C / HyperOS
-export const BLOATWARE = {
-  safe: [
-    { pkg: 'com.miui.analytics', name: 'MIUI Analytics', risk: 'low', desc: 'Telemetría y analíticas de uso' },
-    { pkg: 'com.miui.msa.global', name: 'MSA (Ads)', risk: 'low', desc: 'Servicio de anuncios de Xiaomi' },
-    { pkg: 'com.xiaomi.payment', name: 'Mi Payment', risk: 'low', desc: 'Sistema de pagos Xiaomi (no disponible globalmente)' },
-    { pkg: 'com.xiaomi.shop', name: 'Mi Store', risk: 'low', desc: 'Tienda de Xiaomi' },
-    { pkg: 'com.miui.videoplayer', name: 'Mi Video', risk: 'low', desc: 'Reproductor de video Xiaomi' },
-    { pkg: 'com.miui.player', name: 'Mi Music', risk: 'low', desc: 'Reproductor de música Xiaomi' },
-    { pkg: 'com.miui.weather2', name: 'Mi Weather', risk: 'low', desc: 'Aplicación del clima Xiaomi' },
-    { pkg: 'com.miui.notes', name: 'Mi Notes', risk: 'low', desc: 'Notas de Xiaomi' },
-    { pkg: 'com.miui.compass', name: 'Mi Compass', risk: 'low', desc: 'Brújula de Xiaomi' },
-    { pkg: 'com.miui.calculator', name: 'Mi Calculator', risk: 'low', desc: 'Calculadora de Xiaomi' },
-    { pkg: 'com.miui.cleanmaster', name: 'Clean Master', risk: 'low', desc: 'Limpiador de Xiaomi' },
-    { pkg: 'com.miui.guardprovider', name: 'Guard Provider', risk: 'low', desc: 'Proveedor de seguridad Xiaomi' },
-    { pkg: 'com.xiaomi.midrop', name: 'Mi Drop', risk: 'low', desc: 'Transferencia de archivos Xiaomi' },
-    { pkg: 'com.xiaomi.finddevice', name: 'Find Device', risk: 'low', desc: 'Encontrar dispositivo Xiaomi' },
-    { pkg: 'com.miui.mishare.connectivity', name: 'Mi Share', risk: 'low', desc: 'Compartición de archivos Xiaomi' },
-    { pkg: 'com.miui.personalassistant', name: 'App Vault', risk: 'low', desc: 'Asistente personal / widgets' },
-    { pkg: 'com.miui.gallery', name: 'Mi Gallery', risk: 'low', desc: 'Galería de fotos Xiaomi' },
-    { pkg: 'com.miui.screenrecorder', name: 'Screen Recorder', risk: 'low', desc: 'Grabador de pantalla' },
-    { pkg: 'com.miui.weather', name: 'Weather', risk: 'low', desc: 'Clima alternativo' },
-    { pkg: 'com.xiaomi.scanner', name: 'Mi Scanner', risk: 'low', desc: 'Escáner QR de Xiaomi' },
-    { pkg: 'com.google.android.youtube', name: 'YouTube', risk: 'low', desc: 'YouTube (reemplazable con Revanced/NewPipe)' },
-    { pkg: 'com.google.android.music', name: 'Google Play Music', risk: 'low', desc: 'Música de Google (obsoleto)' },
-    { pkg: 'com.google.android.videos', name: 'Google Play Movies', risk: 'low', desc: 'Películas de Google' },
-    { pkg: 'com.google.android.apps.photos', name: 'Google Photos', risk: 'low', desc: 'Fotos de Google (opcional)' },
-    { pkg: 'com.google.android.apps.docs', name: 'Google Docs', risk: 'low', desc: 'Documentos de Google' },
-    { pkg: 'com.google.android.apps.tachyon', name: 'Google Duo', risk: 'low', desc: 'Videollamadas Google (obsoleto)' },
-    { pkg: 'com.google.android.googlequicksearchbox', name: 'Google App', risk: 'low', desc: 'Búsqueda Google / Discover' },
-  ],
-  balanced: [
-    // All safe packages PLUS:
-    { pkg: 'com.miui.home', name: 'MIUI Launcher', risk: 'medium', desc: 'Launcher de Xiaomi (necesita alternativa)' },
-    { pkg: 'com.miui.securitycenter', name: 'Security Center', risk: 'medium', desc: 'Centro de seguridad Xiaomi' },
-    { pkg: 'com.miui.securityadd', name: 'Security Add-on', risk: 'medium', desc: 'Complemento de seguridad' },
-    { pkg: 'com.xiaomi.account', name: 'Mi Account', risk: 'medium', desc: 'Cuenta Xiaomi' },
-    { pkg: 'com.miui.cloudservice', name: 'Mi Cloud', risk: 'medium', desc: 'Servicio en la nube Xiaomi' },
-    { pkg: 'com.xiaomi.xmsf', name: 'XMSF', risk: 'medium', desc: 'Servicio de mensajes Xiaomi' },
-    { pkg: 'com.xiaomi.xmsfkeeper', name: 'XMSF Keeper', risk: 'medium', desc: 'Keeper del servicio de mensajes' },
-    { pkg: 'com.miui.daemon', name: 'MIUI Daemon', risk: 'medium', desc: 'Daemon de MIUI' },
-    { pkg: 'com.miui.bugreport', name: 'Bug Report', risk: 'medium', desc: 'Reporte de errores Xiaomi' },
-    { pkg: 'com.xiaomi.micloud.sdk', name: 'Mi Cloud SDK', risk: 'medium', desc: 'SDK de nube Xiaomi' },
-    { pkg: 'com.miui.antispam', name: 'Anti-Spam', risk: 'medium', desc: 'Anti-spam de llamadas' },
-    { pkg: 'com.miui.backup', name: 'Mi Backup', risk: 'medium', desc: 'Backup de Xiaomi' },
-  ],
-  aggressive: [
-    // All balanced packages PLUS:
-    { pkg: 'com.android.wallpaper.livepicker', name: 'Live Wallpaper Picker', risk: 'high', desc: 'Selector de fondos animados' },
-    { pkg: 'com.android.wallpapercropper', name: 'Wallpaper Cropper', risk: 'high', desc: 'Recortador de fondos' },
-    { pkg: 'com.miui.miwallpaper', name: 'Mi Wallpaper', risk: 'high', desc: 'Fondos de pantalla Xiaomi' },
-    { pkg: 'com.miui.miservice', name: 'Mi Service', risk: 'high', desc: 'Servicio MIUI (puede afectar Bluetooth)' },
-    { pkg: 'com.xiaomi.bluetooth', name: 'Xiaomi Bluetooth', risk: 'high', desc: 'Bluetooth Xiaomi (puede romper BT)' },
-    { pkg: 'com.android.bluetooth', name: 'Android Bluetooth', risk: 'critical', desc: 'Bluetooth del sistema (NO eliminar)' },
-    { pkg: 'com.google.android.gms', name: 'Google Play Services', risk: 'critical', desc: 'Servicios de Google (ROMPE todo)' },
-    { pkg: 'com.android.vending', name: 'Google Play Store', risk: 'critical', desc: 'Tienda de Google (ROMPE instalaciones)' },
-  ],
-};
+// Bloatware packages — loaded from external JSON for easy updates without redeploy
+// To add/remove packages: edit bloatware.json directly
+import bloatwareData from './bloatware.json';
+export const BLOATWARE = bloatwareData;
 
 // Performance tweaks
 export const TWEAKS = {
