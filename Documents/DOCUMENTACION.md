@@ -139,7 +139,8 @@ MejoraRedmi14c/
 │   ├── services/
 │   │   └── scriptGenerator.js       ← Generación de scripts bash
 │   ├── data/
-│   │   ├── device.js                ← Constantes: bloatware, tweaks, backup targets
+│   │   ├── bloatware.json           ← Bloatware externo (actualizable sin redeploy)
+│   │   ├── device.js                ← Constantes: DEVICE, TWEAKS, BACKUP_TARGETS
 │   │   └── modules.js               ← Configuración de navegación
 │   ├── hooks/
 │   │   ├── useElectron.js           ← IPC bridge (Electron APIs)
@@ -725,7 +726,7 @@ Assertions configuradas:
 
 | # | Tarea | Rol | Estado |
 |---|-------|-----|--------|
-| 1 | Extraer bloatware a JSON externo | Data Engineer | ⏳ |
+| 1 | ~~Extraer bloatware a JSON externo~~ | Data Engineer | ✅ d8df4b9 |
 | 2 | Storybook para componentes visuales | UI Designer | ⏳ |
 | 3 | GitHub Projects board (Kanban) | Scrum Master | ⏳ |
 | 4 | README mejorado (GIFs, badges, antes/después) | Content Manager | ⏳ |
@@ -781,6 +782,7 @@ Assertions configuradas:
 | 28/04 | Etapa 4 | Features: i18n, onboarding, historial, perfiles |
 | 29/04 | Etapa 5 | Producción: auto-update, PWA offline, Lighthouse CI, dependabot |
 | 29/04 | **documentar** | Consolidación documental maestra + análisis multi-equipo |
+| 29/04 | Etapa 6 #1 | Bloatware extraído a JSON externo (actualizable sin redeploy) |
 
 ### Decisiones Técnicas
 
