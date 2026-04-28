@@ -79,7 +79,7 @@ jobs:
 
   deploy:
     runs-on: ubuntu-latest
-    needs: [build, lighthouse]
+    needs: build
     if: github.ref == 'refs/heads/main'
     environment:
       name: github-pages
