@@ -6,6 +6,18 @@ const fs = require('fs');
 const isDev = !app.isPackaged;
 
 let mainWindow;
+let autoUpdater;
+
+// Auto-updater setup (only in production)
+if (!isDev) {
+  try {
+    autoUpdater = require('electron-updater').autoUpdater;
+    autoUpdater.autoDownload = false;
+    autoUpdater.autoInstallOnAppQuit = true;
+  } catch (e) {
+    console.log('electron-updater not available:', e.message);
+  }
+}
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -198,3 +210,83 @@ ipcMain.handle('device-info', async () => {
     return { success: false, error: e.message };
   }
 });
+
+// ============================================
+// IPC Handlers — Auto-Update
+// ============================================
+
+ipcMain.handle('update-check', async () => {
+  if (!autoUpdater) {
+    return { available: false, error: 'Auto-updater not available in dev mode' };
+  }
+  try {
+    const result = await autoUpdater.checkForUpdates();
+    if (result && result.updateInfo) {
+      return {
+        available: true,
+        version: result.updateInfo.version,
+        releaseDate: result.updateInfo.releaseDate,
+        releaseNotes: result.updateInfo.releaseNotes,
+      };
+    }
+    return { available: false };
+  } catch (e) {
+    return { available: false, error: e.message };
+  }
+});
+
+ipcMain.handle('update-download', async () => {
+  if (!autoUpdater) {
+    return { success: false, error: 'Auto-updater not available' };
+  }
+  try {
+    autoUpdater.downloadUpdate();
+    return { success: true };
+  } catch (e) {
+    return { success: false, error: e.message };
+  }
+});
+
+ipcMain.handle('update-install', () => {
+  if (autoUpdater) {
+    autoUpdater.quitAndInstall();
+  }
+});
+
+// Auto-updater events → renderer
+if (autoUpdater) {
+  autoUpdater.on('update-available', (info) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('update-available', {
+        version: info.version,
+        releaseDate: info.releaseDate,
+        releaseNotes: info.releaseNotes,
+      });
+    }
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('update-progress', {
+        percent: progress.percent,
+        bytesPerSecond: progress.bytesPerSecond,
+        total: progress.total,
+        transferred: progress.transferred,
+      });
+    }
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('update-downloaded', {
+        version: info.version,
+      });
+    }
+  });
+
+  autoUpdater.on('error', (err) => {
+    if (mainWindow) {
+      mainWindow.webContents.send('update-error', { message: err.message });
+    }
+  });
+}

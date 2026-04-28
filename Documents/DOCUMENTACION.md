@@ -156,18 +156,18 @@ push/PR → main → [LINT] → [TEST] → [BUILD] → [DEPLOY to GH Pages]
 | 2. Testing y Calidad | ✅ Completa | 83 tests, coverage, E2E con Playwright |
 | 3. UX/Contenido | ✅ Completa | ARIA, keyboard nav, toast, microcopy, SEO |
 | 4. Features Avanzados | ✅ Completa | i18n, onboarding, historial, perfiles |
-| 5. Producción | 🟡 Parcial | Pendiente: auto-update, PWA offline, Lighthouse audit |
+| 5. Producción | ✅ Completa | Auto-update, PWA offline, Lighthouse CI, dependabot |
 
 ### Tareas Pendientes (Priorizadas)
 
 #### 🔴 Alta Prioridad
 
-| # | Tarea | Rol | Sprint |
-|---|-------|-----|--------|
-| 1 | Electron auto-update (electron-updater) | DevOps | 5 |
-| 2 | npm audit + dependabot config | Cybersecurity | 5 |
-| 3 | Lighthouse CI en pipeline (>90) | SRE | 5 |
-| 4 | PWA offline completo (service worker) | Frontend | 5 |
+| # | Tarea | Rol | Sprint | Estado |
+|---|-------|-----|--------|--------|
+| 1 | Electron auto-update (electron-updater) | DevOps | 5 | ✅ |
+| 2 | npm audit + dependabot config | Cybersecurity | 5 | ✅ |
+| 3 | Lighthouse CI en pipeline (>90) | SRE | 5 | ✅ |
+| 4 | PWA offline completo (service worker) | Frontend | 5 | ✅ |
 
 #### 🟡 Media Prioridad
 
@@ -240,11 +240,17 @@ push/PR → main → [LINT] → [TEST] → [BUILD] → [DEPLOY to GH Pages]
 
 ## 11. Changelog
 
-### 2026-04-29 — Consolidación documental
+### 2026-04-29 — Consolidación documental + Producción (Etapa 5)
 - Documentación consolidada en un solo archivo maestro
 - Trigger "documentar" implementado
 - Plan por etapas optimizado basado en estado actual
 - Análisis multi-equipo actualizado
+- **Dependabot** configurado (npm + GitHub Actions, weekly, agrupado)
+- **npm audit** ejecutado: 0 vulnerabilidades
+- **PWA offline** completo: service worker con cache-first (fonts), stale-while-revalidate (assets), network-first (navegación)
+- **Lighthouse CI** en pipeline: assertions de performance, a11y, best-practices, SEO ≥90
+- **Electron auto-update**: electron-updater, UpdateBanner component, IPC handlers, release workflow
+- **Release workflow**: GitHub Actions para builds multi-plataforma (Win/Mac/Linux) con draft release
 
 ### 2026-04-28 — Etapas 1-4 completas
 - Etapa 1: Fundación técnica (descomposición, error boundaries, code splitting)

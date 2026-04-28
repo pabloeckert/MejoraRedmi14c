@@ -16,6 +16,7 @@ import { ToastContext } from './hooks/useToastContext';
 import { useI18n } from './hooks/useI18n';
 import { I18nProvider } from './components/I18nProvider';
 import { Onboarding } from './components/Onboarding';
+import { UpdateBanner } from './components/UpdateBanner';
 
 // Code splitting — módulos cargados bajo demanda
 const BackupModule = lazy(() => import('./modules/BackupModule').then(m => ({ default: m.BackupModule })));
@@ -78,6 +79,7 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gradient-mesh">
       <Onboarding />
+      <UpdateBanner />
       {/* Skip to content — accesibilidad */}
       <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-brand-500 focus:text-white focus:rounded-lg">
         Saltar al contenido principal

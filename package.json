@@ -26,6 +26,13 @@
   "build": {
     "appId": "com.mejora.redmi14c",
     "productName": "MejoraRedmi14c",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "pabloeckert",
+        "repo": "MejoraRedmi14c"
+      }
+    ],
     "directories": {
       "output": "release"
     },
@@ -63,6 +70,7 @@
     }
   },
   "dependencies": {
+    "electron-updater": "^6.6.2",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.11.0",
     "react": "^19.2.5",
