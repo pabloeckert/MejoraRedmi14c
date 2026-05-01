@@ -17,6 +17,8 @@ export default function SettingsPanel({ deviceId }) {
   const [guardianStatus, setGuardianStatus] = useState(null);
   const [guardianLoading, setGuardianLoading] = useState(false);
   const [failureNotifications, setFailureNotifications] = useState(true);
+  const [advExporting, setAdvExporting] = useState(false);
+  const [advExportResult, setAdvExportResult] = useState(null);
 
   // Load data
   const refresh = useCallback(async () => {
@@ -178,6 +180,21 @@ export default function SettingsPanel({ deviceId }) {
     try {
       await window.optimizer.setSetting?.('failureNotifications', next);
     } catch {}
+  };
+
+  // ── Advanced Exports (Ciclo 7) ──
+  const handleAdvExport = async (format) => {
+    if (!deviceId) return;
+    setAdvExporting(true);
+    setAdvExportResult(null);
+    try {
+      const result = await window.optimizer.advancedExport?.({ deviceId, format });
+      setAdvExportResult(result?.error ? { error: result.error } : result);
+      if (!result?.error) await refresh();
+    } catch (err) {
+      setAdvExportResult({ error: err.message });
+    }
+    setAdvExporting(false);
   };
 
   return (
@@ -529,7 +546,7 @@ export default function SettingsPanel({ deviceId }) {
       {/* Notificaciones de Fallos Predichos (Ciclo 6) */}
       <Section icon="🔔" title="Notificaciones de Predicciones">
         <p className="text-xs text-dark-400 mb-3">
-          Recibe notificaciones cuando el motor ML predice fallos inminentes: temperatura {'>'}  45°C, batería {'<'} 15%, procesos {'>'} 120, almacenamiento {'<'} 5%.
+          Recibe notificaciones cuando el motor ML predice fallos inminentes: temperatura {'>'} 45°C, batería {'<'} 15%, procesos {'>'} 120, almacenamiento {'<'} 5%.
         </p>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -545,6 +562,58 @@ export default function SettingsPanel({ deviceId }) {
             <p>🔋 Batería futura {'<'} 15% → Notificación de advertencia</p>
             <p>⚙️ Procesos futuros {'>'} 120 → Notificación de advertencia</p>
             <p>💾 Almacenamiento futuro {'<'} 5% → Notificación crítica</p>
+          </div>
+        )}
+      </Section>
+
+      {/* Exportaciones Avanzadas (Ciclo 7) */}
+      <Section icon="📦" title="Exportaciones Avanzadas">
+        <p className="text-xs text-dark-400 mb-4">
+          Exporta datos en formatos adicionales: CSV para análisis en hojas de cálculo, XML para integración con sistemas externos, o un bundle completo con todos los formatos.
+        </p>
+        {!deviceId ? (
+          <p className="text-xs text-dark-500">Conecta un dispositivo primero</p>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <button onClick={() => handleAdvExport('csv')}
+                disabled={advExporting}
+                className="flex-1 py-2.5 px-4 bg-accent-cyan/10 hover:bg-accent-cyan/20 border border-accent-cyan/20
+                  text-accent-cyan text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                {advExporting ? '⏳' : '📊 CSV'}
+              </button>
+              <button onClick={() => handleAdvExport('xml')}
+                disabled={advExporting}
+                className="flex-1 py-2.5 px-4 bg-accent-amber/10 hover:bg-accent-amber/20 border border-accent-amber/20
+                  text-accent-amber text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                {advExporting ? '⏳' : '📄 XML'}
+              </button>
+              <button onClick={() => handleAdvExport('bundle')}
+                disabled={advExporting}
+                className="flex-1 py-2.5 px-4 bg-accent-rose/10 hover:bg-accent-rose/20 border border-accent-rose/20
+                  text-accent-rose text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                {advExporting ? '⏳' : '📦 Bundle'}
+              </button>
+            </div>
+
+            {advExportResult && !advExportResult.error && (
+              <div className="bg-accent-green/5 border border-accent-green/20 rounded-xl p-3">
+                <p className="text-xs text-accent-green font-medium mb-1">✅ Exportación completada</p>
+                {advExportResult.files?.map((f, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs text-dark-400 mt-1">
+                    <span className="font-mono">{f.format?.toUpperCase()} {f.type ? `(${f.type})` : ''}</span>
+                    <span>{f.size ? `${(f.size / 1024).toFixed(1)} KB` : ''}</span>
+                  </div>
+                ))}
+                {advExportResult.bundleDir && (
+                  <div className="text-[10px] text-dark-500 mt-1 font-mono truncate">{advExportResult.bundleDir}</div>
+                )}
+              </div>
+            )}
+
+            {advExportResult?.error && (
+              <p className="text-xs text-accent-red">❌ {advExportResult.error}</p>
+            )}
           </div>
         )}
       </Section>
