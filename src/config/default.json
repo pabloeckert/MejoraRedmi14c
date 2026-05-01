@@ -1,0 +1,44 @@
+{
+  "app": {
+    "name": "Phone Optimizer",
+    "version": "1.0.0",
+    "description": "Optimizador Inteligente para Android - Pablo & Sindy"
+  },
+  "optimization": {
+    "maxMode": {
+      "enabled": true,
+      "bloatwareRemoval": true,
+      "performanceMode": true,
+      "ultraMode": true,
+      "deepClean": true
+    },
+    "smartMode": {
+      "enabled": true,
+      "learnFromUsage": true,
+      "adaptiveThresholds": true,
+      "minConnectionsForLearning": 2
+    }
+  },
+  "devices": {
+    "knownProfiles": {
+      "pablo": {
+        "label": "Pablo",
+        "color": "#3b82f6"
+      },
+      "sindy": {
+        "label": "Sindy",
+        "color": "#ec4899"
+      }
+    }
+  },
+  "logging": {
+    "enabled": true,
+    "maxLogSizeMb": 50,
+    "retentionDays": 90
+  },
+  "adb": {
+    "timeout": 30000,
+    "retryAttempts": 3,
+    "retryDelayMs": 1000
+  }
+}

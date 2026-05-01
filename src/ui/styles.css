@@ -1,0 +1,71 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+body {
+  @apply bg-dark-950 text-dark-100 font-sans antialiased;
+  margin: 0;
+  min-height: 100vh;
+  -webkit-app-region: drag;
+}
+
+button, input, select, textarea {
+  -webkit-app-region: no-drag;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-dark-900;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-dark-600 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-dark-500;
+}
+
+/* Animaciones personalizadas */
+@keyframes device-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.02); }
+}
+
+@keyframes scan-line {
+  0% { top: 0; }
+  100% { top: 100%; }
+}
+
+.device-connected {
+  animation: device-pulse 2s ease-in-out infinite;
+}
+
+.scan-line {
+  animation: scan-line 2s linear infinite;
+}
+
+/* Glassmorphism */
+.glass {
+  @apply bg-dark-800/50 backdrop-blur-xl border border-dark-700/50 rounded-2xl;
+}
+
+.glass-strong {
+  @apply bg-dark-800/80 backdrop-blur-2xl border border-dark-600/30 rounded-2xl;
+}
+
+/* Gradient text */
+.gradient-text {
+  @apply bg-gradient-to-r from-accent-blue via-accent-purple to-accent-pink bg-clip-text text-transparent;
+}
+
+/* Status indicators */
+.status-dot {
+  @apply w-2.5 h-2.5 rounded-full;
+}
+.status-dot.connected { @apply bg-accent-green animate-pulse; }
+.status-dot.disconnected { @apply bg-accent-red; }
+.status-dot.optimizing { @apply bg-accent-orange animate-pulse; }
