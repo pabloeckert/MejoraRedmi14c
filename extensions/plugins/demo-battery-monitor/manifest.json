@@ -1,0 +1,16 @@
+{
+  "id": "demo-battery-monitor",
+  "name": "Battery Monitor Pro",
+  "version": "1.0.0",
+  "description": "Monitoreo avanzado de batería con alertas personalizadas y recomendaciones inteligentes",
+  "author": "Phone Optimizer Team",
+  "type": "adb",
+  "main": "index.js",
+  "permissions": ["adb.shell", "adb.props"],
+  "ui": "panel.jsx",
+  "settings": {
+    "alertThreshold": 20,
+    "criticalThreshold": 10,
+    "checkInterval": 60
+  }
+}

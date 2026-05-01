@@ -11,6 +11,7 @@ import AdvancedDiagnostics from './components/AdvancedDiagnostics';
 import BenchmarkPanel from './components/BenchmarkPanel';
 import ExtensionsPanel from './components/ExtensionsPanel';
 import PredictionDashboard from './components/PredictionDashboard';
+import ExpertPanel from './components/ExpertPanel';
 
 const STATES = {
   IDLE: 'idle',
@@ -30,6 +31,7 @@ const TABS = {
   DIAGNOSTICS: 'diagnostics',
   BENCHMARK: 'benchmark',
   EXTENSIONS: 'extensions',
+  EXPERT: 'expert',
   SETTINGS: 'settings',
 };
 
@@ -220,6 +222,7 @@ export default function App() {
               <TabButton active={activeTab === TABS.DIAGNOSTICS} onClick={() => setActiveTab(TABS.DIAGNOSTICS)} icon="🔬" label="Diagnóstico" />
               <TabButton active={activeTab === TABS.BENCHMARK} onClick={() => setActiveTab(TABS.BENCHMARK)} icon="🏋️" label="Benchmark" />
               <TabButton active={activeTab === TABS.EXTENSIONS} onClick={() => setActiveTab(TABS.EXTENSIONS)} icon="🧩" label="Extensiones" />
+              <TabButton active={activeTab === TABS.EXPERT} onClick={() => setActiveTab(TABS.EXPERT)} icon="🔬" label="Experto" />
               <TabButton active={activeTab === TABS.SETTINGS} onClick={() => setActiveTab(TABS.SETTINGS)} icon="⚙️" label="Config" />
             </div>
           )}
@@ -233,6 +236,7 @@ export default function App() {
             {activeTab === TABS.DIAGNOSTICS && <AdvancedDiagnostics deviceId={device?.deviceId} />}
             {activeTab === TABS.BENCHMARK && <BenchmarkPanel deviceId={device?.deviceId} />}
             {activeTab === TABS.EXTENSIONS && <ExtensionsPanel />}
+            {activeTab === TABS.EXPERT && <ExpertPanel deviceId={device?.deviceId} />}
             {activeTab === TABS.SETTINGS && <SettingsPanel deviceId={device?.deviceId} />}
           </div>
 
