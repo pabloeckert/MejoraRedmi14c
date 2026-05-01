@@ -1,0 +1,22 @@
+{
+  "id": "battery-doctor",
+  "name": "Battery Doctor",
+  "version": "1.0.0",
+  "description": "Extensión de ejemplo: análisis profundo de batería y recomendaciones de ahorro",
+  "author": "Phone Optimizer Team",
+  "main": "index.js",
+  "adbScripts": {
+    "deepBatteryAnalysis": {
+      "name": "Análisis profundo de batería",
+      "description": "Analiza wake locks, alarmas y apps que drenan batería en background"
+    },
+    "batterySaver": {
+      "name": "Ahorrador de batería",
+      "description": "Aplica ajustes agresivos de ahorro de batería"
+    }
+  },
+  "uiPanel": {
+    "title": "🔋 Battery Doctor",
+    "component": "BatteryDoctorPanel"
+  }
+}

@@ -40,6 +40,21 @@ contextBridge.exposeInMainWorld('optimizer', {
   getErrorStats: () => ipcRenderer.invoke('get-error-stats'),
   getRecentErrors: (opts) => ipcRenderer.invoke('get-recent-errors', opts),
 
+  // Benchmark
+  runBenchmark: (opts) => ipcRenderer.invoke('run-benchmark', opts),
+  compareBenchmark: (opts) => ipcRenderer.invoke('compare-benchmark', opts),
+
+  // Anomaly Detection
+  detectAnomalies: (opts) => ipcRenderer.invoke('detect-anomalies', opts),
+
+  // Advanced Diagnostics
+  runAdvancedDiagnostics: (opts) => ipcRenderer.invoke('run-advanced-diagnostics', opts),
+
+  // Extensions
+  listExtensions: () => ipcRenderer.invoke('list-extensions'),
+  toggleExtension: (opts) => ipcRenderer.invoke('toggle-extension', opts),
+  runExtensionScript: (opts) => ipcRenderer.invoke('run-extension-script', opts),
+
   // Events
   onAutoModeStatus: (callback) => {
     ipcRenderer.on('auto-mode-status', (_e, data) => callback(data));

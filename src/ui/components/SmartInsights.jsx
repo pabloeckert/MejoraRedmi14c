@@ -1,10 +1,26 @@
 import React, { useMemo } from 'react';
 
-export default function SmartInsights({ profile, predictions }) {
+export default function SmartInsights({ profile, predictions, anomalyResults }) {
   const insights = useMemo(() => {
     const items = [];
 
     if (!profile) return items;
+
+    // ── Anomalías detectadas ──
+    if (anomalyResults?.anomalies?.length > 0) {
+      for (const anomaly of anomalyResults.anomalies.slice(0, 5)) {
+        items.push({
+          type: anomaly.severity === 'critical' ? 'critical' : 'warning',
+          icon: anomaly.type.includes('battery') ? '🔋' :
+                anomaly.type.includes('thermal') ? '🌡️' :
+                anomaly.type.includes('process') ? '⚙️' :
+                anomaly.type.includes('app') ? '📱' : '⚠️',
+          title: formatAnomalyType(anomaly.type),
+          description: anomaly.message,
+          items: [],
+        });
+      }
+    }
 
     // ── Apps problemáticas ──
     const topApps = Object.entries(profile.topApps || {})
@@ -206,4 +222,19 @@ function formatActionType(type) {
     'process_cleanup': 'Limpiar procesos',
   };
   return map[type] || type;
+}
+
+function formatAnomalyType(type) {
+  const map = {
+    'battery_spike': '🔴 Spike de batería',
+    'battery_outlier': '🟡 Batería inusual',
+    'thermal_spike': '🌡️ Spike de temperatura',
+    'thermal_outlier': '🌡️ Temperatura inusual',
+    'process_spike': '⚙️ Exceso de procesos',
+    'process_outlier': '⚙️ Procesos inusuales',
+    'app_excessive_usage': '📱 App con consumo excesivo',
+    'app_usage_spike': '📱 Spike de uso de app',
+    'rapid_degradation': '🔴 Degradación rápida',
+  };
+  return map[type] || `⚠️ ${type}`;
 }

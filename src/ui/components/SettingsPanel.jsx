@@ -9,6 +9,7 @@ export default function SettingsPanel({ deviceId }) {
   const [errors, setErrors] = useState({ stats: {}, recent: [] });
   const [showAddJob, setShowAddJob] = useState(false);
   const [newJob, setNewJob] = useState({ type: 'interval', days: 1, threshold: 40, comparator: 'lt' });
+  const [aestheticMode, setAestheticMode] = useState(false);
 
   // Load data
   const refresh = useCallback(async () => {
@@ -282,6 +283,28 @@ export default function SettingsPanel({ deviceId }) {
         ) : !showAddJob && (
           <p className="text-xs text-dark-500">No hay tareas programadas</p>
         )}
+      </Section>
+
+      {/* Ultra Aesthetic Mode */}
+      <Section icon="✨" title="Ultra Aesthetic Mode">
+        <p className="text-xs text-dark-400 mb-3">
+          Activa efectos visuales premium: glassmorphism avanzado, blur dinámico, sombras suaves, microinteracciones y animaciones fluidas.
+        </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Toggle enabled={aestheticMode} onToggle={() => {
+              const next = !aestheticMode;
+              setAestheticMode(next);
+              try {
+                const ua = require('../theme/ultraAesthetic');
+                if (next) ua.enable(); else ua.disable();
+              } catch {}
+            }} />
+            <span className={`text-sm font-medium ${aestheticMode ? 'text-accent-purple' : 'text-dark-400'}`}>
+              {aestheticMode ? '✨ Activo' : 'Inactivo'}
+            </span>
+          </div>
+        </div>
       </Section>
 
       {/* Error Log */}
