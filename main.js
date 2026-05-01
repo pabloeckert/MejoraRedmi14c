@@ -11,6 +11,10 @@ const scheduler = require('./src/core/scheduler');
 const wifiAdb = require('./src/adb/wifi');
 const errorHandler = require('./src/core/errorHandler');
 const { sendNotification, getPendingNotifications, getNotificationHistory } = require('./src/ui/notifications');
+const benchmark = require('./src/core/benchmark');
+const { AnomalyDetector } = require('./src/ml/anomalyDetector');
+const extensionManager = require('./src/extensions/extensionManager');
+const adb = require('./src/adb/adbClient');
 
 let mainWindow;
 let activeProfiles = new Map();
@@ -218,3 +222,195 @@ ipcMain.handle('get-error-stats', async () => {
 ipcMain.handle('get-recent-errors', async (_e, { limit }) => {
   return await errorHandler.getRecentErrors(limit || 20);
 });
+
+// ─── IPC: Benchmark ───────────────────────────────────
+
+ipcMain.handle('run-benchmark', async (_e, { deviceId }) => {
+  try { return await benchmark.run(deviceId); }
+  catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('compare-benchmark', async (_e, { current, previous }) => {
+  try {
+    benchmark.results = current;
+    return benchmark.compare(previous);
+  } catch (err) { return { error: err.message }; }
+});
+
+// ─── IPC: Anomaly Detection ───────────────────────────
+
+ipcMain.handle('detect-anomalies', async (_e, { deviceId }) => {
+  try {
+    const detector = new AnomalyDetector(deviceId);
+    return await detector.detect();
+  } catch (err) { return { error: err.message }; }
+});
+
+// ─── IPC: Advanced Diagnostics ────────────────────────
+
+ipcMain.handle('run-advanced-diagnostics', async (_e, { deviceId }) => {
+  try {
+    const results = {
+      timestamp: new Date().toISOString(),
+      battery: {},
+      thermal: { zones: [] },
+      sensors: [],
+      radio: {},
+      miui: { count: 0, services: [] },
+      zombies: { count: 0, processes: [] },
+      selfReactivate: { count: 0, services: [] },
+    };
+
+    // Battery deep info
+    try {
+      const battOutput = await adb.run('shell dumpsys battery', deviceId);
+      results.battery = parseBatteryDetailed(battOutput);
+    } catch {}
+
+    // Thermal zones
+    try {
+      const thermalOutput = await adb.run('shell dumpsys thermalservice', deviceId);
+      results.thermal = parseThermalZones(thermalOutput);
+    } catch {}
+
+    // Sensors
+    try {
+      const sensorOutput = await adb.run('shell dumpsys sensorservice', deviceId);
+      results.sensors = parseSensors(sensorOutput);
+    } catch {}
+
+    // Radio
+    try {
+      results.radio = {
+        wifi: await adb.run('shell settings get global wifi_on', deviceId).then(v => v === '1' ? 'Activo' : 'Inactivo').catch(() => '?'),
+        wifiIp: await adb.run('shell ip addr show wlan0', deviceId).then(o => o.match(/inet\s+(\d+\.\d+\.\d+\.\d+)/)?.[1] || 'N/A').catch(() => 'N/A'),
+        mobile: await adb.run('shell settings get global mobile_data', deviceId).then(v => v === '1' ? 'Activo' : 'Inactivo').catch(() => '?'),
+        carrier: await adb.run('shell getprop gsm.sim.operator.alpha', deviceId).catch(() => '?'),
+        networkType: await adb.run('shell getprop gsm.network.type', deviceId).catch(() => '?'),
+      };
+    } catch {}
+
+    // MIUI services
+    try {
+      const svcOutput = await adb.run('shell dumpsys activity services', deviceId);
+      results.miui = parseMIUIServices(svcOutput);
+    } catch {}
+
+    // Zombie processes
+    try {
+      const psOutput = await adb.run('shell ps -A -o PID,STAT,NAME', deviceId);
+      results.zombies = parseZombies(psOutput);
+    } catch {}
+
+    // Self-reactivating services (compare disabled vs active)
+    try {
+      const disabled = await adb.run('shell pm list packages -d', deviceId);
+      const services = await adb.run('shell dumpsys activity services', deviceId);
+      results.selfReactivate = parseSelfReactivating(disabled, services);
+    } catch {}
+
+    return results;
+  } catch (err) { return { error: err.message }; }
+});
+
+// ─── IPC: Extensions ──────────────────────────────────
+
+ipcMain.handle('list-extensions', async () => {
+  try {
+    await extensionManager.loadFromDisk();
+    return extensionManager.list();
+  } catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('toggle-extension', async (_e, { extensionId, enabled }) => {
+  try { return extensionManager.toggle(extensionId, enabled); }
+  catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('run-extension-script', async (_e, { extensionId, scriptName, deviceId }) => {
+  try { return await extensionManager.runScript(extensionId, scriptName, deviceId); }
+  catch (err) { return { error: err.message }; }
+});
+
+// ─── Diagnostic Parsers ──────────────────────────────
+
+function parseBatteryDetailed(output) {
+  const info = {};
+  output.split('\n').forEach(line => {
+    const match = line.match(/^\s*(.+?):\s*(.+)$/);
+    if (match) info[match[1].trim()] = match[2].trim();
+  });
+  return info;
+}
+
+function parseThermalZones(output) {
+  const zones = [];
+  const lines = output.split('\n');
+  for (const line of lines) {
+    const match = line.match(/(\w+):\s+(\d+(?:\.\d+)?)°?C?/i);
+    if (match) zones.push({ name: match[1], temp: parseFloat(match[2]) });
+  }
+  // Fallback: try /sys/class/thermal format
+  if (zones.length === 0) {
+    const tempMatch = output.match(/Temperature\s*[:=]\s*(\d+\.?\d*)/gi);
+    if (tempMatch) {
+      tempMatch.forEach((m, i) => {
+        const val = parseFloat(m.match(/(\d+\.?\d*)/)?.[1]);
+        if (!isNaN(val)) zones.push({ name: `zone_${i}`, temp: val });
+      });
+    }
+  }
+  return { zones };
+}
+
+function parseSensors(output) {
+  const sensors = [];
+  const lines = output.split('\n');
+  for (const line of lines) {
+    const match = line.match(/^\s*(.+?):\s*(.+)$/);
+    if (match && (match[1].includes('Sensor') || match[1].includes('sensor'))) {
+      sensors.push({ name: match[1].trim(), value: match[2].trim().slice(0, 50) });
+    }
+  }
+  return sensors.slice(0, 20);
+}
+
+function parseMIUIServices(output) {
+  const miuiKeywords = ['miui', 'xiaomi', 'hyperos', 'mishare', 'micloud', 'misound', 'securitycenter'];
+  const services = [];
+  const lines = output.split('\n');
+  for (const line of lines) {
+    const lower = line.toLowerCase();
+    if (miuiKeywords.some(k => lower.includes(k))) {
+      const match = line.match(/(\S+\/\S+)/);
+      if (match && !services.includes(match[1])) services.push(match[1]);
+    }
+  }
+  return { count: services.length, services: services.slice(0, 20) };
+}
+
+function parseZombies(output) {
+  const zombies = [];
+  const lines = output.split('\n');
+  for (const line of lines) {
+    if (/\bZ\b/.test(line)) {
+      const parts = line.trim().split(/\s+/);
+      zombies.push({ pid: parts[0], stat: parts[1], name: parts[2] || '' });
+    }
+  }
+  return { count: zombies.length, processes: zombies.slice(0, 10) };
+}
+
+function parseSelfReactivating(disabledOutput, servicesOutput) {
+  const disabledPackages = disabledOutput.split('\n')
+    .filter(l => l.startsWith('package:'))
+    .map(l => l.replace('package:', '').trim());
+
+  const selfReactivate = [];
+  for (const pkg of disabledPackages) {
+    if (servicesOutput.includes(pkg)) {
+      selfReactivate.push(pkg);
+    }
+  }
+  return { count: selfReactivate.length, services: selfReactivate.slice(0, 10) };
+}
