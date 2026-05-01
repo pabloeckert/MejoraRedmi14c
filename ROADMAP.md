@@ -18,13 +18,15 @@
 - [x] Integración ML con UI (predicciones en tiempo real)
 - [x] UI con tabs (Overview, Tiempo Real, Tendencias, Insights)
 
-## Fase 3: Avanzado (Ciclo 3)
-- [ ] Soporte WiFi (ADB over network)
-- [ ] Backup de configuración antes de optimizar
-- [ ] Rollback de cambios si algo falla
-- [ ] Notificaciones push en el sistema
-- [ ] Programación de optimizaciones
-- [ ] Modo automático: optimizar al conectar
+## Fase 3: Autonomía ✅ (Ciclo 3)
+- [x] Conexión ADB por WiFi (enableTcpIp, connectOverWifi, verifyWifiConnection)
+- [x] Sistema de backup completo (apps, servicios, settings, batería, procesos)
+- [x] Rollback automático si optimización falla
+- [x] Modo automático (detectar → optimizar → registrar → notificar)
+- [x] Notificaciones del sistema (Electron Notification API)
+- [x] Programación de optimizaciones (intervalo, batería, temperatura)
+- [x] Manejo centralizado de errores con logs
+- [x] Settings panel (auto mode, WiFi, backups, scheduler, errores)
 
 ## Fase 4: ML Avanzado (Ciclo 4)
 - [ ] Predicción de batería (cuándo necesitará carga)
