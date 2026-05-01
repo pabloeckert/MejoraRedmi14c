@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
+const fs = require('fs-extra');
 const { detectDevice } = require('./src/devices/deviceManager');
 const { runOptimization } = require('./src/core/optimizerEngine');
 const { getRealTimeMetrics } = require('./src/adb/realTimeMetrics');
@@ -16,8 +17,42 @@ const { AnomalyDetector } = require('./src/ml/anomalyDetector');
 const extensionManager = require('./src/extensions/extensionManager');
 const adb = require('./src/adb/adbClient');
 
+// ── Ciclo 5-7 modules ──
+const { FailurePredictor } = require('./src/ml/failurePredictor');
+const { ProactiveOptimizer } = require('./src/core/proactiveOptimizer');
+const turboMode = require('./src/core/turboMode');
+const guardian = require('./src/core/guardian');
+const reportExporter = require('./src/core/reportExporter');
+const pdfExporter = require('./src/core/pdfExporter');
+const advancedExporter = require('./src/core/advancedExporter');
+const internalAPI = require('./src/core/internalAPI');
+const telemetry = require('./src/core/telemetry');
+const { HybridAI } = require('./src/ml/hybridAI');
+const { PluginSandbox } = require('./src/extensions/pluginSandbox');
+
 let mainWindow;
 let activeProfiles = new Map();
+
+// ── Simple settings store ──
+const SETTINGS_PATH = path.join(__dirname, 'settings.json');
+let appSettings = {};
+
+async function loadSettings() {
+  try {
+    if (await fs.pathExists(SETTINGS_PATH)) {
+      appSettings = await fs.readJson(SETTINGS_PATH);
+    }
+  } catch { appSettings = {}; }
+}
+
+async function saveSettings() {
+  try {
+    await fs.writeJson(SETTINGS_PATH, appSettings, { spaces: 2 });
+  } catch {}
+}
+
+// Initialize settings on startup
+loadSettings();
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -56,6 +91,7 @@ app.whenReady().then(createWindow);
 app.on('window-all-closed', () => {
   scheduler.stop();
   autoMode.stop();
+  guardian.stopAll();
   if (process.platform !== 'darwin') app.quit();
 });
 
@@ -73,7 +109,9 @@ async function getProfile(deviceId) {
   return activeProfiles.get(deviceId);
 }
 
-// ─── IPC: Device ───────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  IPC: Device
+// ═══════════════════════════════════════════════════════
 
 ipcMain.handle('detect-device', async () => {
   try {
@@ -121,7 +159,9 @@ ipcMain.handle('update-profile-snapshot', async (_e, { deviceId, snapshot }) => 
   catch (err) { return { error: err.message }; }
 });
 
-// ─── IPC: WiFi ADB ────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  IPC: WiFi ADB
+// ═══════════════════════════════════════════════════════
 
 ipcMain.handle('wifi-connect', async (_e, { deviceId }) => {
   try { return await wifiAdb.connectOverWifi(deviceId); }
@@ -138,7 +178,9 @@ ipcMain.handle('wifi-disconnect', async (_e, { deviceId }) => {
   catch (err) { return { error: err.message }; }
 });
 
-// ─── IPC: Backup ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  IPC: Backup
+// ═══════════════════════════════════════════════════════
 
 ipcMain.handle('create-backup', async (_e, { deviceId }) => {
   try { return await backupManager.createBackup(deviceId); }
@@ -157,7 +199,9 @@ ipcMain.handle('rollback', async (_e, { deviceId, timestamp }) => {
   } catch (err) { return { error: err.message }; }
 });
 
-// ─── IPC: Auto Mode ───────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  IPC: Auto Mode
+// ═══════════════════════════════════════════════════════
 
 ipcMain.handle('auto-mode-toggle', async (_e, { enabled }) => {
   try {
@@ -171,7 +215,9 @@ ipcMain.handle('auto-mode-status', async () => {
   return { active: autoMode.isActive() };
 });
 
-// ─── IPC: Scheduler ───────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  IPC: Scheduler
+// ═══════════════════════════════════════════════════════
 
 ipcMain.handle('scheduler-add-job', async (_e, config) => {
   try { return scheduler.addJob(config); }
@@ -203,7 +249,9 @@ ipcMain.handle('scheduler-stop', async () => {
   catch (err) { return { error: err.message }; }
 });
 
-// ─── IPC: Notifications ───────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  IPC: Notifications
+// ═══════════════════════════════════════════════════════
 
 ipcMain.handle('get-notifications', async () => {
   return getPendingNotifications();
@@ -213,7 +261,9 @@ ipcMain.handle('get-notification-history', async (_e, { limit }) => {
   return await getNotificationHistory(limit || 50);
 });
 
-// ─── IPC: Errors ──────────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  IPC: Errors
+// ═══════════════════════════════════════════════════════
 
 ipcMain.handle('get-error-stats', async () => {
   return errorHandler.getStats();
@@ -223,7 +273,9 @@ ipcMain.handle('get-recent-errors', async (_e, { limit }) => {
   return await errorHandler.getRecentErrors(limit || 20);
 });
 
-// ─── IPC: Benchmark ───────────────────────────────────
+// ═══════════════════════════════════════════════════════
+//  IPC: Benchmark
+// ═══════════════════════════════════════════════════════
 
 ipcMain.handle('run-benchmark', async (_e, { deviceId }) => {
   try { return await benchmark.run(deviceId); }
@@ -237,7 +289,9 @@ ipcMain.handle('compare-benchmark', async (_e, { current, previous }) => {
   } catch (err) { return { error: err.message }; }
 });
 
-// ─── IPC: Anomaly Detection ───────────────────────────
+// ═══════════════════════════════════════════════════════
+//  IPC: Anomaly Detection
+// ═══════════════════════════════════════════════════════
 
 ipcMain.handle('detect-anomalies', async (_e, { deviceId }) => {
   try {
@@ -246,74 +300,183 @@ ipcMain.handle('detect-anomalies', async (_e, { deviceId }) => {
   } catch (err) { return { error: err.message }; }
 });
 
-// ─── IPC: Advanced Diagnostics ────────────────────────
+// ═══════════════════════════════════════════════════════
+//  IPC: Failure Prediction (Ciclo 5)
+// ═══════════════════════════════════════════════════════
 
-ipcMain.handle('run-advanced-diagnostics', async (_e, { deviceId }) => {
+ipcMain.handle('predict-failures', async (_e, { deviceId }) => {
   try {
-    const results = {
-      timestamp: new Date().toISOString(),
-      battery: {},
-      thermal: { zones: [] },
-      sensors: [],
-      radio: {},
-      miui: { count: 0, services: [] },
-      zombies: { count: 0, processes: [] },
-      selfReactivate: { count: 0, services: [] },
-    };
-
-    // Battery deep info
-    try {
-      const battOutput = await adb.run('shell dumpsys battery', deviceId);
-      results.battery = parseBatteryDetailed(battOutput);
-    } catch {}
-
-    // Thermal zones
-    try {
-      const thermalOutput = await adb.run('shell dumpsys thermalservice', deviceId);
-      results.thermal = parseThermalZones(thermalOutput);
-    } catch {}
-
-    // Sensors
-    try {
-      const sensorOutput = await adb.run('shell dumpsys sensorservice', deviceId);
-      results.sensors = parseSensors(sensorOutput);
-    } catch {}
-
-    // Radio
-    try {
-      results.radio = {
-        wifi: await adb.run('shell settings get global wifi_on', deviceId).then(v => v === '1' ? 'Activo' : 'Inactivo').catch(() => '?'),
-        wifiIp: await adb.run('shell ip addr show wlan0', deviceId).then(o => o.match(/inet\s+(\d+\.\d+\.\d+\.\d+)/)?.[1] || 'N/A').catch(() => 'N/A'),
-        mobile: await adb.run('shell settings get global mobile_data', deviceId).then(v => v === '1' ? 'Activo' : 'Inactivo').catch(() => '?'),
-        carrier: await adb.run('shell getprop gsm.sim.operator.alpha', deviceId).catch(() => '?'),
-        networkType: await adb.run('shell getprop gsm.network.type', deviceId).catch(() => '?'),
-      };
-    } catch {}
-
-    // MIUI services
-    try {
-      const svcOutput = await adb.run('shell dumpsys activity services', deviceId);
-      results.miui = parseMIUIServices(svcOutput);
-    } catch {}
-
-    // Zombie processes
-    try {
-      const psOutput = await adb.run('shell ps -A -o PID,STAT,NAME', deviceId);
-      results.zombies = parseZombies(psOutput);
-    } catch {}
-
-    // Self-reactivating services (compare disabled vs active)
-    try {
-      const disabled = await adb.run('shell pm list packages -d', deviceId);
-      const services = await adb.run('shell dumpsys activity services', deviceId);
-      results.selfReactivate = parseSelfReactivating(disabled, services);
-    } catch {}
-
-    return results;
+    const predictor = new FailurePredictor(deviceId);
+    return await predictor.predict();
   } catch (err) { return { error: err.message }; }
 });
 
-// ─── IPC: Extensions ──────────────────────────────────
+ipcMain.handle('predict-non-linear', async (_e, { deviceId }) => {
+  try {
+    const predictor = new FailurePredictor(deviceId);
+    const result = await predictor.predict();
+    return result.nonLinearPredictions || { available: false, predictions: [] };
+  } catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Proactive Optimizer (Ciclo 5)
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('analyze-proactive', async (_e, { deviceId }) => {
+  try {
+    const optimizer = new ProactiveOptimizer(deviceId);
+    return await optimizer.analyze();
+  } catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Turbo Mode (Ciclo 5)
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('run-turbo', async (_e, { deviceId, options }) => {
+  try {
+    return await turboMode.activate(deviceId, options || {});
+  } catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('turbo-activate', async (_e, { deviceId }) => {
+  try { return await turboMode.activate(deviceId); }
+  catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('turbo-deactivate', async (_e, { deviceId }) => {
+  try { return await turboMode.deactivate(deviceId); }
+  catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('turbo-status', async (_e, { deviceId }) => {
+  try { return turboMode.getStatus(deviceId); }
+  catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Guardian Mode (Ciclo 6)
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('guardian-status', async (_e, { deviceId }) => {
+  try { return guardian.getStatus(deviceId); }
+  catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('guardian-start', async (_e, { deviceId }) => {
+  try { return guardian.start(deviceId); }
+  catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('guardian-stop', async (_e, { deviceId }) => {
+  try { return guardian.stop(deviceId); }
+  catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Report Export (Ciclo 5)
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('export-report', async (_e, { deviceId, format }) => {
+  try {
+    return await reportExporter.export(deviceId, { format });
+  } catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('list-reports', async () => {
+  try { return await reportExporter.listReports(); }
+  catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: PDF Export (Ciclo 6)
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('export-pdf', async (_e, { deviceId }) => {
+  try { return await pdfExporter.export(deviceId); }
+  catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Advanced Export (Ciclo 7)
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('advanced-export', async (_e, { deviceId, format }) => {
+  try {
+    switch (format) {
+      case 'csv': return await advancedExporter.exportCSV(deviceId);
+      case 'xml': return await advancedExporter.exportXML(deviceId);
+      case 'bundle': return await advancedExporter.exportBundle(deviceId);
+      default: return await advancedExporter.exportBundle(deviceId);
+    }
+  } catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: System Info (Ciclo 7)
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('get-system-info', async () => {
+  try { return internalAPI.getSystemInfo(); }
+  catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Telemetry (Ciclo 7)
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('get-telemetry', async (_e, { deviceId, limit }) => {
+  try {
+    const events = telemetry.getEvents(deviceId, { limit: limit || 100 });
+    const stats = telemetry.getStats(deviceId);
+    return { events, stats };
+  } catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Hybrid AI Metrics (Ciclo 7)
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('get-hybrid-ai-metrics', async () => {
+  try {
+    const hybridAI = new HybridAI();
+    return hybridAI.getMetrics();
+  } catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Plugins (Ciclo 7)
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('list-plugins', async () => {
+  try {
+    const sandbox = new PluginSandbox();
+    await sandbox.loadAll();
+    return sandbox.list();
+  } catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Settings
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('set-setting', async (_e, { key, value }) => {
+  try {
+    appSettings[key] = value;
+    await saveSettings();
+    return { success: true };
+  } catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('get-setting', async (_e, { key }) => {
+  try { return appSettings[key] ?? null; }
+  catch (err) { return null; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Extensions
+// ═══════════════════════════════════════════════════════
 
 ipcMain.handle('list-extensions', async () => {
   try {
@@ -330,6 +493,68 @@ ipcMain.handle('toggle-extension', async (_e, { extensionId, enabled }) => {
 ipcMain.handle('run-extension-script', async (_e, { extensionId, scriptName, deviceId }) => {
   try { return await extensionManager.runScript(extensionId, scriptName, deviceId); }
   catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Advanced Diagnostics
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('run-advanced-diagnostics', async (_e, { deviceId }) => {
+  try {
+    const results = {
+      timestamp: new Date().toISOString(),
+      battery: {},
+      thermal: { zones: [] },
+      sensors: [],
+      radio: {},
+      miui: { count: 0, services: [] },
+      zombies: { count: 0, processes: [] },
+      selfReactivate: { count: 0, services: [] },
+    };
+
+    try {
+      const battOutput = await adb.run('shell dumpsys battery', deviceId);
+      results.battery = parseBatteryDetailed(battOutput);
+    } catch {}
+
+    try {
+      const thermalOutput = await adb.run('shell dumpsys thermalservice', deviceId);
+      results.thermal = parseThermalZones(thermalOutput);
+    } catch {}
+
+    try {
+      const sensorOutput = await adb.run('shell dumpsys sensorservice', deviceId);
+      results.sensors = parseSensors(sensorOutput);
+    } catch {}
+
+    try {
+      results.radio = {
+        wifi: await adb.run('shell settings get global wifi_on', deviceId).then(v => v === '1' ? 'Activo' : 'Inactivo').catch(() => '?'),
+        wifiIp: await adb.run('shell ip addr show wlan0', deviceId).then(o => o.match(/inet\s+(\d+\.\d+\.\d+\.\d+)/)?.[1] || 'N/A').catch(() => 'N/A'),
+        mobile: await adb.run('shell settings get global mobile_data', deviceId).then(v => v === '1' ? 'Activo' : 'Inactivo').catch(() => '?'),
+        carrier: await adb.run('shell getprop gsm.sim.operator.alpha', deviceId).catch(() => '?'),
+        networkType: await adb.run('shell getprop gsm.network.type', deviceId).catch(() => '?'),
+      };
+    } catch {}
+
+    try {
+      const svcOutput = await adb.run('shell dumpsys activity services', deviceId);
+      results.miui = parseMIUIServices(svcOutput);
+    } catch {}
+
+    try {
+      const psOutput = await adb.run('shell ps -A -o PID,STAT,NAME', deviceId);
+      results.zombies = parseZombies(psOutput);
+    } catch {}
+
+    try {
+      const disabled = await adb.run('shell pm list packages -d', deviceId);
+      const services = await adb.run('shell dumpsys activity services', deviceId);
+      results.selfReactivate = parseSelfReactivating(disabled, services);
+    } catch {}
+
+    return results;
+  } catch (err) { return { error: err.message }; }
 });
 
 // ─── Diagnostic Parsers ──────────────────────────────
@@ -350,7 +575,6 @@ function parseThermalZones(output) {
     const match = line.match(/(\w+):\s+(\d+(?:\.\d+)?)°?C?/i);
     if (match) zones.push({ name: match[1], temp: parseFloat(match[2]) });
   }
-  // Fallback: try /sys/class/thermal format
   if (zones.length === 0) {
     const tempMatch = output.match(/Temperature\s*[:=]\s*(\d+\.?\d*)/gi);
     if (tempMatch) {
