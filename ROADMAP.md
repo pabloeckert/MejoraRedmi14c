@@ -9,12 +9,14 @@
 - [x] UI mínima funcional
 - [x] Documentación base
 
-## Fase 2: Inteligencia (Ciclo 2)
-- [ ] Dashboard en tiempo real con métricas live
-- [ ] Gráficos de tendencias (batería, temperatura, procesos)
-- [ ] Comparativa pre/post optimización
-- [ ] Perfiles personalizados (Pablo vs Sindy)
-- [ ] Modo automático: optimizar al conectar
+## Fase 2: Inteligencia ✅ (Ciclo 2)
+- [x] Dashboard en tiempo real con métricas live (CPU, RAM, temp, batería, procesos, servicios MIUI)
+- [x] Gráficos de tendencias (batería, temperatura, procesos, apps, rendimiento)
+- [x] Comparativa pre/post optimización
+- [x] Perfiles inteligentes por dispositivo (DeviceProfile + health score)
+- [x] Smart Insights (predicciones ML, apps problemáticas, procesos recurrentes)
+- [x] Integración ML con UI (predicciones en tiempo real)
+- [x] UI con tabs (Overview, Tiempo Real, Tendencias, Insights)
 
 ## Fase 3: Avanzado (Ciclo 3)
 - [ ] Soporte WiFi (ADB over network)
@@ -22,6 +24,7 @@
 - [ ] Rollback de cambios si algo falla
 - [ ] Notificaciones push en el sistema
 - [ ] Programación de optimizaciones
+- [ ] Modo automático: optimizar al conectar
 
 ## Fase 4: ML Avanzado (Ciclo 4)
 - [ ] Predicción de batería (cuándo necesitará carga)

@@ -1,7 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
 import DeviceCard from './components/DeviceCard';
 import OptimizationPanel from './components/OptimizationPanel';
+import RealTimeDashboard from './components/RealTimeDashboard';
+import TrendsPanel from './components/TrendsPanel';
+import DeviceOverview from './components/DeviceOverview';
+import SmartInsights from './components/SmartInsights';
 
 const STATES = {
   IDLE: 'idle',
@@ -12,12 +16,39 @@ const STATES = {
   ERROR: 'error',
 };
 
+const TABS = {
+  OVERVIEW: 'overview',
+  REALTIME: 'realtime',
+  TRENDS: 'trends',
+  INSIGHTS: 'insights',
+};
+
 export default function App() {
   const [state, setState] = useState(STATES.IDLE);
   const [device, setDevice] = useState(null);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [logs, setLogs] = useState([]);
+  const [profile, setProfile] = useState(null);
+  const [insights, setInsights] = useState(null);
+  const [activeTab, setActiveTab] = useState(TABS.OVERVIEW);
+
+  // Load profile and insights after device detection
+  const loadDeviceData = useCallback(async (deviceId) => {
+    try {
+      const [profileData, insightsData, logsData] = await Promise.all([
+        window.optimizer.getDeviceProfile({ deviceId }),
+        window.optimizer.getSmartInsights({ deviceId }),
+        window.optimizer.getDeviceLogs({ deviceId }),
+      ]);
+
+      if (!profileData.error) setProfile(profileData);
+      if (!insightsData.error) setInsights(insightsData);
+      if (!logsData.error) setLogs(logsData);
+    } catch (err) {
+      console.warn('Error loading device data:', err);
+    }
+  }, []);
 
   const handleDetect = useCallback(async () => {
     setState(STATES.DETECTING);
@@ -27,15 +58,14 @@ export default function App() {
       if (dev.error) throw new Error(dev.error);
       setDevice(dev);
       setState(STATES.DETECTED);
+      setActiveTab(TABS.OVERVIEW);
 
-      // Cargar logs existentes
-      const existingLogs = await window.optimizer.getDeviceLogs({ deviceId: dev.deviceId });
-      if (!existingLogs.error) setLogs(existingLogs);
+      await loadDeviceData(dev.deviceId);
     } catch (err) {
       setError(err.message);
       setState(STATES.ERROR);
     }
-  }, []);
+  }, [loadDeviceData]);
 
   const handleOptimize = useCallback(async () => {
     if (!device) return;
@@ -50,20 +80,23 @@ export default function App() {
       setResult(res);
       setState(STATES.DONE);
 
-      // Recargar logs
-      const updatedLogs = await window.optimizer.getDeviceLogs({ deviceId: device.deviceId });
-      if (!updatedLogs.error) setLogs(updatedLogs);
+      // Reload all data after optimization
+      await loadDeviceData(device.deviceId);
     } catch (err) {
       setError(err.message);
       setState(STATES.ERROR);
     }
-  }, [device]);
+  }, [device, loadDeviceData]);
 
   const handleReset = useCallback(() => {
     setState(STATES.IDLE);
     setDevice(null);
     setResult(null);
     setError(null);
+    setLogs([]);
+    setProfile(null);
+    setInsights(null);
+    setActiveTab(TABS.OVERVIEW);
   }, []);
 
   return (
@@ -88,7 +121,7 @@ export default function App() {
 
       {/* Main Content */}
       <main className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Panel izquierdo: Conexión y info del dispositivo */}
+        {/* Panel izquierdo: Conexión y overview */}
         <div className="lg:col-span-1 flex flex-col gap-6">
           {/* Botón de conexión */}
           <div className="glass p-6">
@@ -133,7 +166,7 @@ export default function App() {
             )}
 
             {(state === STATES.DETECTED || state === STATES.OPTIMIZING || state === STATES.DONE) && device && (
-              <DeviceCard device={device} result={result} />
+              <DeviceOverview device={device} profile={profile} />
             )}
           </div>
 
@@ -162,19 +195,80 @@ export default function App() {
           )}
         </div>
 
-        {/* Panel derecho: Dashboard y resultados */}
+        {/* Panel derecho: Tabs + contenido */}
         <div className="lg:col-span-2 flex flex-col gap-6">
-          <Dashboard
-            state={state}
-            device={device}
-            result={result}
-            logs={logs}
-            onOptimize={handleOptimize}
-          />
+          {/* Tab Navigation */}
+          {device && (
+            <div className="glass px-2 py-1.5 flex items-center gap-1">
+              <TabButton
+                active={activeTab === TABS.OVERVIEW}
+                onClick={() => setActiveTab(TABS.OVERVIEW)}
+                icon="📋"
+                label="Resumen"
+              />
+              <TabButton
+                active={activeTab === TABS.REALTIME}
+                onClick={() => setActiveTab(TABS.REALTIME)}
+                icon="📊"
+                label="Tiempo Real"
+              />
+              <TabButton
+                active={activeTab === TABS.TRENDS}
+                onClick={() => setActiveTab(TABS.TRENDS)}
+                icon="📈"
+                label="Tendencias"
+              />
+              <TabButton
+                active={activeTab === TABS.INSIGHTS}
+                onClick={() => setActiveTab(TABS.INSIGHTS)}
+                icon="🧠"
+                label="Insights"
+              />
+            </div>
+          )}
+
+          {/* Tab Content */}
+          {activeTab === TABS.OVERVIEW && (
+            <Dashboard
+              state={state}
+              device={device}
+              result={result}
+              logs={logs}
+              onOptimize={handleOptimize}
+            />
+          )}
+
+          {activeTab === TABS.REALTIME && (
+            <RealTimeDashboard deviceId={device?.deviceId} />
+          )}
+
+          {activeTab === TABS.TRENDS && (
+            <TrendsPanel logs={logs} deviceId={device?.deviceId} />
+          )}
+
+          {activeTab === TABS.INSIGHTS && (
+            <SmartInsights profile={profile} predictions={insights?.predictions} />
+          )}
 
           {result && <OptimizationPanel result={result} />}
         </div>
       </main>
     </div>
+  );
+}
+
+function TabButton({ active, onClick, icon, label }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+        active
+          ? 'bg-dark-700/80 text-dark-100 shadow-sm'
+          : 'text-dark-400 hover:text-dark-200 hover:bg-dark-800/50'
+      }`}
+    >
+      <span>{icon}</span>
+      <span>{label}</span>
+    </button>
   );
 }
