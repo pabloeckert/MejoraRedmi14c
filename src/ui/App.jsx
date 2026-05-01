@@ -6,6 +6,7 @@ import RealTimeDashboard from './components/RealTimeDashboard';
 import TrendsPanel from './components/TrendsPanel';
 import DeviceOverview from './components/DeviceOverview';
 import SmartInsights from './components/SmartInsights';
+import SettingsPanel from './components/SettingsPanel';
 
 const STATES = {
   IDLE: 'idle',
@@ -21,6 +22,7 @@ const TABS = {
   REALTIME: 'realtime',
   TRENDS: 'trends',
   INSIGHTS: 'insights',
+  SETTINGS: 'settings',
 };
 
 export default function App() {
@@ -224,6 +226,12 @@ export default function App() {
                 icon="🧠"
                 label="Insights"
               />
+              <TabButton
+                active={activeTab === TABS.SETTINGS}
+                onClick={() => setActiveTab(TABS.SETTINGS)}
+                icon="⚙️"
+                label="Config"
+              />
             </div>
           )}
 
@@ -248,6 +256,10 @@ export default function App() {
 
           {activeTab === TABS.INSIGHTS && (
             <SmartInsights profile={profile} predictions={insights?.predictions} />
+          )}
+
+          {activeTab === TABS.SETTINGS && (
+            <SettingsPanel deviceId={device?.deviceId} />
           )}
 
           {result && <OptimizationPanel result={result} />}

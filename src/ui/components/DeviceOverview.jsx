@@ -3,14 +3,34 @@ import { SparkLine } from './charts/Charts';
 
 export default function DeviceOverview({ device, profile, onAssignOwner }) {
   const [healthAnim, setHealthAnim] = useState(0);
+  const [wifiStatus, setWifiStatus] = useState(null);
+  const [wifiLoading, setWifiLoading] = useState(false);
 
   useEffect(() => {
     if (profile?.healthScore != null) {
-      // Animate the score
       const timer = setTimeout(() => setHealthAnim(profile.healthScore), 100);
       return () => clearTimeout(timer);
     }
   }, [profile?.healthScore]);
+
+  const handleWifiConnect = async () => {
+    if (!device?.deviceId) return;
+    setWifiLoading(true);
+    const result = await window.optimizer.wifiConnect({ deviceId: device.deviceId });
+    setWifiStatus(result.error ? { error: result.error } : result);
+    setWifiLoading(false);
+  };
+
+  const handleWifiDisconnect = async () => {
+    if (!device?.deviceId) return;
+    await window.optimizer.wifiDisconnect({ deviceId: device.deviceId });
+    setWifiStatus(null);
+  };
+
+  const handleCreateBackup = async () => {
+    if (!device?.deviceId) return;
+    await window.optimizer.createBackup({ deviceId: device.deviceId });
+  };
 
   const getHealthColor = (score) => {
     if (score >= 80) return { text: 'text-accent-green', bg: 'bg-accent-green', emoji: '🟢' };
@@ -106,6 +126,31 @@ export default function DeviceOverview({ device, profile, onAssignOwner }) {
             </div>
           )}
         </div>
+      )}
+
+      {/* Quick Actions */}
+      <div className="flex gap-2">
+        {!wifiStatus?.ip ? (
+          <button onClick={handleWifiConnect} disabled={wifiLoading}
+            className="flex-1 py-2 px-3 bg-accent-blue/10 hover:bg-accent-blue/20 border border-accent-blue/20
+              text-accent-blue text-xs font-medium rounded-lg transition-all disabled:opacity-50">
+            {wifiLoading ? '⏳ Conectando...' : '📶 WiFi'}
+          </button>
+        ) : (
+          <button onClick={handleWifiDisconnect}
+            className="flex-1 py-2 px-3 bg-accent-green/10 border border-accent-green/20
+              text-accent-green text-xs font-medium rounded-lg">
+            ✅ WiFi {wifiStatus.ip}
+          </button>
+        )}
+        <button onClick={handleCreateBackup}
+          className="flex-1 py-2 px-3 bg-dark-700/50 hover:bg-dark-600/50 border border-dark-600/30
+            text-dark-300 text-xs font-medium rounded-lg transition-all">
+          💾 Backup
+        </button>
+      </div>
+      {wifiStatus?.error && (
+        <p className="text-xs text-accent-red">{wifiStatus.error}</p>
       )}
 
       {/* Device Info */}
