@@ -5,6 +5,9 @@ export default function DeviceOverview({ device, profile, onAssignOwner }) {
   const [healthAnim, setHealthAnim] = useState(0);
   const [wifiStatus, setWifiStatus] = useState(null);
   const [wifiLoading, setWifiLoading] = useState(false);
+  const [turboActive, setTurboActive] = useState(false);
+  const [turboStatus, setTurboStatus] = useState(null);
+  const [turboLoading, setTurboLoading] = useState(false);
 
   useEffect(() => {
     if (profile?.healthScore != null) {
@@ -12,6 +15,20 @@ export default function DeviceOverview({ device, profile, onAssignOwner }) {
       return () => clearTimeout(timer);
     }
   }, [profile?.healthScore]);
+
+  // Verificar estado de Modo Turbo al cargar
+  useEffect(() => {
+    if (!device?.deviceId) return;
+    (async () => {
+      try {
+        const status = await window.optimizer.turboStatus?.({ deviceId: device.deviceId });
+        if (status?.active) {
+          setTurboActive(true);
+          setTurboStatus(status);
+        }
+      } catch {}
+    })();
+  }, [device?.deviceId]);
 
   const handleWifiConnect = async () => {
     if (!device?.deviceId) return;
@@ -30,6 +47,31 @@ export default function DeviceOverview({ device, profile, onAssignOwner }) {
   const handleCreateBackup = async () => {
     if (!device?.deviceId) return;
     await window.optimizer.createBackup({ deviceId: device.deviceId });
+  };
+
+  const handleTurboToggle = async () => {
+    if (!device?.deviceId) return;
+    setTurboLoading(true);
+    try {
+      if (turboActive) {
+        const result = await window.optimizer.turboDeactivate({ deviceId: device.deviceId });
+        if (!result.error) {
+          setTurboActive(false);
+          setTurboStatus(null);
+        }
+      } else {
+        const result = await window.optimizer.turboActivate({ deviceId: device.deviceId });
+        if (!result.error) {
+          setTurboActive(true);
+          setTurboStatus({
+            active: true,
+            actionsExecuted: result.totalActions,
+            performanceGain: result.performanceGain,
+          });
+        }
+      }
+    } catch {}
+    setTurboLoading(false);
   };
 
   const getHealthColor = (score) => {
@@ -76,7 +118,7 @@ export default function DeviceOverview({ device, profile, onAssignOwner }) {
           </div>
         </div>
         <div className="text-right">
-          <div className={`text-xs ${health.text} font-medium`}>{health.emoji} {health.label}</div>
+          <div className={`text-xs ${health.text} font-medium`}>{health.emoji} {getHealthLabel(score)}</div>
           <div className="text-3xl font-bold text-dark-100 mt-1">{score}</div>
           <div className="text-xs text-dark-500">/100</div>
         </div>
@@ -149,6 +191,45 @@ export default function DeviceOverview({ device, profile, onAssignOwner }) {
           💾 Backup
         </button>
       </div>
+
+      {/* Modo Turbo (Ciclo 5) */}
+      <div className="border-t border-dark-700/50 pt-4">
+        <button
+          onClick={handleTurboToggle}
+          disabled={turboLoading}
+          className={`w-full py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden ${
+            turboActive
+              ? 'bg-gradient-to-r from-accent-red to-accent-orange text-white shadow-lg shadow-accent-red/20 animate-pulse'
+              : 'bg-gradient-to-r from-accent-orange to-accent-yellow text-dark-900 hover:shadow-lg hover:shadow-accent-orange/30 hover:scale-[1.02]'
+          } disabled:opacity-50 disabled:cursor-not-allowed`}
+        >
+          <span className="relative z-10 flex items-center justify-center gap-2">
+            {turboLoading ? (
+              <>⏳ Procesando...</>
+            ) : turboActive ? (
+              <>🔴 Desactivar Modo Turbo</>
+            ) : (
+              <>🚀 Activar Modo Turbo</>
+            )}
+          </span>
+          {!turboActive && !turboLoading && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent animate-[shimmer_2s_infinite]" />
+          )}
+        </button>
+        {turboActive && turboStatus && (
+          <div className="mt-2 text-center">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent-red/10 text-accent-red border border-accent-red/20">
+              ⚡ Turbo activo · {turboStatus.actionsExecuted || '—'} acciones · +{turboStatus.performanceGain || 0}% rendimiento
+            </span>
+          </div>
+        )}
+        {turboActive && (
+          <p className="text-[10px] text-dark-500 text-center mt-1">
+            ⚠️ Animaciones desactivadas, servicios limitados, rendimiento máximo
+          </p>
+        )}
+      </div>
+
       {wifiStatus?.error && (
         <p className="text-xs text-accent-red">{wifiStatus.error}</p>
       )}

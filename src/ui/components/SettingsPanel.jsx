@@ -10,6 +10,9 @@ export default function SettingsPanel({ deviceId }) {
   const [showAddJob, setShowAddJob] = useState(false);
   const [newJob, setNewJob] = useState({ type: 'interval', days: 1, threshold: 40, comparator: 'lt' });
   const [aestheticMode, setAestheticMode] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [exportResult, setExportResult] = useState(null);
+  const [reports, setReports] = useState([]);
 
   // Load data
   const refresh = useCallback(async () => {
@@ -28,6 +31,12 @@ export default function SettingsPanel({ deviceId }) {
         const backupsList = await window.optimizer.listBackups({ deviceId });
         if (Array.isArray(backupsList)) setBackups(backupsList);
       }
+
+      // Cargar reportes existentes (Ciclo 5)
+      try {
+        const reportsList = await window.optimizer.listReports?.();
+        if (Array.isArray(reportsList)) setReports(reportsList.slice(0, 5));
+      } catch {}
     } catch {}
   }, [deviceId]);
 
@@ -89,6 +98,21 @@ export default function SettingsPanel({ deviceId }) {
   const handleToggleJob = async (jobId, enabled) => {
     await window.optimizer.schedulerToggleJob({ jobId, enabled });
     await refresh();
+  };
+
+  // ── Exportar Reporte (Ciclo 5) ──
+  const handleExportReport = async (format) => {
+    if (!deviceId) return;
+    setExporting(true);
+    setExportResult(null);
+    try {
+      const result = await window.optimizer.exportReport({ deviceId, format });
+      setExportResult(result.error ? { error: result.error } : result);
+      if (!result.error) await refresh();
+    } catch (err) {
+      setExportResult({ error: err.message });
+    }
+    setExporting(false);
   };
 
   return (
@@ -181,6 +205,70 @@ export default function SettingsPanel({ deviceId }) {
           </div>
         ) : (
           <p className="text-xs text-dark-500">No hay backups aún</p>
+        )}
+      </Section>
+
+      {/* Exportar Reporte (Ciclo 5) */}
+      <Section icon="📊" title="Exportar Reporte Técnico">
+        <p className="text-xs text-dark-400 mb-4">
+          Genera un reporte completo con métricas, anomalías, predicciones ML y recomendaciones.
+        </p>
+        {!deviceId ? (
+          <p className="text-xs text-dark-500">Conecta un dispositivo primero</p>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <button onClick={() => handleExportReport('json')}
+                disabled={exporting}
+                className="flex-1 py-2.5 px-4 bg-accent-blue/10 hover:bg-accent-blue/20 border border-accent-blue/20
+                  text-accent-blue text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                {exporting ? '⏳ Generando...' : '📄 Exportar JSON'}
+              </button>
+              <button onClick={() => handleExportReport('html')}
+                disabled={exporting}
+                className="flex-1 py-2.5 px-4 bg-accent-purple/10 hover:bg-accent-purple/20 border border-accent-purple/20
+                  text-accent-purple text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                {exporting ? '⏳ Generando...' : '🌐 Exportar HTML'}
+              </button>
+              <button onClick={() => handleExportReport('both')}
+                disabled={exporting}
+                className="flex-1 py-2.5 px-4 bg-accent-green/10 hover:bg-accent-green/20 border border-accent-green/20
+                  text-accent-green text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                {exporting ? '⏳ Generando...' : '📦 Ambos'}
+              </button>
+            </div>
+
+            {exportResult && !exportResult.error && (
+              <div className="bg-accent-green/5 border border-accent-green/20 rounded-xl p-3">
+                <p className="text-xs text-accent-green font-medium mb-1">✅ Reporte generado</p>
+                {exportResult.files?.map((f, i) => (
+                  <div key={i} className="flex items-center justify-between text-xs text-dark-400 mt-1">
+                    <span className="font-mono">{f.format.toUpperCase()}</span>
+                    <span>{(f.size / 1024).toFixed(1)} KB</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {exportResult?.error && (
+              <p className="text-xs text-accent-red">❌ {exportResult.error}</p>
+            )}
+
+            {/* Reportes recientes */}
+            {reports.length > 0 && (
+              <div>
+                <p className="text-xs text-dark-500 mb-2">Reportes recientes:</p>
+                <div className="space-y-1.5 max-h-32 overflow-y-auto">
+                  {reports.map((r, i) => (
+                    <div key={i} className="flex items-center justify-between bg-dark-900/50 rounded-lg px-3 py-1.5 border border-dark-700/20">
+                      <span className="text-xs text-dark-300 font-mono truncate">{r.name}</span>
+                      <span className="text-xs text-dark-500 ml-2">{(r.size / 1024).toFixed(1)} KB</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         )}
       </Section>
 

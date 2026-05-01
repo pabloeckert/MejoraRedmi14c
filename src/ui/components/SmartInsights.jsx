@@ -1,10 +1,77 @@
 import React, { useMemo } from 'react';
 
-export default function SmartInsights({ profile, predictions, anomalyResults }) {
+export default function SmartInsights({ profile, predictions, anomalyResults, failurePredictions, proactiveResults }) {
   const insights = useMemo(() => {
     const items = [];
 
     if (!profile) return items;
+
+    // ── Predicciones de fallo (Ciclo 5) ──
+    if (failurePredictions?.predictions?.length > 0) {
+      for (const pred of failurePredictions.predictions.slice(0, 5)) {
+        const urgencyColors = {
+          critical: 'critical',
+          high: 'warning',
+          medium: 'info',
+          low: 'info',
+        };
+
+        items.push({
+          type: urgencyColors[pred.urgency] || 'warning',
+          icon: pred.icon || '🔮',
+          title: `Predicción: ${pred.label}`,
+          description: pred.description,
+          badge: pred.urgency,
+          items: [
+            ...(pred.projection?.estimatedDays != null ? [{
+              name: 'Tiempo estimado',
+              detail: `${pred.projection.estimatedDays} días`,
+              severity: pred.urgency === 'critical' ? 'warning' : 'info',
+            }] : []),
+            ...(pred.projection?.currentValue != null ? [{
+              name: 'Valor actual',
+              detail: `${pred.projection.currentValue}${pred.projection.unit || ''}`,
+              severity: 'info',
+            }] : []),
+            ...(pred.projection?.projectedValue != null ? [{
+              name: 'Proyección',
+              detail: `${pred.projection.projectedValue}${pred.projection.unit || ''}`,
+              severity: pred.urgency === 'critical' ? 'warning' : 'info',
+            }] : []),
+            ...(pred.recommendation ? [{
+              name: '💡 Recomendación',
+              detail: pred.recommendation,
+              severity: 'info',
+            }] : []),
+          ],
+        });
+      }
+    }
+
+    // ── Acciones proactivas (Ciclo 5) ──
+    if (proactiveResults?.proactiveActions?.length > 0) {
+      for (const action of proactiveResults.proactiveActions.slice(0, 3)) {
+        items.push({
+          type: action.urgency === 'critical' ? 'critical' : 'warning',
+          icon: action.icon || '🛡️',
+          title: `Proactivo: ${action.label}`,
+          description: action.description,
+          badge: action.executed ? 'ejecutado' : action.urgency,
+          items: [
+            ...(action.impact ? [{
+              name: 'Impacto estimado',
+              detail: action.impact,
+              severity: 'info',
+            }] : []),
+            ...(action.executed ? [{
+              name: 'Estado',
+              detail: '✅ Ejecutado automáticamente',
+              severity: 'info',
+            }] : []),
+          ],
+        });
+      }
+    }
 
     // ── Anomalías detectadas ──
     if (anomalyResults?.anomalies?.length > 0) {
@@ -108,7 +175,7 @@ export default function SmartInsights({ profile, predictions, anomalyResults }) 
     }
 
     return items;
-  }, [profile, predictions]);
+  }, [profile, predictions, anomalyResults, failurePredictions, proactiveResults]);
 
   if (!profile) {
     return (
@@ -134,16 +201,43 @@ export default function SmartInsights({ profile, predictions, anomalyResults }) 
     );
   }
 
+  // Contar por tipo para badges
+  const criticalCount = insights.filter(i => i.type === 'critical').length;
+  const warningCount = insights.filter(i => i.type === 'warning').length;
+
   return (
     <div className="glass p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold flex items-center gap-2">
           🧠 Smart Insights
         </h2>
-        <span className="text-xs text-dark-500">
-          {insights.length} {insights.length === 1 ? 'hallazgo' : 'hallazgos'}
-        </span>
+        <div className="flex items-center gap-2">
+          {criticalCount > 0 && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent-red/10 text-accent-red border border-accent-red/20">
+              {criticalCount} críticos
+            </span>
+          )}
+          {warningCount > 0 && (
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent-orange/10 text-accent-orange border border-accent-orange/20">
+              {warningCount} warnings
+            </span>
+          )}
+          <span className="text-xs text-dark-500">
+            {insights.length} {insights.length === 1 ? 'hallazgo' : 'hallazgos'}
+          </span>
+        </div>
       </div>
+
+      {/* Confianza de predicciones ML */}
+      {failurePredictions?.confidence > 0 && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-accent-blue/5 border border-accent-blue/10">
+          <span className="text-xs text-accent-blue">🧠</span>
+          <span className="text-xs text-dark-400">
+            Confianza ML: <strong className="text-dark-200">{Math.round(failurePredictions.confidence * 100)}%</strong>
+            <span className="text-dark-500 ml-1">({failurePredictions.dataPoints} puntos de datos)</span>
+          </span>
+        </div>
+      )}
 
       <div className="space-y-3">
         {insights.map((insight, i) => (
@@ -175,7 +269,7 @@ function InsightCard({ insight }) {
           <div className="flex items-center gap-2 mb-1">
             <h3 className="text-sm font-medium text-dark-100">{insight.title}</h3>
             <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${typeBadge[insight.type]}`}>
-              {insight.type}
+              {insight.badge || insight.type}
             </span>
           </div>
           <p className="text-xs text-dark-400 mb-2">{insight.description}</p>
