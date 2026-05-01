@@ -110,3 +110,45 @@ function _getIcon(type) {
 }
 
 module.exports = { sendNotification, getPendingNotifications, getNotificationHistory, cleanOldNotifications };
+
+/**
+ * Notificaciones específicas de predicciones de fallo (Ciclo 6)
+ * Se llaman desde Guardian y Auto Mode cuando se detectan predicciones críticas
+ */
+function sendFailurePredictionNotification(prediction) {
+  const icons = {
+    battery_critical: '🔋',
+    thermal_shutdown: '🌡️',
+    storage_full: '💾',
+    process_explosion: '⚙️',
+    memory_exhaustion: '🧠',
+  };
+
+  const urgencyLabels = {
+    critical: '🔴 CRÍTICO',
+    high: '🟠 ALTO',
+    medium: '🟡 MEDIO',
+  };
+
+  return sendNotification({
+    title: `${icons[prediction.id] || '⚠️'} Predicción: ${prediction.label}`,
+    body: `${urgencyLabels[prediction.urgency] || ''} — ${prediction.recommendation || prediction.description}`,
+    type: prediction.urgency === 'critical' ? 'error' : 'warning',
+  });
+}
+
+function sendGuardianAlert(alert) {
+  return sendNotification({
+    title: `${alert.icon || '🛡️'} Guardian: ${alert.type}`,
+    body: alert.message,
+    type: alert.severity === 'critical' ? 'error' : 'warning',
+  });
+}
+
+function sendTurboEscalation(deviceId, reason) {
+  return sendNotification({
+    title: '🚨 Modo Turbo activado por Guardian',
+    body: `Dispositivo ${deviceId}: ${reason}`,
+    type: 'error',
+  });
+}

@@ -13,6 +13,10 @@ export default function SettingsPanel({ deviceId }) {
   const [exporting, setExporting] = useState(false);
   const [exportResult, setExportResult] = useState(null);
   const [reports, setReports] = useState([]);
+  const [guardianActive, setGuardianActive] = useState(false);
+  const [guardianStatus, setGuardianStatus] = useState(null);
+  const [guardianLoading, setGuardianLoading] = useState(false);
+  const [failureNotifications, setFailureNotifications] = useState(true);
 
   // Load data
   const refresh = useCallback(async () => {
@@ -36,6 +40,21 @@ export default function SettingsPanel({ deviceId }) {
       try {
         const reportsList = await window.optimizer.listReports?.();
         if (Array.isArray(reportsList)) setReports(reportsList.slice(0, 5));
+      } catch {}
+
+      // Cargar estado Guardian (Ciclo 6)
+      try {
+        const guardianSt = await window.optimizer.guardianStatus?.({ deviceId });
+        if (guardianSt && !guardianSt.error) {
+          setGuardianActive(guardianSt.active || false);
+          setGuardianStatus(guardianSt);
+        }
+      } catch {}
+
+      // Cargar preferencia de notificaciones de fallo
+      try {
+        const notifPref = await window.optimizer.getSetting?.('failureNotifications');
+        if (notifPref != null) setFailureNotifications(notifPref);
       } catch {}
     } catch {}
   }, [deviceId]);
@@ -115,12 +134,59 @@ export default function SettingsPanel({ deviceId }) {
     setExporting(false);
   };
 
+  // ── Guardian Mode (Ciclo 6) ──
+  const handleToggleGuardian = async () => {
+    if (!deviceId) return;
+    setGuardianLoading(true);
+    try {
+      if (guardianActive) {
+        const result = await window.optimizer.guardianStop?.({ deviceId });
+        if (result && !result.error) {
+          setGuardianActive(false);
+          setGuardianStatus(null);
+        }
+      } else {
+        const result = await window.optimizer.guardianStart?.({ deviceId });
+        if (result && !result.error) {
+          setGuardianActive(true);
+          setGuardianStatus({ active: true, checks: 0, alerts: 0 });
+        }
+      }
+    } catch {}
+    setGuardianLoading(false);
+  };
+
+  // ── PDF Export (Ciclo 6) ──
+  const handleExportPDF = async () => {
+    if (!deviceId) return;
+    setExporting(true);
+    setExportResult(null);
+    try {
+      const result = await window.optimizer.exportPDF?.({ deviceId });
+      setExportResult(result?.error ? { error: result.error } : result);
+      if (!result?.error) await refresh();
+    } catch (err) {
+      setExportResult({ error: err.message });
+    }
+    setExporting(false);
+  };
+
+  // ── Failure Notifications Toggle (Ciclo 6) ──
+  const handleToggleFailureNotifications = async () => {
+    const next = !failureNotifications;
+    setFailureNotifications(next);
+    try {
+      await window.optimizer.setSetting?.('failureNotifications', next);
+    } catch {}
+  };
+
   return (
     <div className="space-y-6">
       {/* Auto Mode */}
       <Section icon="🤖" title="Modo Automático">
         <p className="text-xs text-dark-400 mb-4">
           Cuando está activo, detecta dispositivos automáticamente, optimiza, registra y notifica sin intervención.
+          Ahora incluye integración profunda con predicciones ML y activación automática de Modo Turbo.
         </p>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -133,6 +199,62 @@ export default function SettingsPanel({ deviceId }) {
             <span className="text-xs text-dark-500">{autoModeStatus.message}</span>
           )}
         </div>
+      </Section>
+
+      {/* Guardian Mode (Ciclo 6) */}
+      <Section icon="🛡️" title="Modo Guardian">
+        <p className="text-xs text-dark-400 mb-4">
+          Protección continua: monitorea predicciones, anomalías, temperatura y procesos cada 30 segundos.
+          Si detecta riesgo crítico, optimiza automáticamente y puede escalar a Modo Turbo.
+        </p>
+        {!deviceId ? (
+          <p className="text-xs text-dark-500">Conecta un dispositivo primero</p>
+        ) : (
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Toggle enabled={guardianActive} onToggle={handleToggleGuardian} />
+                <span className={`text-sm font-medium ${guardianActive ? 'text-accent-green' : 'text-dark-400'}`}>
+                  {guardianActive ? '🛡️ Protegido' : 'Inactivo'}
+                </span>
+              </div>
+              {guardianLoading && <span className="text-xs text-dark-500">⏳</span>}
+            </div>
+
+            {guardianActive && guardianStatus && (
+              <div className="bg-dark-900/50 rounded-xl p-3 border border-dark-700/20">
+                <div className="grid grid-cols-3 gap-2 text-center">
+                  <div>
+                    <div className="text-lg font-bold text-dark-100">{guardianStatus.checks || 0}</div>
+                    <div className="text-[10px] text-dark-500">Verificaciones</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-accent-orange">{guardianStatus.alerts || 0}</div>
+                    <div className="text-[10px] text-dark-500">Alertas</div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-bold text-accent-green">{guardianStatus.optimizations || 0}</div>
+                    <div className="text-[10px] text-dark-500">Auto-optimizaciones</div>
+                  </div>
+                </div>
+                {guardianStatus.criticalCount > 0 && (
+                  <div className="mt-2 text-center">
+                    <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent-red/10 text-accent-red border border-accent-red/20">
+                      {guardianStatus.criticalCount} alertas críticas acumuladas
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="text-[10px] text-dark-600 space-y-1">
+              <p>• Monitoreo cada 30s de métricas críticas</p>
+              <p>• Notificaciones automáticas de riesgos</p>
+              <p>• Optimización proactiva ante alertas críticas</p>
+              <p>• Escalación a Modo Turbo tras 3 alertas críticas</p>
+            </div>
+          </div>
+        )}
       </Section>
 
       {/* WiFi ADB */}
@@ -222,19 +344,28 @@ export default function SettingsPanel({ deviceId }) {
                 disabled={exporting}
                 className="flex-1 py-2.5 px-4 bg-accent-blue/10 hover:bg-accent-blue/20 border border-accent-blue/20
                   text-accent-blue text-sm font-medium rounded-xl transition-all disabled:opacity-50">
-                {exporting ? '⏳ Generando...' : '📄 Exportar JSON'}
+                {exporting ? '⏳ Generando...' : '📄 JSON'}
               </button>
               <button onClick={() => handleExportReport('html')}
                 disabled={exporting}
                 className="flex-1 py-2.5 px-4 bg-accent-purple/10 hover:bg-accent-purple/20 border border-accent-purple/20
                   text-accent-purple text-sm font-medium rounded-xl transition-all disabled:opacity-50">
-                {exporting ? '⏳ Generando...' : '🌐 Exportar HTML'}
+                {exporting ? '⏳ Generando...' : '🌐 HTML'}
               </button>
+              <button onClick={handleExportPDF}
+                disabled={exporting}
+                className="flex-1 py-2.5 px-4 bg-accent-orange/10 hover:bg-accent-orange/20 border border-accent-orange/20
+                  text-accent-orange text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                {exporting ? '⏳ Generando...' : '📋 PDF'}
+              </button>
+            </div>
+
+            <div className="flex gap-2">
               <button onClick={() => handleExportReport('both')}
                 disabled={exporting}
-                className="flex-1 py-2.5 px-4 bg-accent-green/10 hover:bg-accent-green/20 border border-accent-green/20
-                  text-accent-green text-sm font-medium rounded-xl transition-all disabled:opacity-50">
-                {exporting ? '⏳ Generando...' : '📦 Ambos'}
+                className="flex-1 py-2 px-4 bg-accent-green/10 hover:bg-accent-green/20 border border-accent-green/20
+                  text-accent-green text-xs font-medium rounded-xl transition-all disabled:opacity-50">
+                {exporting ? '⏳' : '📦 JSON + HTML'}
               </button>
             </div>
 
@@ -393,6 +524,29 @@ export default function SettingsPanel({ deviceId }) {
             </span>
           </div>
         </div>
+      </Section>
+
+      {/* Notificaciones de Fallos Predichos (Ciclo 6) */}
+      <Section icon="🔔" title="Notificaciones de Predicciones">
+        <p className="text-xs text-dark-400 mb-3">
+          Recibe notificaciones cuando el motor ML predice fallos inminentes: temperatura {'>'}  45°C, batería {'<'} 15%, procesos {'>'} 120, almacenamiento {'<'} 5%.
+        </p>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <Toggle enabled={failureNotifications} onToggle={handleToggleFailureNotifications} />
+            <span className={`text-sm font-medium ${failureNotifications ? 'text-accent-green' : 'text-dark-400'}`}>
+              {failureNotifications ? '🔔 Activas' : '🔕 Desactivadas'}
+            </span>
+          </div>
+        </div>
+        {failureNotifications && (
+          <div className="mt-3 text-[10px] text-dark-600 space-y-1">
+            <p>🌡️ Temperatura futura {'>'} 45°C → Notificación crítica</p>
+            <p>🔋 Batería futura {'<'} 15% → Notificación de advertencia</p>
+            <p>⚙️ Procesos futuros {'>'} 120 → Notificación de advertencia</p>
+            <p>💾 Almacenamiento futuro {'<'} 5% → Notificación crítica</p>
+          </div>
+        )}
       </Section>
 
       {/* Error Log */}

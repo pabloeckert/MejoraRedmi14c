@@ -6,6 +6,7 @@
 
 const logManager = require('../logs/logManager');
 const { AdaptiveOptimizer } = require('./adaptiveOptimizer');
+const { NonLinearPredictor } = require('./nonLinearPredictor');
 
 // Horizonte de predicción (milisegundos)
 const PREDICTION_HORIZON_MS = 7 * 24 * 60 * 60 * 1000; // 7 días
@@ -66,10 +67,11 @@ class FailurePredictor {
   constructor(deviceId) {
     this.deviceId = deviceId;
     this.adaptiveOptimizer = new AdaptiveOptimizer(deviceId);
+    this.nonLinearPredictor = new NonLinearPredictor();
   }
 
   /**
-   * Ejecuta predicción completa de fallos
+   * Ejecuta predicción completa de fallos (lineal + no lineal)
    * @returns {Object} Predicciones con timeline y probabilidades
    */
   async predict() {
@@ -81,6 +83,7 @@ class FailurePredictor {
         timestamp: new Date().toISOString(),
         deviceId: this.deviceId,
         predictions: [],
+        nonLinearPredictions: { available: false, predictions: [] },
         confidence: 0,
         message: 'Insuficientes datos para predicciones (mínimo 3 sesiones)',
       };
@@ -114,6 +117,14 @@ class FailurePredictor {
     const degradationPrediction = this._predictBatteryDegradation(snapshots);
     if (degradationPrediction) predictions.push(degradationPrediction);
 
+    // ── Predicciones no lineales (Ciclo 6) ──
+    let nonLinearPredictions = { available: false, predictions: [] };
+    try {
+      nonLinearPredictions = await this.nonLinearPredictor.predict(snapshots);
+    } catch (err) {
+      console.warn('[FAILURE] Error en predicciones no lineales:', err.message);
+    }
+
     // ── Calcular confianza global ──
     const confidence = this._calculateConfidence(snapshots);
 
@@ -127,8 +138,10 @@ class FailurePredictor {
       timestamp: new Date().toISOString(),
       deviceId: this.deviceId,
       predictions,
-      totalPredictions: predictions.length,
-      criticalPredictions: predictions.filter(p => p.urgency === 'critical').length,
+      nonLinearPredictions,
+      totalPredictions: predictions.length + (nonLinearPredictions.predictions?.length || 0),
+      criticalPredictions: predictions.filter(p => p.urgency === 'critical').length +
+        (nonLinearPredictions.predictions?.filter(p => p.urgency === 'critical').length || 0),
       confidence,
       dataPoints: snapshots.length,
       horizon: '7 días',

@@ -10,6 +10,7 @@ import SettingsPanel from './components/SettingsPanel';
 import AdvancedDiagnostics from './components/AdvancedDiagnostics';
 import BenchmarkPanel from './components/BenchmarkPanel';
 import ExtensionsPanel from './components/ExtensionsPanel';
+import PredictionDashboard from './components/PredictionDashboard';
 
 const STATES = {
   IDLE: 'idle',
@@ -25,6 +26,7 @@ const TABS = {
   REALTIME: 'realtime',
   TRENDS: 'trends',
   INSIGHTS: 'insights',
+  PREDICTIONS: 'predictions',
   DIAGNOSTICS: 'diagnostics',
   BENCHMARK: 'benchmark',
   EXTENSIONS: 'extensions',
@@ -214,6 +216,7 @@ export default function App() {
               <TabButton active={activeTab === TABS.REALTIME} onClick={() => setActiveTab(TABS.REALTIME)} icon="📊" label="Tiempo Real" />
               <TabButton active={activeTab === TABS.TRENDS} onClick={() => setActiveTab(TABS.TRENDS)} icon="📈" label="Tendencias" />
               <TabButton active={activeTab === TABS.INSIGHTS} onClick={() => setActiveTab(TABS.INSIGHTS)} icon="🧠" label="Insights" />
+              <TabButton active={activeTab === TABS.PREDICTIONS} onClick={() => setActiveTab(TABS.PREDICTIONS)} icon="🔮" label="Predicciones" />
               <TabButton active={activeTab === TABS.DIAGNOSTICS} onClick={() => setActiveTab(TABS.DIAGNOSTICS)} icon="🔬" label="Diagnóstico" />
               <TabButton active={activeTab === TABS.BENCHMARK} onClick={() => setActiveTab(TABS.BENCHMARK)} icon="🏋️" label="Benchmark" />
               <TabButton active={activeTab === TABS.EXTENSIONS} onClick={() => setActiveTab(TABS.EXTENSIONS)} icon="🧩" label="Extensiones" />
@@ -226,6 +229,7 @@ export default function App() {
             {activeTab === TABS.REALTIME && <RealTimeDashboard deviceId={device?.deviceId} />}
             {activeTab === TABS.TRENDS && <TrendsPanel logs={logs} deviceId={device?.deviceId} />}
             {activeTab === TABS.INSIGHTS && <SmartInsights profile={profile} predictions={insights?.predictions} anomalyResults={anomalyResults} failurePredictions={failurePredictions} proactiveResults={proactiveResults} />}
+            {activeTab === TABS.PREDICTIONS && <PredictionDashboard deviceId={device?.deviceId} failurePredictions={failurePredictions} proactiveResults={proactiveResults} />}
             {activeTab === TABS.DIAGNOSTICS && <AdvancedDiagnostics deviceId={device?.deviceId} />}
             {activeTab === TABS.BENCHMARK && <BenchmarkPanel deviceId={device?.deviceId} />}
             {activeTab === TABS.EXTENSIONS && <ExtensionsPanel />}

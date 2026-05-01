@@ -10,6 +10,9 @@ const { DeviceProfile } = require('../devices/deviceProfile');
 const logManager = require('../logs/logManager');
 const { sendNotification } = require('../ui/notifications');
 const errorHandler = require('./errorHandler');
+const { FailurePredictor } = require('../ml/failurePredictor');
+const { ProactiveOptimizer } = require('./proactiveOptimizer');
+const turboMode = require('./turboMode');
 
 const POLL_INTERVAL = 10000; // 10 segundos
 
@@ -157,6 +160,64 @@ class AutoMode {
 
       // 6. Limpiar backups antiguos
       await backupManager.cleanOldBackups(deviceId, 5);
+
+      // 7. ── Integración profunda: Predicciones + Optimización proactiva (Ciclo 6) ──
+      try {
+        this._notifyUI('predicting', 'Analizando predicciones ML...');
+        const predictor = new FailurePredictor(deviceId);
+        const predictions = await predictor.predict();
+
+        // Ejecutar optimización proactiva si hay predicciones críticas
+        const criticalPredictions = (predictions.predictions || [])
+          .filter(p => p.urgency === 'critical' || p.urgency === 'high');
+
+        if (criticalPredictions.length > 0) {
+          this._notifyUI('proactive', `${criticalPredictions.length} riesgos detectados — ejecutando acción proactiva...`);
+
+          const proactive = new ProactiveOptimizer(deviceId);
+          const proactiveResult = await proactive.analyze();
+
+          if (proactiveResult.executed) {
+            sendNotification({
+              title: '🛡️ Optimización proactiva ejecutada',
+              body: `${proactiveResult.summary}`,
+              type: 'info',
+            });
+          }
+
+          // Si hay predicciones no lineales críticas, activar turbo
+          const nlCritical = (predictions.nonLinearPredictions?.predictions || [])
+            .filter(p => p.projection?.willReachCritical && p.urgency === 'critical');
+
+          if (nlCritical.length > 0) {
+            this._notifyUI('turbo', 'Predicciones críticas no lineales — activando Modo Turbo...');
+
+            try {
+              const turboResult = await turboMode.activate(deviceId, { skipBackup: true, aggressive: false });
+              sendNotification({
+                title: '🚀 Modo Turbo activado automáticamente',
+                body: `Predicciones ML críticas: ${nlCritical.map(p => p.label).join(', ')}. Turbo: ${turboResult.totalActions} acciones.`,
+                type: 'warning',
+              });
+            } catch (turboErr) {
+              console.warn('[AUTO] Error activando turbo:', turboErr.message);
+            }
+          }
+        }
+
+        // Registrar predicciones en logs
+        await logManager.logOptimization(deviceId, {
+          type: 'auto_mode_prediction',
+          timestamp: new Date().toISOString(),
+          predictions: predictions.predictions?.length || 0,
+          nonLinearPredictions: predictions.nonLinearPredictions?.predictions?.length || 0,
+          criticalCount: predictions.criticalPredictions || 0,
+          confidence: predictions.confidence,
+        });
+
+      } catch (predErr) {
+        console.warn('[AUTO] Error en integración de predicciones:', predErr.message);
+      }
 
       return result;
 
