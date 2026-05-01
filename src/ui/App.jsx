@@ -40,21 +40,27 @@ export default function App() {
   const [profile, setProfile] = useState(null);
   const [insights, setInsights] = useState(null);
   const [anomalyResults, setAnomalyResults] = useState(null);
+  const [failurePredictions, setFailurePredictions] = useState(null);
+  const [proactiveResults, setProactiveResults] = useState(null);
   const [activeTab, setActiveTab] = useState(TABS.OVERVIEW);
   const [aestheticMode, setAestheticMode] = useState(false);
 
   const loadDeviceData = useCallback(async (deviceId) => {
     try {
-      const [profileData, insightsData, logsData, anomalies] = await Promise.all([
+      const [profileData, insightsData, logsData, anomalies, failures, proactive] = await Promise.all([
         window.optimizer.getDeviceProfile({ deviceId }),
         window.optimizer.getSmartInsights({ deviceId }),
         window.optimizer.getDeviceLogs({ deviceId }),
         window.optimizer.detectAnomalies({ deviceId }),
+        window.optimizer.predictFailures?.({ deviceId }) || Promise.resolve({ error: true }),
+        window.optimizer.analyzeProactive?.({ deviceId }) || Promise.resolve({ error: true }),
       ]);
       if (!profileData.error) setProfile(profileData);
       if (!insightsData.error) setInsights(insightsData);
       if (!logsData.error) setLogs(logsData);
       if (!anomalies.error) setAnomalyResults(anomalies);
+      if (!failures.error) setFailurePredictions(failures);
+      if (!proactive.error) setProactiveResults(proactive);
     } catch (err) {
       console.warn('Error loading device data:', err);
     }
@@ -219,7 +225,7 @@ export default function App() {
             {activeTab === TABS.OVERVIEW && <Dashboard state={state} device={device} result={result} logs={logs} onOptimize={handleOptimize} />}
             {activeTab === TABS.REALTIME && <RealTimeDashboard deviceId={device?.deviceId} />}
             {activeTab === TABS.TRENDS && <TrendsPanel logs={logs} deviceId={device?.deviceId} />}
-            {activeTab === TABS.INSIGHTS && <SmartInsights profile={profile} predictions={insights?.predictions} anomalyResults={anomalyResults} />}
+            {activeTab === TABS.INSIGHTS && <SmartInsights profile={profile} predictions={insights?.predictions} anomalyResults={anomalyResults} failurePredictions={failurePredictions} proactiveResults={proactiveResults} />}
             {activeTab === TABS.DIAGNOSTICS && <AdvancedDiagnostics deviceId={device?.deviceId} />}
             {activeTab === TABS.BENCHMARK && <BenchmarkPanel deviceId={device?.deviceId} />}
             {activeTab === TABS.EXTENSIONS && <ExtensionsPanel />}
