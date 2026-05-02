@@ -29,6 +29,8 @@ const internalAPI = require('./src/core/internalAPI');
 const telemetry = require('./src/core/telemetry');
 const { HybridAI } = require('./src/ml/hybridAI');
 const { PluginSandbox } = require('./src/extensions/pluginSandbox');
+const pluginRegistry = require('./src/core/pluginRegistry');
+const pluginAPI = require('./src/core/pluginAPI');
 
 let mainWindow;
 let activeProfiles = new Map();
@@ -53,6 +55,13 @@ async function saveSettings() {
 
 // Initialize settings on startup
 loadSettings();
+
+// Load advanced plugins on startup
+pluginRegistry.loadPlugins().then(results => {
+  console.log('[APP] Plugin system loaded:', results);
+}).catch(err => {
+  console.warn('[APP] Plugin system error:', err.message);
+});
 
 function createWindow() {
   mainWindow = new BrowserWindow({
@@ -455,6 +464,49 @@ ipcMain.handle('list-plugins', async () => {
     await sandbox.loadAll();
     return sandbox.list();
   } catch (err) { return { error: err.message }; }
+});
+
+// ═══════════════════════════════════════════════════════
+//  IPC: Advanced Plugin System
+// ═══════════════════════════════════════════════════════
+
+ipcMain.handle('list-advanced-plugins', async () => {
+  try { return pluginRegistry.listPlugins(); }
+  catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('toggle-advanced-plugin', async (_e, { pluginId, enabled }) => {
+  try { pluginRegistry.setPluginEnabled(pluginId, enabled); return { success: true }; }
+  catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('run-plugin-hook', async (_e, { event, data }) => {
+  try { return await pluginRegistry.executeHook(event, data); }
+  catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('run-plugin-script', async (_e, { pluginId, method, args }) => {
+  try {
+    const plugin = pluginRegistry.plugins.get(pluginId);
+    if (!plugin) throw new Error(`Plugin '${pluginId}' no encontrado`);
+    if (!plugin.enabled) throw new Error(`Plugin '${pluginId}' está desactivado`);
+    if (!plugin.module[method]) throw new Error(`Método '${method}' no existe en el plugin`);
+    return await plugin.module[method](...(args || []));
+  } catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('reload-plugins', async () => {
+  try {
+    // Unregister all and reload
+    for (const [id] of pluginRegistry.plugins) {
+      pluginRegistry.unregisterPlugin(id);
+    }
+    return await pluginRegistry.loadPlugins();
+  } catch (err) { return { error: err.message }; }
+});
+
+ipcMain.handle('get-plugin-api', async () => {
+  return { version: pluginAPI.getVersion() };
 });
 
 // ═══════════════════════════════════════════════════════

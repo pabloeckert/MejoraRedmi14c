@@ -87,6 +87,14 @@ contextBridge.exposeInMainWorld('optimizer', {
   // ── Plugins (Ciclo 7) ──
   listPlugins: () => ipcRenderer.invoke('list-plugins'),
 
+  // ── Advanced Plugin System ──
+  listAdvancedPlugins: () => ipcRenderer.invoke('list-advanced-plugins'),
+  toggleAdvancedPlugin: (opts) => ipcRenderer.invoke('toggle-advanced-plugin', opts),
+  runPluginHook: (opts) => ipcRenderer.invoke('run-plugin-hook', opts),
+  runPluginScript: (opts) => ipcRenderer.invoke('run-plugin-script', opts),
+  reloadPlugins: () => ipcRenderer.invoke('reload-plugins'),
+  getPluginAPI: () => ipcRenderer.invoke('get-plugin-api'),
+
   // ── Settings ──
   setSetting: (key, value) => ipcRenderer.invoke('set-setting', { key, value }),
   getSetting: (key) => ipcRenderer.invoke('get-setting', { key }),
