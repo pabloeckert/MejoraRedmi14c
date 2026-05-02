@@ -241,6 +241,121 @@ Después de cada optimización exitosa (AutoMode o Turbo), el dispositivo se rei
 
 ---
 
+### 8. Sistema de Plugins Avanzados
+
+El sistema de plugins permite extender Phone Optimizer con funcionalidad personalizada.
+
+#### Tipos de plugins
+
+| Tipo | Directorio | Uso |
+|---|---|---|
+| **Core** | `plugins/core/` | Plugins internos del sistema — optimizaciones, análisis, lógica de negocio |
+| **External** | `plugins/external/` | Plugins de terceros — integraciones externas, APIs |
+| **UI** | `plugins/ui/` | Plugins con interfaz — paneles, dashboards, controles custom |
+| **Automation** | `plugins/automation/` | Plugins de automatización — scripts, tareas programadas, workflows |
+
+#### Cómo crear un plugin
+
+1. Creá una carpeta en el directorio del tipo correspondiente (`plugins/core/`, `plugins/external/`, etc.)
+2. Creá `manifest.json`:
+
+```json
+{
+  "id": "mi-plugin",
+  "name": "Mi Plugin",
+  "version": "1.0.0",
+  "description": "Descripción del plugin",
+  "author": "Tu nombre",
+  "type": "core",
+  "main": "index.js",
+  "ui": "ui.jsx",
+  "permissions": ["adb.shell", "logs.read", "ml.predict"],
+  "enabled": true,
+  "hooks": ["afterOptimization", "onDeviceConnect"]
+}
+```
+
+3. Creá `index.js` exportando un objeto con:
+
+```javascript
+module.exports = {
+  id: 'mi-plugin',
+
+  // Se ejecuta al cargar
+  async onLoad() { },
+
+  // Hooks automáticos
+  hooks: {
+    async afterOptimization({ deviceId, result }) { },
+    async onDeviceConnect({ deviceId, deviceInfo }) { },
+    async onDeviceDisconnect({ deviceId }) { },
+  },
+
+  // Funciones ejecutables desde UI/API
+  async miFuncion(deviceId) { return { success: true }; },
+};
+```
+
+4. Opcionalmente creá `ui.jsx` para el panel de interfaz
+
+#### Permisos disponibles
+
+| Permiso | Descripción |
+|---|---|
+| `adb.shell` | Ejecutar comandos ADB en el dispositivo |
+| `adb.props` | Leer propiedades del dispositivo |
+| `logs.read` | Acceder al sistema de logs |
+| `logs.write` | Escribir en el sistema de logs |
+| `ml.predict` | Usar modelos de machine learning |
+| `ml.anomaly` | Usar detector de anomalías |
+| `export.read` | Acceder a los exportadores |
+
+#### Plugin API
+
+Los plugins tienen acceso a la Plugin API (`src/core/pluginAPI.js`) que expone:
+
+- **ADB**: `adbShell()`, `adbGetProps()`, `adbListDevices()`, `adbGetDeviceInfo()`
+- **ML**: `mlPredictFailures()`, `mlDetectAnomalies()`, `mlPredictNonLinear()`
+- **Logs**: `logEvent()`, `getLastSnapshot()`
+- **Devices**: `detectDevice()`, `listKnownDevices()`, `getDeviceProfile()`
+- **Export**: `exportReport()`, `exportPDF()`, `advancedExport()`
+- **Optimization**: `runOptimization()`, `runTurbo()`
+- **Utils**: `formatBytes()`, `delay()`
+
+#### Hooks del sistema
+
+| Hook | Se ejecuta cuando |
+|---|---|
+| `afterOptimization` | Después de cada optimización exitosa |
+| `onDeviceConnect` | Al conectar un dispositivo USB |
+| `onDeviceDisconnect` | Al desconectar un dispositivo |
+| `beforeTurbo` | Antes de iniciar modo turbo |
+| `afterTurbo` | Después de completar modo turbo |
+| `onGuardianAlert` | Al detectar una alerta del guardian |
+
+#### Cómo instalar plugins
+
+1. Colocá la carpeta del plugin en el directorio correspondiente
+2. La app carga plugins automáticamente al iniciar
+3. Para recargar sin reiniciar: `window.optimizer.reloadPlugins()`
+
+#### Cómo publicar plugins
+
+1. Creá el plugin siguiendo la estructura anterior
+2. Testeá con el plugin de ejemplo (`plugins/core/samplePlugin/`)
+3. Documentá en un `README.md` dentro de la carpeta del plugin
+4. Compartí la carpeta del plugin — se instala copiándola a `plugins/`
+
+---
+
+### 9. Instalador Autónomo
+
+Carpeta `/installer` con scripts de instalación para las 3 plataformas.
+
+Ver [installer/README.md](./installer/README.md) para instrucciones detalladas.
+
+---
+
 ## Arquitectura
 
 ```
@@ -261,11 +376,13 @@ src/
     pdfExporter        ← PDF profesional
     advancedExporter   ← CSV + XML + bundles
     internalAPI        ← API unificada
+    pluginRegistry     ← Sistema de plugins avanzados
+    pluginAPI          ← API pública para plugins
     telemetry          ← Eventos y métricas
     benchmark          ← Tests de rendimiento
     errorHandler       ← Gestión de errores
   devices/           ← Gestión de dispositivos y perfiles
-  extensions/        ← Sistema de extensiones y plugins
+  extensions/        ← Sistema de extensiones (legacy)
     pluginSandbox      ← Sandbox VM seguro
   logs/              ← Sistema de logs
   ml/                ← Motor ML
@@ -277,6 +394,12 @@ src/
   ui/                ← Interfaz React
     components/        ← 13 componentes de UI
     theme/             ← Ultra Aesthetic Mode
+plugins/             ← Sistema de plugins avanzados
+  core/              ← Plugins internos
+  external/          ← Plugins de terceros
+  ui/                ← Plugins de interfaz
+  automation/        ← Plugins de automatización
+installer/           ← Instalador autónomo multiplataforma
 ```
 
 ---

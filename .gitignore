@@ -7,3 +7,4 @@ out/
 logs/*.json
 !logs/.gitkeep
 .env
+!installer/

@@ -1,0 +1,7 @@
+# SHA512SUMS - Phone Optimizer v1.0.0
+# Generado automáticamente. Los hashes se calculan después de compilar los instaladores.
+#
+# Para generar hashes manualmente:
+#   sha512sum dist-release/*.AppImage dist-release/*.exe dist-release/*.dmg > SHA512SUMS.txt
+#
+# Formato: <hash>  <nombre_archivo>
