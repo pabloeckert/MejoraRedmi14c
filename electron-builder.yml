@@ -38,6 +38,8 @@ win:
         - x64
   icon: build/icon.ico
   requestedExecutionLevel: asInvoker
+  sign: false
+  forceCodeSigning: false
 
 nsis:
   oneClick: false
