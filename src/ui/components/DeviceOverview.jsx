@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { SparkLine } from './charts/Charts';
+import { SparkLine } from '../charts/Charts';
 
 export default function DeviceOverview({ device, profile, onAssignOwner }) {
   const [healthAnim, setHealthAnim] = useState(0);

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { DonutChart, SparkLine } from './charts/Charts';
+import { DonutChart, SparkLine } from '../charts/Charts';
 
 const POLL_INTERVAL = 3000; // 3 segundos
 

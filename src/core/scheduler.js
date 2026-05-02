@@ -3,7 +3,6 @@
  * Permite optimizar por tiempo, batería o temperatura
  */
 
-const { Notification } = require('electron');
 const { runOptimization } = require('./optimizerEngine');
 const backupManager = require('./backupManager');
 const logManager = require('../logs/logManager');
