@@ -3,7 +3,7 @@
  * Sin intervención del usuario: detectar → optimizar → registrar → notificar
  */
 
-const { detectDevice } = require('../devices/deviceManager');
+const { detectDevice, onDeviceDisconnected, rebootAfterOptimization } = require('../devices/deviceManager');
 const { runOptimization } = require('./optimizerEngine');
 const backupManager = require('./backupManager');
 const { DeviceProfile } = require('../devices/deviceProfile');
@@ -102,6 +102,20 @@ class AutoMode {
     const lastOpt = this.lastOptimization.get(deviceId);
     if (lastOpt && (Date.now() - lastOpt) < this.cooldownMs) {
       return; // Aún en cooldown
+    }
+
+    // Verificar si el dispositivo sigue conectado (para restaurar en desconexión)
+    if (this.knownDevices.has(deviceId) && !isNew) {
+      // Dispositivo ya conocido, verificar si sigue activo
+      try {
+        const currentDevices = await require('../adb/adbClient').listDevices();
+        const stillConnected = currentDevices.some(d => d.serial === deviceId);
+        if (!stillConnected) {
+          await onDeviceDisconnected(deviceId);
+          this.knownDevices.delete(deviceId);
+          return;
+        }
+      } catch {}
     }
 
     // Si es dispositivo nuevo o necesita optimización
@@ -217,6 +231,22 @@ class AutoMode {
 
       } catch (predErr) {
         console.warn('[AUTO] Error en integración de predicciones:', predErr.message);
+      }
+
+      // 8. ── Reinicio automático tras optimización exitosa ──
+      try {
+        this._notifyUI('rebooting', 'Reiniciando dispositivo...');
+        const rebooted = await rebootAfterOptimization(deviceId);
+        if (rebooted) {
+          sendNotification({
+            title: '🔄 Dispositivo reiniciado',
+            body: `${device.deviceInfo?.model || deviceId}: reinicio automático post-optimización`,
+            type: 'info',
+          });
+          this._notifyUI('rebooted', 'Dispositivo reiniciado');
+        }
+      } catch (rebootErr) {
+        console.warn('[AUTO] Error en reinicio automático:', rebootErr.message);
       }
 
       return result;

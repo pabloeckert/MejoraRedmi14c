@@ -6,6 +6,7 @@
 const fs = require('fs-extra');
 const path = require('path');
 const adb = require('../adb/adbClient');
+const screenControl = require('../core/screenControl');
 
 const DEVICES_DIR = path.join(__dirname, '..', '..', 'devices');
 const PROFILES_FILE = path.join(DEVICES_DIR, 'profiles.json');
@@ -62,6 +63,16 @@ async function detectDevice() {
   const profilePath = path.join(DEVICES_DIR, `${deviceId}.json`);
   await fs.writeJson(profilePath, profile, { spaces: 2 });
 
+  // ── Screen Control: guardar settings y mantener pantalla encendida ──
+  let screenState = null;
+  try {
+    screenState = await screenControl.getOriginalSettings(deviceId);
+    await screenControl.applyKeepAwake(deviceId);
+    console.log(`[SCREEN] Pantalla siempre activa aplicada a ${deviceId}`);
+  } catch (screenErr) {
+    console.warn(`[SCREEN] Error aplicando keep-awake: ${screenErr.message}`);
+  }
+
   return {
     deviceId,
     owner: profile.owner || 'Desconocido',
@@ -69,7 +80,42 @@ async function detectDevice() {
     profilePath,
     deviceInfo,
     profile,
+    screenState,
   };
+}
+
+/**
+ * Se ejecuta cuando un dispositivo se desconecta
+ * Restaura los valores originales de pantalla
+ * @param {string} deviceId - Serial del dispositivo
+ */
+async function onDeviceDisconnected(deviceId) {
+  try {
+    const result = await screenControl.restoreSettings(deviceId);
+    console.log(`[SCREEN] Settings restaurados para ${deviceId}: timeout=${result.timeout}, stayon=${result.stayon}, lock=${result.lockDisabled}`);
+    return result;
+  } catch (err) {
+    console.warn(`[SCREEN] Error restaurando settings: ${err.message}`);
+    return null;
+  }
+}
+
+/**
+ * Reinicia el dispositivo tras optimización exitosa
+ * @param {string} deviceId - Serial del dispositivo
+ */
+async function rebootAfterOptimization(deviceId) {
+  try {
+    // Primero restaurar pantalla antes de reiniciar
+    await screenControl.restoreSettings(deviceId);
+    // Luego reiniciar
+    const rebooted = await screenControl.rebootDevice(deviceId);
+    console.log(`[SCREEN] Reinicio ${rebooted ? 'enviado' : 'falló'} para ${deviceId}`);
+    return rebooted;
+  } catch (err) {
+    console.warn(`[SCREEN] Error en reinicio post-optimización: ${err.message}`);
+    return false;
+  }
 }
 
 /**
@@ -106,4 +152,4 @@ async function _saveProfiles(profiles) {
   await fs.writeJson(PROFILES_FILE, profiles, { spaces: 2 });
 }
 
-module.exports = { detectDevice, assignOwner, listKnownDevices };
+module.exports = { detectDevice, assignOwner, listKnownDevices, onDeviceDisconnected, rebootAfterOptimization };

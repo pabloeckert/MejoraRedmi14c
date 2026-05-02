@@ -35,6 +35,16 @@ class TurboMode {
 
     console.log(`[TURBO] 🚀 Activando Modo Turbo para ${deviceId}`);
 
+    // ── Aplicar keep-awake durante turbo ──
+    try {
+      const screenControl = require('./screenControl');
+      await screenControl.getOriginalSettings(deviceId);
+      await screenControl.applyKeepAwake(deviceId);
+      result.phases.push({ name: 'screen_control', status: 'done', detail: 'Pantalla siempre activa' });
+    } catch (scErr) {
+      result.phases.push({ name: 'screen_control', status: 'warning', detail: scErr.message });
+    }
+
     // ── Backup pre-turbo ──
     let backup = null;
     if (!opts.skipBackup) {
@@ -110,6 +120,21 @@ class TurboMode {
       actions: result.totalActions,
       backup,
     });
+
+    // ── Reinicio automático tras Turbo exitoso ──
+    if (result.success) {
+      try {
+        const { rebootAfterOptimization } = require('./deviceManager');
+        // Restaurar pantalla antes de reiniciar
+        const screenControl = require('./screenControl');
+        await screenControl.restoreSettings(deviceId);
+        await screenControl.rebootDevice(deviceId);
+        result._rebooted = true;
+        console.log(`[TURBO] 🔄 Dispositivo ${deviceId} reiniciado post-turbo`);
+      } catch (rebootErr) {
+        console.warn(`[TURBO] Error en reinicio post-turbo: ${rebootErr.message}`);
+      }
+    }
 
     console.log(`[TURBO] ✅ Completado: ${result.totalActions} acciones en ${result.durationMs}ms`);
     return result;
