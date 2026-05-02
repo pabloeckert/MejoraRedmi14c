@@ -1,8 +1,27 @@
 # 🔧 Phone Optimizer
 
+[![Release](https://img.shields.io/github/v/release/pabloeckert/MejoraRedmi14c?label=Release)](https://github.com/pabloeckert/MejoraRedmi14c/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/pabloeckert/MejoraRedmi14c/total?label=Descargas)](https://github.com/pabloeckert/MejoraRedmi14c/releases/latest)
+[![License](https://img.shields.io/github/license/pabloeckert/MejoraRedmi14c?label=Licencia)](./LICENSE)
+[![Platform](https://img.shields.io/badge/Plataforma-Win%20%7C%20Mac%20%7C%20Linux-blue)](#instalación)
+
 **Optimizador Inteligente para Android** — Diseñado para los teléfonos de Pablo y Sindy.
 
 App de escritorio (Electron) que optimiza dos dispositivos Android físicos mediante ADB. Sin usuarios, sin cuentas — solo dispositivos reales.
+
+---
+
+## 🎉 Release 1.0
+
+**Primera versión estable** — Descargá el instalador para tu plataforma:
+
+| Plataforma | Archivo | Descarga directa |
+|---|---|---|
+| **Windows** | `PhoneOptimizer-Setup-1.0.0.exe` | [⬇️ Descargar](https://github.com/pabloeckert/MejoraRedmi14c/releases/download/v1.0.0/PhoneOptimizer-Setup-1.0.0.exe) |
+| **Linux** | `PhoneOptimizer-1.0.0.AppImage` | [⬇️ Descargar](https://github.com/pabloeckert/MejoraRedmi14c/releases/download/v1.0.0/PhoneOptimizer-1.0.0.AppImage) |
+| **macOS** | `PhoneOptimizer-1.0.0.dmg` | [⬇️ Descargar](https://github.com/pabloeckert/MejoraRedmi14c/releases/download/v1.0.0/PhoneOptimizer-1.0.0.dmg) |
+
+> 📖 Ver [CHANGELOG.md](./CHANGELOG.md) para el detalle completo de features incluidos.
 
 ---
 
