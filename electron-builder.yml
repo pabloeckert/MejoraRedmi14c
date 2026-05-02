@@ -1,0 +1,99 @@
+appId: com.phoneoptimizer.app
+productName: Phone Optimizer
+copyright: Copyright © 2024 Pablo & Sindy
+
+directories:
+  output: dist-release
+  buildResources: build
+  app: .
+
+files:
+  - main.js
+  - preload.js
+  - package.json
+  - dist/**/*
+  - src/**/*
+  - "!src/ui/**/*"
+  - "!**/*.md"
+  - "!**/node_modules/.cache/**/*"
+
+extraResources:
+  - from: src/adb/scripts.js
+    to: src/adb/scripts.js
+  - from: src/config
+    to: src/config
+  - from: extensions
+    to: extensions
+  - from: ml
+    to: ml
+
+asar: true
+asarUnpack:
+  - "**/*.node"
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  icon: build/icon.ico
+  requestedExecutionLevel: asInvoker
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
+  installerHeaderIcon: build/icon.ico
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Phone Optimizer
+  uninstallDisplayName: Phone Optimizer
+  artifactName: "PhoneOptimizer-Setup-${version}.${ext}"
+
+mac:
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+  icon: build/icon.icns
+  category: public.app-category.utilities
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+
+dmg:
+  artifactName: "PhoneOptimizer-${version}.${ext}"
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+  icon: build/icon.svg
+  category: Utility
+  description: Optimizador Inteligente para teléfonos Android
+  desktop:
+    Name: Phone Optimizer
+    Comment: Optimizador Inteligente para Android
+    Terminal: false
+    Type: Application
+    Categories: Utility;System;
+
+appImage:
+  artifactName: "PhoneOptimizer-${version}.${ext}"
+
+publish:
+  provider: github
+  owner: pabloeckert
+  repo: MejoraRedmi14c

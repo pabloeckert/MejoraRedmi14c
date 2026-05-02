@@ -46,9 +46,41 @@ Esto levanta Vite (frontend) + Electron (backend) simultáneamente.
 ### Producción
 
 ```bash
-npm run build    # Compilar frontend
-npm start        # Ejecutar Electron
+npm run build      # Compilar frontend + generar instaladores
+npm start          # Ejecutar Electron (desarrollo)
 ```
+
+### Generar Instaladores
+
+```bash
+# Build completo (todas las plataformas disponibles)
+npm run build
+
+# Build por plataforma
+npm run build:win      # → PhoneOptimizer-Setup-1.0.0.exe (NSIS)
+npm run build:linux    # → PhoneOptimizer-1.0.0.AppImage
+npm run build:mac      # → PhoneOptimizer-1.0.0.dmg
+```
+
+Los instaladores se generan en `dist-release/`:
+
+| Plataforma | Archivo | Tamaño aprox. |
+|---|---|---|
+| **Windows** | `PhoneOptimizer-Setup-1.0.0.exe` | ~80 MB |
+| **Linux** | `PhoneOptimizer-1.0.0.AppImage` | ~100 MB |
+| **macOS** | `PhoneOptimizer-1.0.0.dmg` | ~90 MB |
+
+#### Requisitos para builds multi-plataforma
+
+- **Windows (.exe)**: Requiere [Wine](https://www.winehq.org/) en Linux/macOS
+- **macOS (.dmg)**: Requiere macOS con Xcode CLI tools
+- **Linux (.AppImage)**: Funciona en cualquier Linux con `rpm`/`dpkg`
+
+#### Instalación
+
+- **Windows**: Ejecutar el `.exe` → seguir el asistente NSIS
+- **Linux**: `chmod +x PhoneOptimizer-1.0.0.AppImage && ./PhoneOptimizer-1.0.0.AppImage`
+- **macOS**: Abrir el `.dmg` → arrastrar a Applications
 
 ### Solo frontend (para desarrollo UI)
 
@@ -251,7 +283,7 @@ Ver [PLUGIN_SYSTEM.md](./PLUGIN_SYSTEM.md) para detalles completos.
 
 - [ ] Suite de tests automatizados
 - [ ] Soporte multi-dispositivo simultáneo
-- [ ] Build de distribución (Windows/Mac/Linux installers)
+- [x] Build de distribución (Windows/Mac/Linux installers)
 - [ ] Integración nube para ML híbrido
 - [ ] Dashboard web remoto
 - [ ] Perfiles de optimización personalizados por app
