@@ -188,6 +188,57 @@ Detección automática de dispositivos:
 - Integra predicciones ML post-optimización
 - Activa Turbo automáticamente si hay predicciones críticas
 
+### 7. Modo Pantalla Siempre Activa (Automático)
+
+**Sistema automático de keep-awake, restauración y reinicio.**
+
+#### ¿Qué hace?
+
+Cuando conectás un teléfono por USB, el sistema automáticamente:
+
+1. **Guarda** los valores originales de pantalla (timeout, suspensión, bloqueo)
+2. **Mantiene la pantalla encendida** todo el tiempo que esté conectado
+3. **Desactiva el bloqueo automático** para acceso continuo
+4. **Restaura todo** al desconectar — el teléfono vuelve a su estado normal
+5. **Reinicia el dispositivo** al finalizar una optimización (AutoMode o Turbo)
+
+#### ¿Cuándo se activa?
+
+- **Al conectar un dispositivo USB** → se guardan los settings originales y se aplica keep-awake
+- **Al iniciar Modo Turbo** → se aplica keep-awake antes de las 8 fases
+- **Al finalizar AutoMode** → se reinicia el dispositivo automáticamente
+- **Al finalizar Turbo** → se restaura pantalla y se reinicia
+
+#### ¿Cuándo se restaura?
+
+- **Al desconectar el teléfono** → se restauran timeout, suspensión y bloqueo
+- **Antes de reiniciar** → se restauran los valores originales
+
+#### Reinicio automático
+
+Después de cada optimización exitosa (AutoMode o Turbo), el dispositivo se reinicia automáticamente para aplicar todos los cambios del sistema. Antes del reinicio, los valores de pantalla se restauran a su estado original.
+
+#### Archivos
+
+| Archivo | Descripción |
+|---|---|
+| `src/core/screenControl.js` | Módulo principal: getOriginalSettings, applyKeepAwake, restoreSettings, rebootDevice |
+| `logs/device_state/<deviceId>.json` | Valores originales guardados por dispositivo |
+| `logs/screenControl.log` | Log de eventos: applied, restored, rebooted, errors |
+
+#### Comandos ADB utilizados
+
+| Comando | Propósito |
+|---|---|
+| `settings get system screen_off_timeout` | Obtener timeout original |
+| `settings put system screen_off_timeout 2147483647` | Pantalla siempre encendida |
+| `svc power stayon true` | Evitar suspensión por inactividad |
+| `locksettings set-disabled true` | Desactivar bloqueo de pantalla |
+| `settings put system screen_off_timeout ORIGINAL` | Restaurar timeout original |
+| `svc power stayon false` | Restaurar suspensión normal |
+| `locksettings set-disabled false` | Restaurar bloqueo de pantalla |
+| `adb reboot` | Reiniciar dispositivo |
+
 ---
 
 ## Arquitectura
@@ -202,6 +253,7 @@ src/
     turboMode          ← Modo Turbo (8 fases)
     guardian           ← Modo Guardian (loop 30s)
     autoMode           ← Detección automática
+    screenControl      ← Keep-awake, restauración y reinicio
     proactiveOptimizer ← Optimización preventiva
     scheduler          ← Tareas programadas
     backupManager      ← Backups y rollback
