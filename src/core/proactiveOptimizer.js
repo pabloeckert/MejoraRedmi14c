@@ -7,7 +7,6 @@
 const adb = require('../adb/adbClient');
 const logManager = require('../logs/logManager');
 const { FailurePredictor } = require('../ml/failurePredictor');
-const { AdaptiveOptimizer } = require('../ml/adaptiveOptimizer');
 
 class ProactiveOptimizer {
   constructor(deviceId) {

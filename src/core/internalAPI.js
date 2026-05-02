@@ -36,7 +36,7 @@ class InternalAPI {
       uptimeHuman: this._formatUptime(Date.now() - this.startTime),
       modules: {
         hybridAI: this.hybridAI.getConfig(),
-        guardian: guardian.getGlobalStats?.() || { active: guardian.active },
+        guardian: guardian.getStatus() || { active: guardian.active },
         autoMode: { active: autoMode.isActive() },
         telemetry: telemetry.getGlobalStats(),
         plugins: this.pluginSandbox.list().length,

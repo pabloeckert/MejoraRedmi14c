@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { BarChart, DonutChart } from './charts/Charts';
+import { BarChart, DonutChart } from '../charts/Charts';
 
 export default function BenchmarkPanel({ deviceId }) {
   const [results, setResults] = useState(null);

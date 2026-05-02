@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { LineChart, BarChart, SparkLine } from './charts/Charts';
+import { LineChart, BarChart, SparkLine } from '../charts/Charts';
 
 export default function TrendsPanel({ logs, deviceId }) {
   const trends = useMemo(() => {
