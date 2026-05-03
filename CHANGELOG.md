@@ -2,6 +2,33 @@
 
 Todas las versiones notables de Phone Optimizer.
 
+## [1.1.0] — 2026-05-04
+
+### ✨ Nuevas Features
+
+- **Sistema de Keep-Awake automático** — Al conectar un dispositivo USB, se guardan los valores originales de pantalla (timeout, suspensión, bloqueo) y se aplican automáticamente. Al desconectar, se restaura todo al estado original. Al finalizar una optimización (AutoMode o Turbo), el dispositivo se reinicia automáticamente.
+- **Sistema de plugins avanzado** — Arquitectura de plugins con soporte para tipos Core, External, UI y Automation. Incluye carpeta de instalación autónoma y manifest.json para cada plugin.
+- **Script de build autónomo para Windows** — Setup automatizado del entorno de build para Windows con limpieza de cache y configuración de dependencias.
+
+### 🔧 Fixes
+
+- Deshabilitado winCodeSign para evitar conflictos en el build
+- Cache limpiada y scripts de build optimizados
+
+### 📝 Docs
+
+- Documentación actualizada con guía de instalación de plugins y sistema de screen control
+
+### 📦 Módulos nuevos/actualizados
+
+| Módulo | Descripción |
+|---|---|
+| `src/core/screenControl.js` | Control de pantalla: keep-awake, restore settings, reboot |
+| `plugins/` | Sistema de plugins con directorios core, external, ui, automation |
+| `scripts/` | Scripts autónomos de build para Windows |
+
+---
+
 ## [1.0.0] — 2026-05-02
 
 ### 🚀 Primera versión estable
