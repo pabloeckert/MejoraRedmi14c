@@ -61,7 +61,8 @@ if %errorlevel% neq 0 (
 set "TEMP_DIR=%TEMP%\phone-optimizer-build"
 if not exist "%TEMP_DIR%" mkdir "%TEMP_DIR%"
 set "VS_URL=https://aka.ms/vs/17/release/vs_BuildTools.exe"
-powershell -Command "Continue='SilentlyContinue'; Invoke-WebRequest -Uri '%VS_URL%' -OutFile '%TEMP_DIR%\vs_BuildTools.exe' -UseBasicParsing"
+powershell -Command "Invoke-WebRequest -Uri '%VS_URL%' -OutFile '%TEMP_DIR%\vs_BuildTools.exe' -UseBasicParsing"
+
 "%TEMP_DIR%\vs_BuildTools.exe" --add Microsoft.VisualStudio.Workload.VCTools --add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.19041 --add Microsoft.VisualStudio.Component.VC.CMake.Project --quiet --wait --norestart
 echo  [OK] VS Build Tools instalado.
 

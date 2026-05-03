@@ -1,7 +1,6 @@
-# SHA512SUMS - Phone Optimizer v1.0.0
-# Generado automáticamente. Los hashes se calculan después de compilar los instaladores.
-#
-# Para generar hashes manualmente:
-#   sha512sum dist-release/*.AppImage dist-release/*.exe dist-release/*.dmg > SHA512SUMS.txt
-#
-# Formato: <hash>  <nombre_archivo>
+# SHA512 - Phone Optimizer 
+# Fecha: dom 03/05/2026 11:14:38,68 
+e8198aa8628c5a958eba2144584e1368efca08727d32fea6ff32113f6c44805b3ad57c6b11a698eeb30183e513c2993547a71a763d1e9aa7d4f80cf225d83db8  PhoneOptimizer-Setup-1.0.0.exe 
+CertUtil: -hashfile comando completado correctamente.  PhoneOptimizer-Setup-1.0.0.exe 
+956a8e0dac9322e4f3c0ef9eabd4bed20c6ee9aa7c9566cd4413f2bb585213124938cd6cdbeb0c80ba9d1207d0493a1724952b51a0ad29986a2a9e2ebe793f7c  PhoneOptimizer-Setup-1.0.1.exe 
+CertUtil: -hashfile comando completado correctamente.  PhoneOptimizer-Setup-1.0.1.exe 
