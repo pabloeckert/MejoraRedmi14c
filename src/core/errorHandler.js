@@ -4,8 +4,9 @@
  */
 
 const fs = require('fs-extra');
-const path = require('path');
-const { sendNotification } = require('../ui/notifications');
+
+const path = require('path')
+const notifications = require(path.join(__dirname, '..', 'ui', 'notifications.js'))
 
 const LOGS_DIR = path.join(__dirname, '..', '..', 'logs');
 const ERROR_LOG = path.join(LOGS_DIR, 'errors.log');

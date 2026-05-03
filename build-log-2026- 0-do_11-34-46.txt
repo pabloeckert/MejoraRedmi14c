@@ -1,0 +1,50 @@
+Ejecutando build... 
+ 
+
+> phone-optimizer@1.0.1 build:win
+> vite build && electron-builder --win
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+[36mvite v5.4.21 [32mbuilding for production...[36m[39m
+transforming...
+(node:13336) [MODULE_TYPELESS_PACKAGE_JSON] Warning: Module type of file:///C:/Dev/MejoraRedmi14c/postcss.config.js is not specified and it doesn't parse as CommonJS.
+Reparsing as ES module because module syntax was detected. This incurs a performance overhead.
+To eliminate this warning, add "type": "module" to C:\Dev\MejoraRedmi14c\package.json.
+(Use `node --trace-warnings ...` to show where the warning was created)
+[33m[vite:css] @import must precede all other statements (besides @charset or empty @layer)
+3  |  @tailwind utilities;
+4  |  
+5  |  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+   |  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+6  |  
+7  |  body {[39m
+[32m✓[39m 45 modules transformed.
+rendering chunks...
+computing gzip size...
+[2mdist/[22m[32mindex.html                 [39m[1m[2m  0.41 kB[22m[1m[22m[2m │ gzip:  0.29 kB[22m
+[2mdist/[22m[35massets/index-DUZGppUF.css  [39m[1m[2m 27.94 kB[22m[1m[22m[2m │ gzip:  5.11 kB[22m
+[2mdist/[22m[36massets/index-rs1sdjym.js   [39m[1m[2m251.24 kB[22m[1m[22m[2m │ gzip: 70.78 kB[22m
+[32m✓ built in 2.00s[39m
+  • electron-builder  version=25.1.8 os=10.0.26200
+  • loaded configuration  file=C:\Dev\MejoraRedmi14c\electron-builder.yml
+  • Specified application directory equals to project dir — superfluous or wrong configuration  appDirectory=.
+  • executing @electron/rebuild  electronVersion=28.3.3 arch=x64 buildFromSource=false appDir=./
+  • installing native dependencies  arch=x64
+  • completed installing native dependencies
+  • packaging       platform=win32 arch=x64 electron=28.3.3 appOutDir=dist-release\win-unpacked
+  • updating asar integrity executable resource  executablePath=dist-release\win-unpacked\Phone Optimizer.exe
+  • signing with signtool.exe  path=dist-release\win-unpacked\Phone Optimizer.exe
+  • no signing info identified, signing is skipped  signHook=false cscInfo=null
+  • building        target=nsis file=dist-release\PhoneOptimizer-Setup-1.0.1.exe archs=x64 oneClick=false perMachine=false
+  • signing with signtool.exe  path=dist-release\win-unpacked\resources\elevate.exe
+  • no signing info identified, signing is skipped  signHook=false cscInfo=null
+  • signing with signtool.exe  path=dist-release\__uninstaller-nsis-phone-optimizer.exe
+  • no signing info identified, signing is skipped  signHook=false cscInfo=null
+  • signing with signtool.exe  path=dist-release\PhoneOptimizer-Setup-1.0.1.exe
+  • no signing info identified, signing is skipped  signHook=false cscInfo=null
+  • building block map  blockMapFile=dist-release\PhoneOptimizer-Setup-1.0.1.exe.blockmap
+ 
+============================================= 
+  BUILD FINALIZADO                           
+  Log guardado en: build-log-2026- 0-do_11-34-46.txt                 
+============================================= 

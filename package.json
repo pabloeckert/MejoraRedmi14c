@@ -1,6 +1,6 @@
 {
   "name": "phone-optimizer",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Optimizador Inteligente para teléfonos Android - Pablo & Sindy",
   "main": "main.js",
   "author": "Pablo Eckert <pabloeckert@users.noreply.github.com>",
