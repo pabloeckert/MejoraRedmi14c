@@ -5,11 +5,32 @@
 
 const { exec } = require('child_process');
 const { promisify } = require('util');
+const path = require('path');
+const fs = require('fs');
 const execAsync = promisify(exec);
+
+// Resolve ADB path: bundled first, then system PATH
+function getAdbPath() {
+  const { app } = require('electron');
+  let baseDir;
+  if (app.isPackaged) {
+    baseDir = process.resourcesPath;
+  } else {
+    // Dev: __dirname is src/adb/, go up to project root
+    baseDir = path.join(__dirname, '..', '..');
+  }
+  const adbFile = process.platform === 'win32' ? 'adb.exe' : 'adb';
+  const bundled = path.join(baseDir, 'vendor', 'adb', adbFile);
+  if (fs.existsSync(bundled)) {
+    return process.platform === 'win32' ? `"${bundled}"` : bundled;
+  }
+  return 'adb';
+}
 
 class ADBClient {
   constructor() {
     this.connectedDevices = new Map();
+    this.adbPath = getAdbPath();
   }
 
   /**
@@ -17,7 +38,7 @@ class ADBClient {
    */
   async run(command, deviceId = null) {
     const deviceFlag = deviceId ? `-s ${deviceId}` : '';
-    const fullCmd = `adb ${deviceFlag} ${command}`;
+    const fullCmd = `${this.adbPath} ${deviceFlag} ${command}`;
     try {
       const { stdout, stderr } = await execAsync(fullCmd, { timeout: 30000 });
       if (stderr && !stderr.includes('Warning')) {

@@ -22,6 +22,8 @@ extraResources:
     to: src/adb/scripts.js
   - from: src/config
     to: src/config
+  - from: vendor/adb
+    to: vendor/adb
 
 asar: true
 asarUnpack:
