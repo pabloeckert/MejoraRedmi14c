@@ -124,7 +124,7 @@ export default function ExtensionsPanel() {
             Coloca extensiones en <code className="text-dark-400 bg-dark-800 px-1 rounded">/extensions/</code> con un <code className="text-dark-400 bg-dark-800 px-1 rounded">manifest.json</code>
           </p>
           <p className="text-dark-500 text-xs mt-1">
-            Incluye Battery Doctor como ejemplo: <code className="text-dark-400 bg-dark-800 px-1 rounded">extensions/examples/battery-doctor/</code>
+            Consulta la documentación para crear extensiones personalizadas.
           </p>
         </div>
       )}

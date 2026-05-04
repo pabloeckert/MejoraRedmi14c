@@ -328,7 +328,7 @@ function PluginsView({ plugins }) {
     return (
       <div className="glass p-6 text-center">
         <p className="text-dark-400 text-sm">No hay plugins cargados</p>
-        <p className="text-dark-600 text-xs mt-1">Coloca plugins en /extensions/plugins/</p>
+        <p className="text-dark-600 text-xs mt-1">Coloca plugins en /plugins/</p>
       </div>
     );
   }

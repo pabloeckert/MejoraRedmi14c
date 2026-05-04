@@ -22,10 +22,6 @@ extraResources:
     to: src/adb/scripts.js
   - from: src/config
     to: src/config
-  - from: extensions
-    to: extensions
-  - from: ml
-    to: ml
 
 asar: true
 asarUnpack:
