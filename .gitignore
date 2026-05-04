@@ -1,10 +1,43 @@
+# Dependencies
 node_modules/
+
+# Build output
 dist/
 dist-release/
 out/
+
+# OS
 .DS_Store
+Thumbs.db
+
+# Logs
 *.log
 logs/*.json
 !logs/.gitkeep
+
+# Environment
 .env
-!installer/
+.env.local
+
+# Build artifacts (never commit binaries/installers)
+build-log-*.txt
+installer/build-log-*.txt
+installer/*.exe
+installer/*.dmg
+installer/*.AppImage
+installer/*.deb
+installer/*.rpm
+installer/*.msi
+
+# Docs generated / external
+Resumen_Integrado_del_Proyecto_MejoraRedmi14c.docx
+
+# Analysis scripts (dev-only)
+analisis-total.bat
+
+# Settings (user-specific)
+settings.json
+
+# Cache
+.cache/
+*.tsbuildinfo
