@@ -12,16 +12,29 @@
 4. Abrí la página y hacé clic en **"Conectar"**
 5. Aceptá la autorización en el teléfono
 
+### Correr Local (Recomendado)
+
+```bash
+git clone https://github.com/pabloeckert/MejoraRedmi14c.git
+cd MejoraRedmi14c
+adb kill-server
+python3 -m http.server 8000
+```
+
+Abrir `http://localhost:8000` en Chrome.
+
+> `adb kill-server` libera el USB para que el navegador pueda usarlo.
+
 ## Funcionalidades
 
 - 🧹 **Limpieza de bloatware** — Xiaomi, Samsung, genérico
 - ⚡ **Optimización de rendimiento** — Animaciones, GPU, cache
 - 💀 **Kill apps pesadas** — Facebook, Instagram, TikTok, etc.
-- 🚀 **Modo Turbo** — Todo en uno: bloatware + rendimiento + kill + cache
+- 🚀 **Modo Turbo** — Todo en uno
 - 📊 **Monitor en vivo** — CPU, RAM, temperatura, batería
-- 🔍 **Diagnóstico** — Verificación de depuración USB, GPU, WiFi, SELinux
-- 💻 **Terminal** — Ejecutá cualquier comando ADB shell
-- 📋 **Log** — Registro de todas las operaciones
+- 🔍 **Diagnóstico** — Verificaciones del sistema
+- 💻 **Terminal** — Comandos ADB shell
+- 📋 **Log** — Registro de operaciones
 
 ## Requisitos
 
