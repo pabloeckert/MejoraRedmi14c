@@ -7,7 +7,7 @@ const { runOptimization } = require('./optimizerEngine');
 const backupManager = require('./backupManager');
 const logManager = require('../logs/logManager');
 const { DeviceProfile } = require('../devices/deviceProfile');
-const { sendNotification } = require('../ui/notifications');
+const { sendNotification } = require('./notifications');
 const errorHandler = require('./errorHandler');
 const adb = require('../adb/adbClient');
 
