@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import * as ultraAesthetic from '../theme/ultraAesthetic';
 
 export default function SettingsPanel({ deviceId }) {
   const [autoMode, setAutoMode] = useState(false);
@@ -532,8 +533,7 @@ export default function SettingsPanel({ deviceId }) {
               const next = !aestheticMode;
               setAestheticMode(next);
               try {
-                const ua = require('../theme/ultraAesthetic');
-                if (next) ua.enable(); else ua.disable();
+                if (next) ultraAesthetic.enable(); else ultraAesthetic.disable();
               } catch {}
             }} />
             <span className={`text-sm font-medium ${aestheticMode ? 'text-accent-purple' : 'text-dark-400'}`}>

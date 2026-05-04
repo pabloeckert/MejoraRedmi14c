@@ -36,7 +36,7 @@ function handle(error, context = 'unknown') {
 
   // Notificar si hay muchos errores repetidos
   if (count === ERROR_THRESHOLD) {
-    sendNotification({
+    notifications.sendNotification({
       title: '⚠️ Errores repetidos detectados',
       body: `${context}: ${count} errores consecutivos`,
       type: 'warning',

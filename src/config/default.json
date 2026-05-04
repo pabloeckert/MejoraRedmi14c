@@ -1,7 +1,7 @@
 {
   "app": {
     "name": "Phone Optimizer",
-    "version": "1.0.0",
+    "version": "1.4.0",
     "description": "Optimizador Inteligente para Android - Pablo & Sindy"
   },
   "optimization": {

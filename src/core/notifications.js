@@ -109,8 +109,6 @@ function _getIcon(type) {
   return undefined;
 }
 
-module.exports = { sendNotification, getPendingNotifications, getNotificationHistory, cleanOldNotifications };
-
 /**
  * Notificaciones específicas de predicciones de fallo (Ciclo 6)
  * Se llaman desde Guardian y Auto Mode cuando se detectan predicciones críticas
@@ -152,3 +150,13 @@ function sendTurboEscalation(deviceId, reason) {
     type: 'error',
   });
 }
+
+module.exports = {
+  sendNotification,
+  getPendingNotifications,
+  getNotificationHistory,
+  cleanOldNotifications,
+  sendFailurePredictionNotification,
+  sendGuardianAlert,
+  sendTurboEscalation,
+};

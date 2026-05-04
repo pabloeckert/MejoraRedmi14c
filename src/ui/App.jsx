@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import Dashboard from './components/Dashboard';
-import DeviceCard from './components/DeviceCard';
 import OptimizationPanel from './components/OptimizationPanel';
 import RealTimeDashboard from './components/RealTimeDashboard';
 import TrendsPanel from './components/TrendsPanel';

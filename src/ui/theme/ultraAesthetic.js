@@ -246,4 +246,4 @@ function _handleMouseMove(e) {
   });
 }
 
-module.exports = { enable, disable, toggle, isActive };
+export { enable, disable, toggle, isActive };
