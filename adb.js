@@ -87,7 +87,6 @@ class AdbWebUsbTransport {
   async connect() {
     await this.device.open();
 
-    // Find ADB interface
     for (const cfg of this.device.configurations) {
       for (const iface of cfg.interfaces) {
         for (const alt of iface.alternates) {
@@ -158,7 +157,6 @@ class AdbWebUsbTransport {
           }
         } catch (err) {
           if (!this._readLoop) break;
-          // Device disconnected
           this._readLoop = false;
           if (this.onDisconnect) this.onDisconnect(err);
           break;
@@ -236,22 +234,18 @@ class AdbClient {
       const msg = await this.transport.receive();
 
       if (msg.command === CMD.AUTH && msg.arg0 === AUTH_TYPE.TOKEN) {
-        // Sign the token
         const signature = await this._sign(msg.data);
         const authMsg = new AdbMessage(CMD.AUTH, AUTH_TYPE.SIGNATURE, 0, signature);
         await this.transport.send(authMsg);
 
-        // Wait for response
         const resp = await this.transport.receive();
         if (resp.command === CMD.CNXN) {
           authenticated = true;
           return resp;
         } else if (resp.command === CMD.AUTH && resp.arg0 === AUTH_TYPE.TOKEN) {
-          // Device rejected signature, send public key
           const pkMsg = new AdbMessage(CMD.AUTH, AUTH_TYPE.RSA_PUBLIC, 0, key.pubKeyDer);
           await this.transport.send(pkMsg);
 
-          // Device will show auth dialog, wait for CNXN
           const finalResp = await this.transport.receive();
           if (finalResp.command === CMD.CNXN) {
             authenticated = true;
@@ -266,8 +260,6 @@ class AdbClient {
   }
 
   async connect(device) {
-    // If device already provided (from requestDevice), use it directly
-    // Otherwise try to find already-authorized devices
     if (device) {
       this.device = device;
     } else {
@@ -285,7 +277,6 @@ class AdbClient {
       });
 
       if (adbDevices.length === 0) {
-        // No authorized devices — caller should have used requestDevice first
         throw new Error('No hay dispositivos autorizados. Hacé clic en Conectar y seleccioná tu teléfono.');
       }
       this.device = adbDevices[0];
@@ -294,11 +285,9 @@ class AdbClient {
     this.transport = new AdbWebUsbTransport(this.device);
     await this.transport.connect();
 
-    // Send CNXN
     const cnxnMsg = new AdbMessage(CMD.CNXN, ADB_VERSION, MAX_PAYLOAD, encodeUtf8('host::features=shell_v2,cmd,stat_v2,ls_v2,fixed_push_mkdir,apex,abb,fixed_push_symlink_timestamp,abb_exec,remount_shell,track_app,sendrecv_v2,sendrecv_v2_brotli,sendrecv_v2_lz4,sendrecv_v2_zstd,sendrecv_v2_dry_run_send,openscreen_metrics'));
     await this.transport.send(cnxnMsg);
 
-    // Handle auth
     const resp = await this._authSequence();
 
     if (resp.command !== CMD.CNXN) {
@@ -332,28 +321,23 @@ class AdbClient {
     const localId = ++this._streamId;
     const remoteId = 0;
 
-    // OPEN a shell stream
     const openMsg = new AdbMessage(CMD.OPEN, localId, 0, encodeUtf8(`shell:${command}\0`));
     await this.transport.send(openMsg);
 
-    // Wait for OKAY
     const okay = await this.transport.receive();
     if (okay.command !== CMD.OKAY) {
       throw new Error(`Error abriendo shell: ${cmdStr(okay.command)}`);
     }
     const actualRemoteId = okay.arg0;
 
-    // Read output
     let output = '';
     while (true) {
       const msg = await this.transport.receive();
       if (msg.command === CMD.WRTE) {
         output += decodeUtf8(msg.data);
-        // Send OKAY to acknowledge
         const ack = new AdbMessage(CMD.OKAY, localId, actualRemoteId);
         await this.transport.send(ack);
       } else if (msg.command === CMD.CLSE) {
-        // Close our side
         const close = new AdbMessage(CMD.CLSE, localId, actualRemoteId);
         await this.transport.send(close);
         break;
@@ -377,5 +361,4 @@ class AdbClient {
   }
 }
 
-// Export
 window.AdbClient = AdbClient;

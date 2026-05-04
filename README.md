@@ -1,48 +1,82 @@
-# 🔧 Phone Optimizer
+# Phone Optimizer v2.1
 
-**Optimizador inteligente para Android** — Funciona directo en tu navegador.
+Optimizador Android por ADB. Dos formas de usar: **scripts locales** (recomendado) o **app web**.
 
-🌐 **[pabloeckert.github.io/MejoraRedmi14c](https://pabloeckert.github.io/MejoraRedmi14c/)**
+---
 
-## Cómo Usar
+## 🖥️ Scripts locales (ADB en la PC)
 
-1. Abrí **Chrome, Edge u Opera** (WebUSB no funciona en Firefox/Safari)
-2. Activá **depuración USB** en tu teléfono Android
-3. Conectá el teléfono por USB
-4. Abrí la página y hacé clic en **"Conectar"**
-5. Aceptá la autorización en el teléfono
+### Requisitos
+- ADB instalado (`platform-tools`)
+- Cable USB con datos
+- Depuración USB activada en el teléfono
 
-### Correr Local (Recomendado)
+### Uso rápido
 
 ```bash
-git clone https://github.com/pabloeckert/MejoraRedmi14c.git
-cd MejoraRedmi14c
-adb kill-server
-python3 -m http.server 8000
+# Menú interactivo con todas las opciones
+./optimizer.sh
+
+# O ejecutar un perfil directamente:
+./perfil-rendimiento.sh    # 🚀 Máxima velocidad
+./perfil-equilibrado.sh    # 📱 Uso diario
+./perfil-bateria.sh        # 🔋 Ahorro de batería
+
+# Herramientas:
+./diagnostico.sh           # 🔍 Estado del dispositivo
+./mantenimiento.sh         # 🔧 Limpieza periódica
+./emergencia.sh            # 🚨 Restaurar TODO
 ```
 
-Abrir `http://localhost:8000` en Chrome.
+### ¿Qué hace cada perfil?
 
-> `adb kill-server` libera el USB para que el navegador pueda usarlo.
+| Perfil | Animaciones | GPU | Bloatware | Kill apps | Cache |
+|---|---|---|---|---|---|
+| Rendimiento | 0.3x | Forzada | 21 apps | Todas | Profunda |
+| Equilibrado | 0.5x | Forzada | 3 apps | No | Segura |
+| Batería | 0.5x | Sin cambios | 6 apps | Todas | Segura |
 
-## Funcionalidades
+### Modo Emergencia
 
-- 🧹 **Limpieza de bloatware** — Xiaomi, Samsung, genérico
-- ⚡ **Optimización de rendimiento** — Animaciones, GPU, cache
-- 💀 **Kill apps pesadas** — Facebook, Instagram, TikTok, etc.
-- 🚀 **Modo Turbo** — Todo en uno
-- 📊 **Monitor en vivo** — CPU, RAM, temperatura, batería
-- 🔍 **Diagnóstico** — Verificaciones del sistema
-- 💻 **Terminal** — Comandos ADB shell
-- 📋 **Log** — Registro de operaciones
+Si algo anda mal después de optimizar:
 
-## Requisitos
+```bash
+./emergencia.sh
+```
 
-- Navegador Chromium (Chrome, Edge, Opera)
-- Android 7.0+
-- Cable USB con datos
-- Depuración USB activada
+Restaura: apps del sistema, animaciones (1x), GPU, permisos de SystemUI.
 
-## Licencia
+---
 
-MIT — Pablo & Sindy.
+## 🌐 App Web (WebUSB)
+
+Alternativa sin ADB en la PC. Abrí `index.html` en Chrome.
+
+### Requisitos
+- Chrome, Edge u Opera (WebUSB no funciona en Firefox/Safari)
+- `adb kill-server` antes de abrir (libera el USB para el navegador)
+
+```bash
+adb kill-server
+python3 -m http.server 8000
+# Abrir http://localhost:8000
+```
+
+---
+
+## Archivos
+
+```
+optimizer.sh            ← Menú principal (empezar acá)
+perfil-rendimiento.sh   ← Perfil agresivo
+perfil-equilibrado.sh   ← Perfil balanceado
+perfil-bateria.sh       ← Perfil ahorro
+mantenimiento.sh        ← Limpieza mensual
+diagnostico.sh          ← Estado del sistema
+emergencia.sh           ← Restaurar todo
+
+index.html              ← App web
+adb.js                  ← Protocolo ADB sobre WebUSB
+app.js                  ← Lógica de la app web
+styles.css              ← Estilos
+```
