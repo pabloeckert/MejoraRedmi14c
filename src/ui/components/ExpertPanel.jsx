@@ -77,7 +77,7 @@ export default function ExpertPanel({ deviceId }) {
           <div className="flex items-center gap-2">
             <span className="text-xl">🔬</span>
             <h2 className="text-lg font-bold text-dark-100">Modo Experto</h2>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent-purple/10 text-accent-purple border border-accent-purple/20">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-accent-blue/10 text-accent-blue border border-accent-blue/20">
               TÉCNICO
             </span>
           </div>
@@ -220,7 +220,7 @@ function TelemetryView({ data }) {
               </span>
               <span className={`px-1.5 py-0.5 rounded text-[9px] font-medium ${
                 e.type === 'error' ? 'bg-accent-red/10 text-accent-red' :
-                e.type === 'prediction' ? 'bg-accent-purple/10 text-accent-purple' :
+                e.type === 'prediction' ? 'bg-accent-blue/10 text-accent-blue' :
                 e.type === 'timing' ? 'bg-accent-blue/10 text-accent-blue' :
                 'bg-dark-700 text-dark-400'
               }`}>{e.type}</span>
@@ -386,7 +386,7 @@ function PerformanceView({ memoryInfo, systemInfo, telemetryData }) {
                 <span className="text-dark-300">{Math.round((memoryInfo.usedJSHeapSize / memoryInfo.jsHeapSizeLimit) * 100)}%</span>
               </div>
               <div className="h-3 bg-dark-800 rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-accent-blue to-accent-purple rounded-full transition-all"
+                <div className="h-full bg-gradient-to-r from-accent-blue to-accent-blue rounded-full transition-all"
                   style={{ width: `${(memoryInfo.usedJSHeapSize / memoryInfo.jsHeapSizeLimit) * 100}%` }} />
               </div>
             </div>

@@ -79,7 +79,7 @@ export default function PredictionDashboard({ deviceId, failurePredictions, proa
             label="Modelos"
             value={`L:${linearPredictions.length} NL:${nonLinearItems.length}`}
             icon="📐"
-            color="text-accent-purple"
+            color="text-accent-blue"
           />
         </div>
       </div>

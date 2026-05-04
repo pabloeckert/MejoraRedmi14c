@@ -1,8 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 body {
   @apply bg-dark-950 text-dark-100 font-sans antialiased;
@@ -20,13 +20,13 @@ button, input, select, textarea {
   width: 6px;
 }
 ::-webkit-scrollbar-track {
-  @apply bg-dark-900;
+  @apply bg-dark-800;
 }
 ::-webkit-scrollbar-thumb {
-  @apply bg-dark-600 rounded-full;
+  @apply bg-dark-500 rounded-full;
 }
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-dark-500;
+  @apply bg-dark-400;
 }
 
 /* Animaciones personalizadas */
@@ -48,18 +48,18 @@ button, input, select, textarea {
   animation: scan-line 2s linear infinite;
 }
 
-/* Glassmorphism */
+/* Glassmorphism — Light Theme */
 .glass {
-  @apply bg-dark-800/50 backdrop-blur-xl border border-dark-700/50 rounded-2xl;
+  @apply bg-white/80 backdrop-blur-xl border border-dark-700/60 rounded-2xl shadow-sm;
 }
 
 .glass-strong {
-  @apply bg-dark-800/80 backdrop-blur-2xl border border-dark-600/30 rounded-2xl;
+  @apply bg-white/95 backdrop-blur-2xl border border-dark-600/40 rounded-2xl shadow-md;
 }
 
 /* Gradient text */
 .gradient-text {
-  @apply bg-gradient-to-r from-accent-blue via-accent-purple to-accent-pink bg-clip-text text-transparent;
+  @apply bg-gradient-to-r from-accent-blue via-blue-500 to-blue-400 bg-clip-text text-transparent;
 }
 
 /* Status indicators */
@@ -67,5 +67,19 @@ button, input, select, textarea {
   @apply w-2.5 h-2.5 rounded-full;
 }
 .status-dot.connected { @apply bg-accent-green animate-pulse; }
-.status-dot.disconnected { @apply bg-accent-red; }
+.status-dot.disconnected { @apply bg-dark-400; }
 .status-dot.optimizing { @apply bg-accent-orange animate-pulse; }
+
+/* Input styles for light theme */
+input, select, textarea {
+  @apply bg-dark-800 border border-dark-600 text-dark-100;
+}
+
+input:focus, select:focus, textarea:focus {
+  @apply outline-none ring-2 ring-accent-blue/30 border-accent-blue;
+}
+
+/* Selection color */
+::selection {
+  @apply bg-accent-blue/20 text-dark-50;
+}

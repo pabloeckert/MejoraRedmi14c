@@ -366,8 +366,8 @@ export default function SettingsPanel({ deviceId }) {
               </button>
               <button onClick={() => handleExportReport('html')}
                 disabled={exporting}
-                className="flex-1 py-2.5 px-4 bg-accent-purple/10 hover:bg-accent-purple/20 border border-accent-purple/20
-                  text-accent-purple text-sm font-medium rounded-xl transition-all disabled:opacity-50">
+                className="flex-1 py-2.5 px-4 bg-accent-blue/10 hover:bg-accent-blue/20 border border-accent-blue/20
+                  text-accent-blue text-sm font-medium rounded-xl transition-all disabled:opacity-50">
                 {exporting ? '⏳ Generando...' : '🌐 HTML'}
               </button>
               <button onClick={handleExportPDF}
@@ -427,8 +427,8 @@ export default function SettingsPanel({ deviceId }) {
           <p className="text-xs text-dark-400">{jobs.length} tarea{jobs.length !== 1 ? 's' : ''}</p>
           {deviceId && (
             <button onClick={() => setShowAddJob(!showAddJob)}
-              className="text-xs px-3 py-1.5 bg-accent-purple/10 hover:bg-accent-purple/20 border border-accent-purple/20
-                text-accent-purple rounded-lg transition-all">
+              className="text-xs px-3 py-1.5 bg-accent-blue/10 hover:bg-accent-blue/20 border border-accent-blue/20
+                text-accent-blue rounded-lg transition-all">
               + Nueva tarea
             </button>
           )}
@@ -479,7 +479,7 @@ export default function SettingsPanel({ deviceId }) {
 
             <div className="flex gap-2">
               <button onClick={handleAddJob}
-                className="flex-1 py-2 bg-accent-purple hover:bg-accent-purple/80 text-white text-sm rounded-lg transition-all">
+                className="flex-1 py-2 bg-accent-blue hover:bg-accent-blue/80 text-white text-sm rounded-lg transition-all">
                 Crear tarea
               </button>
               <button onClick={() => setShowAddJob(false)}
@@ -536,7 +536,7 @@ export default function SettingsPanel({ deviceId }) {
                 if (next) ultraAesthetic.enable(); else ultraAesthetic.disable();
               } catch {}
             }} />
-            <span className={`text-sm font-medium ${aestheticMode ? 'text-accent-purple' : 'text-dark-400'}`}>
+            <span className={`text-sm font-medium ${aestheticMode ? 'text-accent-blue' : 'text-dark-400'}`}>
               {aestheticMode ? '✨ Activo' : 'Inactivo'}
             </span>
           </div>

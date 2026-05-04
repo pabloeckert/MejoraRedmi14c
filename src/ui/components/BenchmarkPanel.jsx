@@ -51,8 +51,8 @@ export default function BenchmarkPanel({ deviceId }) {
           🏋️ Benchmark de Rendimiento
         </h2>
         <button onClick={runBenchmark} disabled={running}
-          className="text-xs px-4 py-2 bg-accent-purple/10 hover:bg-accent-purple/20 border border-accent-purple/20
-            text-accent-purple rounded-lg disabled:opacity-50 transition-all">
+          className="text-xs px-4 py-2 bg-accent-blue/10 hover:bg-accent-blue/20 border border-accent-blue/20
+            text-accent-blue rounded-lg disabled:opacity-50 transition-all">
           {running ? '⏳ Ejecutando...' : '▶️ Ejecutar Benchmark'}
         </button>
       </div>

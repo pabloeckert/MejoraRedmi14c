@@ -99,8 +99,8 @@ export default function DeviceOverview({ device, profile, onAssignOwner }) {
       {/* Device Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-blue/20 to-accent-purple/20 
-            border border-accent-blue/30 flex items-center justify-center text-2xl">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-accent-blue/10 to-blue-100 
+            border border-accent-blue/20 flex items-center justify-center text-2xl">
             📱
           </div>
           <div>
@@ -200,7 +200,7 @@ export default function DeviceOverview({ device, profile, onAssignOwner }) {
           className={`w-full py-3 px-4 rounded-xl text-sm font-semibold transition-all duration-300 relative overflow-hidden ${
             turboActive
               ? 'bg-gradient-to-r from-accent-red to-accent-orange text-white shadow-lg shadow-accent-red/20 animate-pulse'
-              : 'bg-gradient-to-r from-accent-orange to-accent-yellow text-dark-900 hover:shadow-lg hover:shadow-accent-orange/30 hover:scale-[1.02]'
+              : 'bg-gradient-to-r from-accent-blue to-blue-400 text-white hover:shadow-lg hover:shadow-accent-blue/30 hover:scale-[1.02]'
           } disabled:opacity-50 disabled:cursor-not-allowed`}
         >
           <span className="relative z-10 flex items-center justify-center gap-2">

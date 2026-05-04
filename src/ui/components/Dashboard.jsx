@@ -42,9 +42,9 @@ export default function Dashboard({ state, device, result, logs, onOptimize }) {
         <div className="flex flex-col items-center justify-center py-20">
           <div className="relative w-24 h-24 mb-6">
             <div className="absolute inset-0 border-4 border-dark-700 rounded-full" />
-            <div className="absolute inset-0 border-4 border-accent-purple border-t-transparent rounded-full animate-spin" />
+            <div className="absolute inset-0 border-4 border-accent-blue border-t-transparent rounded-full animate-spin" />
             <div className="absolute inset-3 border-4 border-dark-700 rounded-full" />
-            <div className="absolute inset-3 border-4 border-accent-pink border-b-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+            <div className="absolute inset-3 border-4 border-blue-300 border-b-transparent rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
           </div>
           <h3 className="text-xl font-medium text-dark-200 mb-2">
             {device?.firstConnection
@@ -154,7 +154,7 @@ function StatCard({ icon, label, value, color }) {
     red: 'from-accent-red/10 to-accent-red/5 border-accent-red/20',
     orange: 'from-accent-orange/10 to-accent-orange/5 border-accent-orange/20',
     blue: 'from-accent-blue/10 to-accent-blue/5 border-accent-blue/20',
-    purple: 'from-accent-purple/10 to-accent-purple/5 border-accent-purple/20',
+    purple: 'from-accent-blue/10 to-accent-blue/5 border-accent-blue/20',
     green: 'from-accent-green/10 to-accent-green/5 border-accent-green/20',
   };
 

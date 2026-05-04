@@ -55,9 +55,9 @@ export function LineChart({ data, width = 500, height = 200, color = '#3b82f6', 
         return (
           <g key={i}>
             <line x1={padding.left} y1={y} x2={width - padding.right} y2={y}
-              stroke="#2d2d3a" strokeWidth="1" strokeDasharray={i > 0 ? "4 4" : ""} />
+              stroke="#e2e8f0" strokeWidth="1" strokeDasharray={i > 0 ? "4 4" : ""} />
             <text x={padding.left - 8} y={y + 4} textAnchor="end"
-              fill="#8e8ea0" fontSize="10" fontFamily="JetBrains Mono">
+              fill="#64748b" fontSize="10" fontFamily="JetBrains Mono">
               {val}{unit}
             </text>
           </g>
@@ -79,14 +79,14 @@ export function LineChart({ data, width = 500, height = 200, color = '#3b82f6', 
       {/* Data points */}
       {points.map((p, i) => (
         <g key={i}>
-          <circle cx={p.x} cy={p.y} r="3" fill={color} stroke="#0a0a0f" strokeWidth="1.5" />
+          <circle cx={p.x} cy={p.y} r="3" fill={color} stroke="#ffffff" strokeWidth="1.5" />
           {/* Tooltip on hover (simplified: show last point) */}
           {i === points.length - 1 && (
             <g>
               <rect x={p.x - 25} y={p.y - 22} width="50" height="18" rx="4"
-                fill="#2d2d3a" stroke="#40414f" strokeWidth="1" />
+                fill="#e2e8f0" stroke="#cbd5e1" strokeWidth="1" />
               <text x={p.x} y={p.y - 10} textAnchor="middle"
-                fill="#ececf1" fontSize="10" fontFamily="JetBrains Mono">
+                fill="#1e293b" fontSize="10" fontFamily="JetBrains Mono">
                 {p.value}{unit}
               </text>
             </g>
@@ -97,7 +97,7 @@ export function LineChart({ data, width = 500, height = 200, color = '#3b82f6', 
       {/* X-axis labels */}
       {points.filter((_, i) => i % Math.max(1, Math.floor(points.length / 5)) === 0 || i === points.length - 1).map((p, i) => (
         <text key={i} x={p.x} y={height - 8} textAnchor="middle"
-          fill="#8e8ea0" fontSize="9" fontFamily="JetBrains Mono">
+          fill="#64748b" fontSize="9" fontFamily="JetBrains Mono">
           {p.label}
         </text>
       ))}
@@ -131,9 +131,9 @@ export function BarChart({ data, width = 500, height = 200, color = '#8b5cf6', l
         return (
           <g key={i}>
             <line x1={padding.left} y1={y} x2={width - padding.right} y2={y}
-              stroke="#2d2d3a" strokeWidth="1" strokeDasharray="4 4" />
+              stroke="#e2e8f0" strokeWidth="1" strokeDasharray="4 4" />
             <text x={padding.left - 8} y={y + 4} textAnchor="end"
-              fill="#8e8ea0" fontSize="10" fontFamily="JetBrains Mono">
+              fill="#64748b" fontSize="10" fontFamily="JetBrains Mono">
               {val}
             </text>
           </g>
@@ -157,12 +157,12 @@ export function BarChart({ data, width = 500, height = 200, color = '#8b5cf6', l
             <rect x={x} y={y} width={barW} height={barH} rx="4"
               fill={`url(#bar-${label}-${i})`} />
             <text x={x + barW / 2} y={height - 10} textAnchor="middle"
-              fill="#8e8ea0" fontSize="8" fontFamily="JetBrains Mono"
+              fill="#64748b" fontSize="8" fontFamily="JetBrains Mono"
               transform={`rotate(-30 ${x + barW / 2} ${height - 10})`}>
               {d.label?.length > 10 ? d.label.slice(-10) : d.label}
             </text>
             <text x={x + barW / 2} y={y - 5} textAnchor="middle"
-              fill="#acacbe" fontSize="9" fontFamily="JetBrains Mono">
+              fill="#475569" fontSize="9" fontFamily="JetBrains Mono">
               {d.value}
             </text>
           </g>
@@ -189,7 +189,7 @@ export function DonutChart({ value, max = 100, size = 120, color = '#3b82f6', la
     <div className="flex flex-col items-center">
       <svg width={size} height={size} className="-rotate-90">
         <circle cx={size / 2} cy={size / 2} r={radius}
-          fill="none" stroke="#2d2d3a" strokeWidth="8" />
+          fill="none" stroke="#e2e8f0" strokeWidth="8" />
         <circle cx={size / 2} cy={size / 2} r={radius}
           fill="none" stroke={getColor()} strokeWidth="8"
           strokeDasharray={circumference} strokeDashoffset={dashOffset}

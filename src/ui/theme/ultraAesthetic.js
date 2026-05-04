@@ -1,5 +1,5 @@
 /**
- * Ultra Aesthetic Mode - Efectos visuales premium
+ * Ultra Aesthetic Mode - Efectos visuales premium (Light Theme)
  * Glassmorphism, blur dinámico, sombras, microinteracciones
  */
 
@@ -9,7 +9,7 @@ const AESTHETIC_CSS = `
 /* Dynamic background */
 .ua-active body,
 .ua-active #root {
-  background: linear-gradient(135deg, #0a0a0f 0%, #0d0d1a 25%, #0a0f1a 50%, #0d0a1a 75%, #0a0a0f 100%);
+  background: linear-gradient(135deg, #f0f7ff 0%, #e8f0fe 25%, #f0f4ff 50%, #e8f4fd 75%, #f0f7ff 100%);
   background-size: 400% 400%;
   animation: ua-gradient-shift 15s ease infinite;
 }
@@ -21,211 +21,227 @@ const AESTHETIC_CSS = `
 
 /* Enhanced glassmorphism */
 .ua-active .glass {
-  background: rgba(20, 20, 35, 0.45);
+  background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(24px) saturate(1.8);
   -webkit-backdrop-filter: blur(24px) saturate(1.8);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(37, 99, 235, 0.1);
   box-shadow:
-    0 8px 32px rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 8px 32px rgba(37, 99, 235, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .ua-active .glass:hover {
-  background: rgba(25, 25, 45, 0.55);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(37, 99, 235, 0.2);
   box-shadow:
-    0 12px 40px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    0 12px 40px rgba(37, 99, 235, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
   transform: translateY(-1px);
 }
 
 .ua-active .glass-strong {
-  background: rgba(25, 25, 45, 0.65);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(32px) saturate(2);
   -webkit-backdrop-filter: blur(32px) saturate(2);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(37, 99, 235, 0.12);
   box-shadow:
-    0 16px 48px rgba(0, 0, 0, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    0 16px 48px rgba(37, 99, 235, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
 }
 
-/* Glow effects */
-.ua-active .gradient-text {
-  text-shadow: 0 0 30px rgba(139, 92, 246, 0.3);
-}
-
-.ua-active .status-dot.connected {
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
-}
-
-/* Button enhancements */
-.ua-active button {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.ua-active button:active {
-  transform: scale(0.97);
-}
-
-.ua-active button:hover {
-  filter: brightness(1.1);
-}
-
-/* Smooth tab transitions */
-.ua-active .tab-content {
-  animation: ua-fade-in 0.3s ease-out;
-}
-
-@keyframes ua-fade-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* Card shimmer effect */
-.ua-active .glass::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 255, 255, 0.02),
-    transparent
-  );
-  animation: ua-shimmer 8s infinite;
-  pointer-events: none;
-  border-radius: inherit;
-}
-
-@keyframes ua-shimmer {
-  0% { left: -100%; }
-  50% { left: 100%; }
-  100% { left: 100%; }
-}
-
-/* Metric cards glow */
+/* Card hover glow */
 .ua-active [data-metric-card] {
   position: relative;
   overflow: hidden;
 }
-
-.ua-active [data-metric-card]::after {
+.ua-active [data-metric-card]::before {
   content: '';
   position: absolute;
   inset: 0;
-  border-radius: inherit;
   background: radial-gradient(
-    circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(139, 92, 246, 0.06) 0%,
-    transparent 60%
+    600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(37, 99, 235, 0.06),
+    transparent 40%
   );
   pointer-events: none;
+  z-index: 1;
 }
 
-/* Health bar glow */
-.ua-active .health-bar-fill {
-  box-shadow: 0 0 16px currentColor;
+/* Enhanced buttons */
+.ua-active button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ua-active button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+}
+.ua-active button:active {
+  transform: translateY(0) scale(0.98);
 }
 
-/* Loading spinner 3D */
-.ua-active .ua-spinner {
-  animation: ua-spin-3d 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+/* Floating particles (subtle for light theme) */
+.ua-active .particle {
+  position: fixed;
+  width: 4px;
+  height: 4px;
+  background: rgba(37, 99, 235, 0.15);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 0;
+  animation: ua-float 8s ease-in-out infinite;
 }
 
-@keyframes ua-spin-3d {
-  0% { transform: rotateY(0deg) rotateX(0deg); }
-  50% { transform: rotateY(180deg) rotateX(15deg); }
-  100% { transform: rotateY(360deg) rotateX(0deg); }
+@keyframes ua-float {
+  0%, 100% { transform: translateY(0) translateX(0); opacity: 0.15; }
+  25% { transform: translateY(-30px) translateX(15px); opacity: 0.25; }
+  50% { transform: translateY(-15px) translateX(-10px); opacity: 0.15; }
+  75% { transform: translateY(-40px) translateX(5px); opacity: 0.2; }
 }
 
-/* Notification slide-in */
-.ua-active .notification-enter {
-  animation: ua-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+/* Gradient text enhancement */
+.ua-active .gradient-text {
+  background: linear-gradient(135deg, #2563eb, #3b82f6, #60a5fa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-@keyframes ua-slide-in {
-  from { opacity: 0; transform: translateX(100px) scale(0.8); }
-  to { opacity: 1; transform: translateX(0) scale(1); }
+/* Status dot enhancement */
+.ua-active .status-dot.connected {
+  box-shadow: 0 0 8px rgba(5, 150, 105, 0.4);
 }
 
-/* Pulse ring on optimize button */
+/* Smooth scrolling */
+.ua-active {
+  scroll-behavior: smooth;
+}
+
+/* Button shimmer */
 .ua-active .optimize-btn {
   position: relative;
+  overflow: hidden;
 }
-
-.ua-active .optimize-btn::before {
+.ua-active .optimize-btn::after {
   content: '';
   position: absolute;
-  inset: -4px;
-  border-radius: inherit;
-  background: linear-gradient(135deg, #8b5cf6, #ec4899);
-  opacity: 0;
-  animation: ua-pulse-ring 2s ease-in-out infinite;
-  z-index: -1;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    45deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.15) 50%,
+    transparent 70%
+  );
+  animation: ua-shimmer 3s ease-in-out infinite;
 }
 
-@keyframes ua-pulse-ring {
-  0%, 100% { opacity: 0; transform: scale(1); }
-  50% { opacity: 0.3; transform: scale(1.02); }
+@keyframes ua-shimmer {
+  0% { transform: translateX(-100%) rotate(45deg); }
+  100% { transform: translateX(100%) rotate(45deg); }
 }
 
-/* Scrollbar premium */
-.ua-active ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #3b82f6, #8b5cf6);
-  border-radius: 10px;
+/* Chart enhancement */
+.ua-active svg text {
+  transition: fill 0.3s ease;
 }
 
-.ua-active ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #60a5fa, #a78bfa);
+/* Input focus glow */
+.ua-active input:focus,
+.ua-active select:focus {
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+}
+
+/* Section transitions */
+.ua-active .glass,
+.ua-active .glass-strong {
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.ua-active .glass:hover,
+.ua-active .glass-strong:hover {
+  box-shadow: 0 12px 40px rgba(37, 99, 235, 0.1);
+}
+
+/* Tab animation */
+.ua-active button[role="tab"],
+.ua-active .tab-content button {
+  transition: all 0.2s ease;
+}
+
+/* Loading animation enhancement */
+.ua-active .animate-spin {
+  animation-duration: 1.5s;
+}
+.ua-active .animate-pulse {
+  animation-duration: 2s;
 }
 `;
 
-let styleElement = null;
 let active = false;
+let styleEl = null;
+let particles = [];
 
-/**
- * Activa el modo Ultra Aesthetic
- */
 function enable() {
   if (active) return;
   active = true;
 
-  if (!styleElement) {
-    styleElement = document.createElement('style');
-    styleElement.id = 'ultra-aesthetic';
-    styleElement.textContent = AESTHETIC_CSS;
+  // Inject CSS
+  if (!styleEl) {
+    styleEl = document.createElement('style');
+    styleEl.id = 'ultra-aesthetic-style';
+    styleEl.textContent = AESTHETIC_CSS;
+    document.head.appendChild(styleEl);
   }
 
-  document.documentElement.classList.add('ua-active');
-  document.head.appendChild(styleElement);
+  document.body.classList.add('ua-active');
 
-  // Track mouse for radial glow effect
+  // Add subtle particles
+  _addParticles();
+
+  // Mouse tracking for card glow
   document.addEventListener('mousemove', _handleMouseMove);
 
-  return true;
+  console.log('[AESTHETIC] ✨ Ultra Aesthetic Mode activado');
 }
 
-/**
- * Desactiva el modo Ultra Aesthetic
- */
 function disable() {
+  if (!active) return;
   active = false;
-  document.documentElement.classList.remove('ua-active');
-  if (styleElement?.parentNode) {
-    styleElement.parentNode.removeChild(styleElement);
-  }
+
+  document.body.classList.remove('ua-active');
+
+  // Remove particles
+  _removeParticles();
+
+  // Remove mouse tracking
   document.removeEventListener('mousemove', _handleMouseMove);
+
+  console.log('[AESTHETIC] Ultra Aesthetic Mode desactivado');
 }
 
-/**
- * Toggle
- */
 function toggle() {
-  return active ? disable() : enable();
+  if (active) disable(); else enable();
+}
+
+function _addParticles() {
+  _removeParticles();
+  for (let i = 0; i < 8; i++) {
+    const particle = document.createElement('div');
+    particle.className = 'particle';
+    particle.style.left = Math.random() * 100 + 'vw';
+    particle.style.top = Math.random() * 100 + 'vh';
+    particle.style.animationDelay = (Math.random() * 5) + 's';
+    particle.style.animationDuration = (6 + Math.random() * 6) + 's';
+    document.body.appendChild(particle);
+    particles.push(particle);
+  }
+}
+
+function _removeParticles() {
+  particles.forEach(p => p.remove());
+  particles = [];
 }
 
 /**

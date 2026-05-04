@@ -120,10 +120,10 @@ export default function App() {
       {/* Header */}
       <header className="flex items-center justify-between px-2">
         <div>
-          <h1 className="text-2xl font-bold gradient-text">
+          <h1 className="text-2xl font-bold text-accent-blue">
             Phone Optimizer
           </h1>
-          <p className="text-dark-400 text-sm mt-1">
+          <p className="text-dark-300 text-sm mt-1">
             Optimizador Inteligente — Pablo & Sindy
           </p>
         </div>
@@ -132,8 +132,8 @@ export default function App() {
             onClick={() => setAestheticMode(!aestheticMode)}
             className={`text-xs px-3 py-1.5 rounded-lg transition-all ${
               aestheticMode
-                ? 'bg-accent-purple/20 text-accent-purple border border-accent-purple/30'
-                : 'bg-dark-700 text-dark-400 hover:text-dark-200'
+                ? 'bg-accent-blue/10 text-accent-blue border border-accent-blue/20'
+                : 'bg-dark-800 text-dark-300 hover:text-dark-100 border border-dark-600'
             }`}
             title="Ultra Aesthetic Mode"
           >
@@ -194,10 +194,10 @@ export default function App() {
           {(state === STATES.DETECTED || state === STATES.DONE) && (
             <div className="glass p-6">
               <button onClick={handleOptimize} disabled={state === STATES.OPTIMIZING}
-                className="optimize-btn w-full py-4 px-6 bg-gradient-to-r from-accent-purple to-accent-pink
-                  hover:from-accent-purple/80 hover:to-accent-pink/80
+                className="optimize-btn w-full py-4 px-6 bg-gradient-to-r from-accent-blue to-blue-400
+                  hover:from-accent-blue/80 hover:to-blue-400/80
                   text-white font-semibold rounded-xl transition-all duration-200
-                  hover:shadow-lg hover:shadow-accent-purple/30
+                  hover:shadow-lg hover:shadow-accent-blue/30
                   disabled:opacity-50 disabled:cursor-not-allowed">
                 {state === STATES.DONE ? '🔄 Optimizar de nuevo' : '⚡ Optimizar ahora'}
               </button>

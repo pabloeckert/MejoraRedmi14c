@@ -70,7 +70,7 @@ function createWindow() {
     minWidth: 960,
     minHeight: 650,
     title: 'Phone Optimizer - Pablo & Sindy',
-    backgroundColor: '#0a0a0f',
+    backgroundColor: '#ffffff',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
