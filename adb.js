@@ -265,25 +265,29 @@ class AdbClient {
     }
   }
 
-  async connect() {
-    const devices = await navigator.usb.getDevices();
-    // Filter for ADB-capable devices
-    const adbDevices = devices.filter(d => {
-      return d.configurations.some(c =>
-        c.interfaces.some(i =>
-          i.alternates.some(a =>
-            a.interfaceClass === ADB_CLASS &&
-            a.interfaceSubclass === ADB_SUBCLASS &&
-            a.interfaceProtocol === ADB_PROTOCOL
-          )
-        )
-      );
-    });
-
-    if (adbDevices.length === 0) {
-      // Request device
-      this.device = await navigator.usb.requestDevice({ filters: [] });
+  async connect(device) {
+    // If device already provided (from requestDevice), use it directly
+    // Otherwise try to find already-authorized devices
+    if (device) {
+      this.device = device;
     } else {
+      const devices = await navigator.usb.getDevices();
+      const adbDevices = devices.filter(d => {
+        return d.configurations.some(c =>
+          c.interfaces.some(i =>
+            i.alternates.some(a =>
+              a.interfaceClass === ADB_CLASS &&
+              a.interfaceSubclass === ADB_SUBCLASS &&
+              a.interfaceProtocol === ADB_PROTOCOL
+            )
+          )
+        );
+      });
+
+      if (adbDevices.length === 0) {
+        // No authorized devices — caller should have used requestDevice first
+        throw new Error('No hay dispositivos autorizados. Hacé clic en Conectar y seleccioná tu teléfono.');
+      }
       this.device = adbDevices[0];
     }
 

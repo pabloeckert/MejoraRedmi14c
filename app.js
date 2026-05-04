@@ -325,7 +325,33 @@ class PhoneOptimizerApp {
     btn.textContent = 'Conectando...';
 
     try {
-      this.deviceInfo = await this.adb.connect();
+      // requestDevice MUST be called directly in user gesture handler (no await before it)
+      let device = null;
+      try {
+        device = await navigator.usb.requestDevice({ filters: [] });
+      } catch (e) {
+        // User cancelled — try already-authorized devices
+        if (e.name === 'NotFoundError') {
+          const devices = await navigator.usb.getDevices();
+          const adb = devices.filter(d =>
+            d.configurations.some(c =>
+              c.interfaces.some(i =>
+                i.alternates.some(a =>
+                  a.interfaceClass === 0xFF &&
+                  a.interfaceSubclass === 0x42 &&
+                  a.interfaceProtocol === 0x01
+                )
+              )
+            )
+          );
+          if (adb.length > 0) device = adb[0];
+          else throw new Error('No se encontró ningún dispositivo. Conectá tu teléfono por USB y activá la depuración USB.');
+        } else {
+          throw e;
+        }
+      }
+
+      this.deviceInfo = await this.adb.connect(device);
       this.connected = true;
 
       // Get device properties
