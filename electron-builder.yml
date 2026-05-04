@@ -23,13 +23,10 @@ extraResources:
     to: src/adb/scripts.js
   - from: src/config
     to: src/config
-  - from: vendor/adb
-    to: vendor/adb
 
 asar: true
 asarUnpack:
   - "**/*.node"
-  - "vendor/adb/**/*"
 
 win:
   target:
@@ -40,6 +37,13 @@ win:
   requestedExecutionLevel: asInvoker
   sign: false
   forceCodeSigning: false
+  extraResources:
+    - from: vendor/adb/adb.exe
+      to: vendor/adb/adb.exe
+    - from: vendor/adb/AdbWinApi.dll
+      to: vendor/adb/AdbWinApi.dll
+    - from: vendor/adb/AdbWinUsbApi.dll
+      to: vendor/adb/AdbWinUsbApi.dll
 
 nsis:
   oneClick: false
@@ -91,6 +95,9 @@ linux:
     Terminal: false
     Type: Application
     Categories: Utility;System;
+  extraResources:
+    - from: vendor/adb/adb
+      to: vendor/adb/adb
 
 appImage:
   artifactName: "PhoneOptimizer-${version}.${ext}"
