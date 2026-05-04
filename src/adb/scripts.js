@@ -179,7 +179,7 @@ function generateUltraModeScript() {
 }
 
 /**
- * Genera script de limieza profunda de cache
+ * Genera script de limpieza profunda de cache
  */
 function generateDeepCleanScript() {
   return [

@@ -60,7 +60,7 @@ export default function DeviceOverview({ device, profile, onAssignOwner }) {
           setTurboStatus(null);
         }
       } else {
-        const result = await window.optimizer.turboActivate({ deviceId: device.deviceId });
+        const result = await window.optimizer.runTurbo({ deviceId: device.deviceId });
         if (!result.error) {
           setTurboActive(true);
           setTurboStatus({

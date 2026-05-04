@@ -349,11 +349,6 @@ ipcMain.handle('run-turbo', async (_e, { deviceId, options }) => {
   } catch (err) { return { error: err.message }; }
 });
 
-ipcMain.handle('turbo-activate', async (_e, { deviceId }) => {
-  try { return await turboMode.activate(deviceId); }
-  catch (err) { return { error: err.message }; }
-});
-
 ipcMain.handle('turbo-deactivate', async (_e, { deviceId }) => {
   try { return await turboMode.deactivate(deviceId); }
   catch (err) { return { error: err.message }; }

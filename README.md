@@ -9,9 +9,9 @@
 
 | Plataforma | Archivo | Tamaño |
 |---|---|---|
-| **Windows** | [PhoneOptimizer-Setup-1.3.0.exe](https://github.com/pabloeckert/MejoraRedmi14c/releases/download/v1.3.0/PhoneOptimizer-Setup-1.3.0.exe) | ~79 MB |
-| **macOS** | [PhoneOptimizer-1.3.0.dmg](https://github.com/pabloeckert/MejoraRedmi14c/releases/download/v1.3.0/PhoneOptimizer-1.3.0.dmg) | ~103 MB |
-| **Linux** | [PhoneOptimizer-1.3.0.AppImage](https://github.com/pabloeckert/MejoraRedmi14c/releases/download/v1.3.0/PhoneOptimizer-1.3.0.AppImage) | ~108 MB |
+| **Windows** | [PhoneOptimizer-Setup-1.4.0.exe](https://github.com/pabloeckert/MejoraRedmi14c/releases/download/v1.4.0/PhoneOptimizer-Setup-1.4.0.exe) | ~79 MB |
+| **macOS** | [PhoneOptimizer-1.4.0.dmg](https://github.com/pabloeckert/MejoraRedmi14c/releases/download/v1.4.0/PhoneOptimizer-1.4.0.dmg) | ~103 MB |
+| **Linux** | [PhoneOptimizer-1.4.0.AppImage](https://github.com/pabloeckert/MejoraRedmi14c/releases/download/v1.4.0/PhoneOptimizer-1.4.0.AppImage) | ~108 MB |
 
 > **ADB incluido** — No necesitás instalar ADB por separado. La app lo empaqueta y lo usa automáticamente.
 
@@ -105,6 +105,12 @@ src/
 ```
 
 ## Changelog
+
+### v1.4.0
+- Limpieza de código: eliminado handler duplicado `turbo-activate` (consolidado en `run-turbo`)
+- Fix: require innecesario de `deviceManager` en `turboMode.js`
+- Fix: typo en JSDoc de `scripts.js` ("limieza" → "limpieza")
+- Actualización de dependencias
 
 ### v1.3.0
 - ADB empaquetado dentro de la app (Windows + Linux)

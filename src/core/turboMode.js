@@ -124,7 +124,6 @@ class TurboMode {
     // ── Reinicio automático tras Turbo exitoso ──
     if (result.success) {
       try {
-        const { rebootAfterOptimization } = require('./deviceManager');
         // Restaurar pantalla antes de reiniciar
         const screenControl = require('./screenControl');
         await screenControl.restoreSettings(deviceId);

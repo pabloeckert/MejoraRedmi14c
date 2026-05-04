@@ -56,7 +56,6 @@ contextBridge.exposeInMainWorld('optimizer', {
 
   // ── Turbo Mode (Ciclo 5) ──
   runTurbo: (opts) => ipcRenderer.invoke('run-turbo', opts),
-  turboActivate: (opts) => ipcRenderer.invoke('turbo-activate', opts),
   turboDeactivate: (opts) => ipcRenderer.invoke('turbo-deactivate', opts),
   turboStatus: (opts) => ipcRenderer.invoke('turbo-status', opts),
 
