@@ -13,6 +13,7 @@ files:
   - package.json
   - dist/**/*
   - src/**/*
+  - vendor/**/*
   - "!src/ui/**/*"
   - "!**/*.md"
   - "!**/node_modules/.cache/**/*"
@@ -28,6 +29,7 @@ extraResources:
 asar: true
 asarUnpack:
   - "**/*.node"
+  - "vendor/adb/**/*"
 
 win:
   target:

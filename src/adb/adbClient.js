@@ -19,11 +19,27 @@ function getAdbPath() {
     // Dev: __dirname is src/adb/, go up to project root
     baseDir = path.join(__dirname, '..', '..');
   }
+
   const adbFile = process.platform === 'win32' ? 'adb.exe' : 'adb';
-  const bundled = path.join(baseDir, 'vendor', 'adb', adbFile);
-  if (fs.existsSync(bundled)) {
-    return process.platform === 'win32' ? `"${bundled}"` : bundled;
+
+  // Try multiple paths for bundled ADB
+  const candidates = [
+    path.join(baseDir, 'vendor', 'adb', adbFile),           // extraResources path
+    path.join(baseDir, 'app.asar.unpacked', 'vendor', 'adb', adbFile), // asar unpacked
+    path.join(baseDir, 'app', 'vendor', 'adb', adbFile),    // alternative layout
+    path.join(path.dirname(baseDir), 'vendor', 'adb', adbFile), // one level up
+  ];
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      const resolved = process.platform === 'win32' ? `"${candidate}"` : candidate;
+      console.log(`[ADB] Using bundled ADB: ${resolved}`);
+      return resolved;
+    }
   }
+
+  // Fallback to system PATH
+  console.log('[ADB] Bundled ADB not found, using system PATH');
   return 'adb';
 }
 
@@ -95,6 +111,18 @@ class ADBClient {
       hardware: props['ro.hardware'] || 'Unknown',
       board: props['ro.product.board'] || 'Unknown',
     };
+  }
+
+  /**
+   * Verifica si ADB está disponible
+   */
+  async checkAdbAvailable() {
+    try {
+      const output = await this.run('version');
+      return { available: true, version: output.split('\n')[0] };
+    } catch (err) {
+      return { available: false, error: err.message };
+    }
   }
 
   /**
@@ -196,6 +224,20 @@ class ADBClient {
   }
 
   /**
+   * Mata un proceso por PID
+   */
+  async killProcess(deviceId, pid) {
+    return this.run(`shell kill ${pid}`, deviceId);
+  }
+
+  /**
+   * Mata todos los procesos de una app
+   */
+  async killAll(deviceId, packageName) {
+    return this.run(`shell am force-stop ${packageName}`, deviceId);
+  }
+
+  /**
    * Obtiene apps más usadas (via usage stats)
    */
   async getUsageStats(deviceId, days = 7) {
@@ -275,6 +317,13 @@ class ADBClient {
    */
   async refreshUI(deviceId) {
     await this.run('shell am broadcast -a android.intent.action.CONFIGURATION_CHANGED', deviceId);
+  }
+
+  /**
+   * Reinicia el dispositivo
+   */
+  async reboot(deviceId) {
+    return this.run('reboot', deviceId);
   }
 
   _parseProps(parts) {

@@ -110,4 +110,7 @@ contextBridge.exposeInMainWorld('optimizer', {
   onAutoModeStatus: (callback) => {
     ipcRenderer.on('auto-mode-status', (_e, data) => callback(data));
   },
+  onNavigate: (callback) => {
+    ipcRenderer.on('navigate', (_e, data) => callback(data));
+  },
 });

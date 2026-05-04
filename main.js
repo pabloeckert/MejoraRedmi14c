@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, Menu } = require('electron');
 const path = require('path');
 const fs = require('fs-extra');
 const { detectDevice } = require('./src/devices/deviceManager');
@@ -93,6 +93,71 @@ function createWindow() {
       mainWindow.webContents.send('auto-mode-status', status);
     }
   };
+
+  // ── App Menu ──
+  const menuTemplate = [
+    {
+      label: 'Phone Optimizer',
+      submenu: [
+        { label: 'Acerca de Phone Optimizer', role: 'about' },
+        { type: 'separator' },
+        { label: 'Preferencias...', accelerator: 'CmdOrCtrl+,', click: () => mainWindow.webContents.send('navigate', 'settings') },
+        { type: 'separator' },
+        { label: 'Salir', accelerator: 'CmdOrCtrl+Q', role: 'quit' },
+      ],
+    },
+    {
+      label: 'Dispositivo',
+      submenu: [
+        { label: 'Detectar dispositivo', accelerator: 'CmdOrCtrl+D', click: () => mainWindow.webContents.send('navigate', 'detect') },
+        { label: 'Optimizar ahora', accelerator: 'CmdOrCtrl+O', click: () => mainWindow.webContents.send('navigate', 'optimize') },
+        { type: 'separator' },
+        { label: 'Modo Turbo', click: () => mainWindow.webContents.send('navigate', 'turbo') },
+        { label: 'Kill All Apps', accelerator: 'CmdOrCtrl+K', click: () => mainWindow.webContents.send('navigate', 'killall') },
+        { type: 'separator' },
+        { label: 'Crear Backup', click: () => mainWindow.webContents.send('navigate', 'backup') },
+        { label: 'Desconectar', click: () => mainWindow.webContents.send('navigate', 'disconnect') },
+      ],
+    },
+    {
+      label: 'Ver',
+      submenu: [
+        { label: 'Resumen', accelerator: 'CmdOrCtrl+1', click: () => mainWindow.webContents.send('navigate', 'overview') },
+        { label: 'Tiempo Real', accelerator: 'CmdOrCtrl+2', click: () => mainWindow.webContents.send('navigate', 'realtime') },
+        { label: 'Tendencias', accelerator: 'CmdOrCtrl+3', click: () => mainWindow.webContents.send('navigate', 'trends') },
+        { label: 'Insights', accelerator: 'CmdOrCtrl+4', click: () => mainWindow.webContents.send('navigate', 'insights') },
+        { label: 'Predicciones', accelerator: 'CmdOrCtrl+5', click: () => mainWindow.webContents.send('navigate', 'predictions') },
+        { type: 'separator' },
+        { label: 'Diagnóstico', click: () => mainWindow.webContents.send('navigate', 'diagnostics') },
+        { label: 'Benchmark', click: () => mainWindow.webContents.send('navigate', 'benchmark') },
+        { label: 'Experto', click: () => mainWindow.webContents.send('navigate', 'expert') },
+        { type: 'separator' },
+        { label: 'Recargar', accelerator: 'CmdOrCtrl+R', role: 'reload' },
+        { label: 'DevTools', accelerator: 'F12', role: 'toggleDevTools' },
+      ],
+    },
+    {
+      label: 'Exportar',
+      submenu: [
+        { label: 'Reporte JSON', click: () => mainWindow.webContents.send('navigate', 'export-json') },
+        { label: 'Reporte HTML', click: () => mainWindow.webContents.send('navigate', 'export-html') },
+        { label: 'Reporte PDF', click: () => mainWindow.webContents.send('navigate', 'export-pdf') },
+        { type: 'separator' },
+        { label: 'Bundle Completo', click: () => mainWindow.webContents.send('navigate', 'export-bundle') },
+      ],
+    },
+    {
+      label: 'Ayuda',
+      submenu: [
+        { label: 'Guía de Uso', accelerator: 'F1', click: () => mainWindow.webContents.send('navigate', 'help') },
+        { type: 'separator' },
+        { label: 'GitHub', click: () => { require('electron').shell.openExternal('https://github.com/pabloeckert/MejoraRedmi14c'); } },
+      ],
+    },
+  ];
+
+  const menu = Menu.buildFromTemplate(menuTemplate);
+  Menu.setApplicationMenu(menu);
 }
 
 app.whenReady().then(createWindow);
