@@ -10,33 +10,22 @@ out/
 .DS_Store
 Thumbs.db
 
-# Logs
+# Logs (created at runtime)
+logs/
 *.log
-logs/*.json
-!logs/.gitkeep
 
 # Environment
 .env
 .env.local
 
-# Build artifacts (never commit binaries/installers)
-build-log-*.txt
-installer/build-log-*.txt
-installer/*.exe
-installer/*.dmg
-installer/*.AppImage
-installer/*.deb
-installer/*.rpm
-installer/*.msi
-
-# Docs generated / external
-Resumen_Integrado_del_Proyecto_MejoraRedmi14c.docx
-
-# Analysis scripts (dev-only)
-analisis-total.bat
-
 # Settings (user-specific)
 settings.json
+
+# Runtime directories (app creates these)
+devices/
+ml/
+plugins/
+installer/
 
 # Cache
 .cache/
