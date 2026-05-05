@@ -20,6 +20,10 @@
 set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ ! -f "$SCRIPT_DIR/config.sh" ]; then
+    echo "No se encontro config.sh junto a mega-optimizer.sh"
+    exit 1
+fi
 source "$SCRIPT_DIR/config.sh"
 
 DRY_RUN=0
@@ -44,9 +48,15 @@ LOG_FILE="$SCRIPT_DIR/mega-optimizer_${TIMESTAMP}.log"
 ls -t "$SCRIPT_DIR"/mega-optimizer_*.log 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null
 
 CHANGES=0
+THERMAL_STATUS="mantenido"
 
 log() {
-    echo "$1" | tee -a "$LOG_FILE"
+    if [ "${1:-}" = "-e" ]; then
+        shift
+        echo -e "$*" | tee -a "$LOG_FILE"
+    else
+        echo "$*" | tee -a "$LOG_FILE"
+    fi
 }
 
 step() {
@@ -88,6 +98,14 @@ run_cmd() {
         return 0
     fi
     "$@"
+}
+
+run_cmd_quiet() {
+    if [ "$DRY_RUN" -eq 1 ]; then
+        log "  🔍 [DRY-RUN] $*"
+        return 0
+    fi
+    "$@" >/dev/null 2>&1
 }
 
 # ═══════════════════════════════════════════════
@@ -178,8 +196,11 @@ step "PASO 0: CREANDO RESCUE POINT DE SEGURIDAD"
 RESCUE_DIR="$SCRIPT_DIR/rescue-points/mega-pre_${TIMESTAMP}"
 mkdir -p "$RESCUE_DIR"
 
-adb shell pm list packages 2>/dev/null | sed 's/package://' | tr -d '\r' | sort > "$RESCUE_DIR/all_packages.txt"
-adb shell pm list packages -d 2>/dev/null | sed 's/package://' | tr -d '\r' | sort > "$RESCUE_DIR/disabled_packages.txt"
+PACKAGE_LIST_FILE="$RESCUE_DIR/all_packages.txt"
+DISABLED_LIST_FILE="$RESCUE_DIR/disabled_packages.txt"
+
+adb shell pm list packages 2>/dev/null | sed 's/package://' | tr -d '\r' | sort > "$PACKAGE_LIST_FILE"
+adb shell pm list packages -d 2>/dev/null | sed 's/package://' | tr -d '\r' | sort > "$DISABLED_LIST_FILE"
 
 {
     echo "window_animation=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')"
@@ -213,16 +234,22 @@ disable_app() {
     local pkg="$1"
     local desc="$2"
     if [ "$DRY_RUN" -eq 1 ]; then
-        log "  🔍 [DRY-RUN] Desactivar: $desc ($pkg)"
+        if grep -Fxq "$pkg" "$DISABLED_LIST_FILE" 2>/dev/null; then
+            ALREADY=$((ALREADY + 1))
+        elif grep -Fxq "$pkg" "$PACKAGE_LIST_FILE" 2>/dev/null; then
+            log "  🔍 [DRY-RUN] Desactivar: $desc ($pkg)"
+        else
+            NOTFOUND=$((NOTFOUND + 1))
+        fi
         return 0
     fi
     # Verificar si ya está desactivada
-    if adb shell pm list packages -d 2>/dev/null | grep -q "$pkg"; then
+    if grep -Fxq "$pkg" "$DISABLED_LIST_FILE" 2>/dev/null; then
         ALREADY=$((ALREADY + 1))
         return 0
     fi
     # Verificar si existe
-    if ! adb shell pm list packages 2>/dev/null | grep -q "$pkg"; then
+    if ! grep -Fxq "$pkg" "$PACKAGE_LIST_FILE" 2>/dev/null; then
         NOTFOUND=$((NOTFOUND + 1))
         return 0
     fi
@@ -230,8 +257,15 @@ disable_app() {
     OUT=$(adb shell pm disable-user --user 0 "$pkg" 2>&1)
     if echo "$OUT" | grep -q "disabled\|new state: disabled"; then
         DISABLED=$((DISABLED + 1))
+        echo "$pkg" >> "$DISABLED_LIST_FILE"
         log "     ✅ $desc ($pkg)"
     fi
+}
+
+skip_app() {
+    local pkg="$1"
+    local desc="$2"
+    warn "Saltando $desc ($pkg): puede afectar cuenta, ubicacion, SIM o funciones de seguridad."
 }
 
 log ""
@@ -280,7 +314,7 @@ disable_app "com.miui.cloudbackup" "Cloud Backup"
 disable_app "com.miui.cloudservice" "Cloud Service"
 disable_app "com.miui.micloudsync" "Cloud Sync"
 disable_app "com.xiaomi.micloud.sdk" "Cloud SDK"
-disable_app "com.xiaomi.account" "Xiaomi Account"
+skip_app "com.xiaomi.account" "Xiaomi Account"
 disable_app "com.miui.accessibility" "Mi Ditto"
 disable_app "com.miui.voicetrigger" "Voice Trigger"
 disable_app "com.miui.voiceassist" "Voice Assist"
@@ -300,7 +334,7 @@ disable_app "com.xiaomi.glgm" "Game Center"
 disable_app "com.xiaomi.joyose" "Joyose (junk)"
 disable_app "com.xiaomi.scanner" "Scanner"
 disable_app "com.xiaomi.payment" "Mi Pay"
-disable_app "com.xiaomi.finddevice" "Find Device"
+skip_app "com.xiaomi.finddevice" "Find Device"
 disable_app "com.xiaomi.midrop" "Mi Drop"
 disable_app "com.xiaomi.calendar" "Mi Calendar"
 disable_app "com.xiaomi.mircs" "Message service"
@@ -318,14 +352,14 @@ disable_app "com.google.android.feedback" "Feedback"
 disable_app "com.google.android.marvin.talkback" "Talkback"
 disable_app "com.google.android.videos" "Google TV"
 disable_app "com.google.android.printservice.recommendation" "Print Service"
-disable_app "com.google.android.as.oss" "Private Compute"
+skip_app "com.google.android.as.oss" "Private Compute"
 disable_app "com.google.ar.lens" "AR Lens"
 disable_app "com.android.chrome" "Chrome (usá otro browser)"
 disable_app "com.android.printspooler" "Print Spooler"
 disable_app "com.android.bips" "Default Printing"
 disable_app "com.android.bookmarkprovider" "Bookmark Provider"
 disable_app "com.android.statementservice" "Statement Service"
-disable_app "com.android.stk" "SIM Toolkit"
+skip_app "com.android.stk" "SIM Toolkit"
 disable_app "com.android.wallpaper.livepicker" "Live Wallpaper Picker"
 
 # --- FACEBOOK / AMAZON / NETFLIX / OPERA ---
@@ -486,7 +520,8 @@ if [ "${NO_THERMAL:-0}" -eq 1 ]; then
         log "  Cancelado. Thermal management se mantiene activo."
         NO_THERMAL=0
     else
-        adb shell settings put global thermal_limit_enabled 0 2>/dev/null
+        run_cmd adb shell settings put global thermal_limit_enabled 0
+        THERMAL_STATUS="desactivado"
         ok "Thermal limit desactivado (⚠️ con flag --no-thermal)"
         warn "El teléfono puede calentarse más. Monitorizá la temperatura."
     fi
@@ -502,7 +537,6 @@ run_cmd adb shell cmd power set-fixed-performance-mode-enabled true
 run_cmd adb shell settings put system peak_refresh_rate 90
 run_cmd adb shell settings put system min_refresh_rate 90
 
-ok "Performance mode activado"
 ok "Performance mode activado"
 ok "Refresh rate forzado a 90Hz"
 
@@ -543,19 +577,19 @@ ok "Brillo fijo 70% (respuesta más rápida)"
 step "PASO 9: LIMPIEZA PROFUNDA DE CACHE"
 
 # Cache de apps
-adb shell pm trim-caches 2G 2>/dev/null
+run_cmd adb shell pm trim-caches 2G
 
 # Thumbnails
-adb shell "rm -rf /sdcard/DCIM/.thumbnails/*" 2>/dev/null
-adb shell "rm -rf /sdcard/Pictures/.thumbnails/*" 2>/dev/null
+run_cmd adb shell "rm -rf /sdcard/DCIM/.thumbnails/*"
+run_cmd adb shell "rm -rf /sdcard/Pictures/.thumbnails/*"
 
 # Temp files
-adb shell "rm -rf /data/local/tmp/*" 2>/dev/null
-adb shell "rm -rf /data/tombstones/*" 2>/dev/null
-adb shell "rm -rf /data/anr/*" 2>/dev/null
+run_cmd adb shell "rm -rf /data/local/tmp/*"
+run_cmd adb shell "rm -rf /data/tombstones/*"
+run_cmd adb shell "rm -rf /data/anr/*"
 
 # Log files
-adb shell "rm -rf /sdcard/MIUI/debug_log/*" 2>/dev/null
+run_cmd adb shell "rm -rf /sdcard/MIUI/debug_log/*"
 
 ok "Cache de apps: 2GB+ limpiados"
 ok "Thumbnails eliminados"
@@ -570,7 +604,7 @@ step "PASO 10: CERRANDO APPS PESADAS"
 
 KILLED=0
 for APP in "${HEAVY_APPS[@]}"; do
-    adb shell am force-stop "$APP" 2>/dev/null && KILLED=$((KILLED + 1))
+    run_cmd_quiet adb shell am force-stop "$APP" && KILLED=$((KILLED + 1))
 done
 ok "$KILLED apps pesadas cerradas"
 
@@ -597,7 +631,7 @@ SYSTEM_APPS=(
 
 SYS_COMPILED=0
 for APP in "${SYSTEM_APPS[@]}"; do
-    adb shell cmd package compile -m speed-profile -f "$APP" 2>/dev/null && SYS_COMPILED=$((SYS_COMPILED + 1))
+    run_cmd_quiet adb shell cmd package compile -m speed-profile -f "$APP" && SYS_COMPILED=$((SYS_COMPILED + 1))
 done
 ok "$SYS_COMPILED/${#SYSTEM_APPS[@]} apps del sistema compiladas (speed-profile)"
 
@@ -608,14 +642,14 @@ THIRD_TOTAL=0
 
 for APP in $USER_APPS; do
     THIRD_TOTAL=$((THIRD_TOTAL + 1))
-    if adb shell cmd package compile -m speed-profile -f "$APP" 2>/dev/null; then
+    if run_cmd_quiet adb shell cmd package compile -m speed-profile -f "$APP"; then
         THIRD_COMPILED=$((THIRD_COMPILED + 1))
     fi
 done
 ok "$THIRD_COMPILED/$THIRD_TOTAL apps de terceros compiladas"
 
 # Forzar bg-dexopt
-adb shell pm bg-dexopt-job 2>/dev/null
+run_cmd_quiet adb shell pm bg-dexopt-job
 ok "bg-dexopt job ejecutado"
 
 # ═══════════════════════════════════════════════
@@ -666,11 +700,15 @@ fi
 
 # Verificar temperatura post-optimización
 TEMP_POST=$(adb shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*')
-TEMP_C_POST=$((TEMP_POST / 10))
-if [ "$TEMP_C_POST" -gt 45 ]; then
-    warn "Temperatura alta: ${TEMP_C_POST}°C. Dejá enfriar el teléfono."
+if [ -z "$TEMP_POST" ]; then
+    warn "No se pudo leer la temperatura post-optimizacion."
 else
-    ok "Temperatura: ${TEMP_C_POST}°C (OK)"
+    TEMP_C_POST=$((TEMP_POST / 10))
+    if [ "$TEMP_C_POST" -gt 45 ]; then
+        warn "Temperatura alta: ${TEMP_C_POST}°C. Dejá enfriar el teléfono."
+    else
+        ok "Temperatura: ${TEMP_C_POST}°C (OK)"
+    fi
 fi
 
 # ═══════════════════════════════════════════════
@@ -698,7 +736,7 @@ log "     • Bloatware: ~50 apps desactivadas"
 log "     • Cache: 2GB+ limpiados"
 log "     • Apps pesadas: cerradas"
 log "     • Dexopt: speed-profile compilado"
-log "     • Thermal: desactivado"
+log "     • Thermal: $THERMAL_STATUS"
 log "     • Performance mode: activado"
 log ""
 log "  💾 MEMORIA:"
