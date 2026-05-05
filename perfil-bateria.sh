@@ -5,7 +5,7 @@
 #  Animaciones 0.5x + kill apps + sin GPU + tweaks de ahorro
 # ═══════════════════════════════════════════════════════════════
 
-set -e
+set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/bloatware-db.sh"

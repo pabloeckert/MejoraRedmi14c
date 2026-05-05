@@ -5,7 +5,7 @@
 #  Solo cache + cerrar apps (sin desactivar nada)
 # ═══════════════════════════════════════════
 
-set -e
+set +e
 
 echo ""
 echo "🔧 MANTENIMIENTO — Phone Optimizer v2.1"

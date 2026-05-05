@@ -15,7 +15,9 @@
 #  USO: chmod +x mega-optimizer.sh && ./mega-optimizer.sh
 # ═══════════════════════════════════════════════════════════════
 
-set -e
+# No usamos set -e porque algunos paquetes pueden no existir en todos
+# los dispositivos. Cada comando usa || true o safe_compile para continuar.
+set +e
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

@@ -12,7 +12,9 @@
 #  USO: ./fix-cam-whatsapp.sh
 # ═══════════════════════════════════════════════════════════════
 
-set -e
+# No usamos set -e porque algunos paquetes pueden no existir en todos
+# los dispositivos. Cada comando usa || true para continuar si falla.
+set +e
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -22,6 +24,17 @@ BOLD='\033[1m'
 NC='\033[0m'
 
 CHANGES=0
+
+# Compilar paquete de forma segura (no falla si no existe)
+safe_compile() {
+    local pkg="$1"
+    local result
+    result=$(adb shell cmd package compile -m speed -f "$pkg" 2>&1)
+    if echo "$result" | grep -qi "error\|not found\|unknown package"; then
+        return 1
+    fi
+    return 0
+}
 
 ok() {
     echo -e "  ${GREEN}✅ $1${NC}"
@@ -63,13 +76,13 @@ echo ""
 # speed = compila TODAS las clases, no solo las del perfil
 # Es más pesado en almacenamiento pero la cámara arranca mucho más rápido
 echo "  [1/6] Compilando cámara con speed mode..."
-adb shell cmd package compile -m speed -f com.android.camera 2>/dev/null
+safe_compile com.android.camera
 ok "Cámara compilada con speed (arranque instantáneo)"
 
 # 1.2 Compilar gallery/editor de la cámara
 echo "  [2/6] Compilando galería de cámara..."
-adb shell cmd package compile -m speed -f com.miui.gallery 2>/dev/null
-adb shell cmd package compile -m speed -f com.miui.gallery.editor 2>/dev/null
+safe_compile com.miui.gallery
+safe_compile com.miui.gallery.editor
 ok "Galería compilada"
 
 # 1.3 Limpiar thumbnails de la cámara (si hay miles, la cámara se traba)
@@ -90,8 +103,8 @@ ok "Procesos de cámara reiniciados"
 
 # 1.5 Compilar proveedores de medios (afecta velocidad de preview)
 echo "  [5/6] Compilando proveedores de medios..."
-adb shell cmd package compile -m speed -f com.android.providers.media 2>/dev/null
-adb shell cmd package compile -m speed -f com.android.providers.downloads 2>/dev/null
+safe_compile com.android.providers.media
+safe_compile com.android.providers.downloads
 ok "Media providers compilados"
 
 # 1.6 Desactivar HDR automático (consume mucho tiempo al tomar foto)
@@ -112,12 +125,12 @@ echo ""
 
 # 2.1 Compilar WhatsApp con speed mode
 echo "  [1/7] Compilando WhatsApp con speed mode..."
-adb shell cmd package compile -m speed -f com.whatsapp 2>/dev/null
+safe_compile com.whatsapp
 ok "WhatsApp compilado con speed (arranque y búsqueda instantáneos)"
 
 # 2.2 Compilar WhatsApp Business también
 echo "  [2/7] Compilando WhatsApp Business..."
-adb shell cmd package compile -m speed -f com.whatsapp.w4b 2>/dev/null
+safe_compile com.whatsapp.w4b
 ok "WhatsApp Business compilado"
 
 # 2.3 Limpiar cache de WhatsApp (se acumula y lo vuelve lento)
@@ -142,19 +155,19 @@ ok "WhatsApp pre-cargado en memoria (no se va a recargar)"
 
 # 2.5 Compilar el chooser/share sheet del sistema
 echo "  [5/7] Compilando share sheet del sistema..."
-adb shell cmd package compile -m speed -f com.android.intentresolver 2>/dev/null
-adb shell cmd package compile -m speed -f com.android.chooser 2>/dev/null
+safe_compile com.android.intentresolver
+safe_compile com.android.chooser
 ok "Share sheet compilado (compartir ahora es instantáneo)"
 
 # 2.6 Compilar contactos del sistema
 echo "  [6/7] Compilando contactos del sistema..."
-adb shell cmd package compile -m speed -f com.android.contacts 2>/dev/null
-adb shell cmd package compile -m speed -f com.android.providers.contacts 2>/dev/null
+safe_compile com.android.contacts
+safe_compile com.android.providers.contacts
 ok "Contactos del sistema compilados"
 
 # 2.7 Compilar Telegram también (por si usas)
 echo "  [7/7] Compilando Telegram..."
-adb shell cmd package compile -m speed -f org.telegram.messenger 2>/dev/null
+safe_compile org.telegram.messenger
 ok "Telegram compilado"
 
 echo ""
