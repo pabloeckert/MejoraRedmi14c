@@ -102,44 +102,143 @@ chmod +x *.sh
 
 ---
 
-## Paso 5: Ejecutar
-
-### Menú interactivo (recomendado para empezar)
+## Paso 5: Ejecutar el optimizador
 
 ```bash
 ./optimizer.sh
 ```
 
-Vas a ver el menú con todas las opciones. Te recomiendo este orden:
+### ¿Qué pasa al ejecutarlo?
 
-1. **Primero**: Opción 10 (💾 Rescue Points) → Crear rescue point
-2. **Segundo**: Opción 2 (📱 Equilibrado) → Probar el perfil más seguro
-3. **Tercero**: Opción 9 (🔍 Diagnóstico) → Ver cómo quedó
-4. **Cuarto**: Si todo está bien, probá Rendimiento o Gaming
+El script tiene un **flujo guiado**:
 
-### Ejecutar un perfil directamente
-
-```bash
-./perfil-equilibrado.sh    # Más seguro
-./perfil-rendimiento.sh    # Más agresivo
-./perfil-bateria.sh        # Para ahorrar batería
-./perfil-gaming.sh         # Para jugar (reduce resolución)
+```
+┌─────────────────────────────────────────┐
+│  PASO 1: Conectar teléfono              │
+│  → Busca dispositivos automáticamente   │
+│  → Espera hasta que conectés            │
+│  → Verifica autorización USB            │
+└─────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────┐
+│  PASO 2: Verificar conexión             │
+│  → Muestra info del dispositivo         │
+│  → Estado rápido (batería, RAM, apps)   │
+└─────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────┐
+│  PASO 3: Benchmark ANTES                │
+│  → CPU benchmark (10k iteraciones)      │
+│  → RAM (uso, disponibles, swap)         │
+│  → Almacenamiento                       │
+│  → Batería y temperatura                │
+│  → Apps instaladas y desactivadas       │
+│  → Servicios en segundo plano           │
+│  → Red y conectividad                   │
+│  → Diagnóstico: QUÉ RALENTIZA           │
+│  → Auto-fix de problemas detectados     │
+└─────────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────────┐
+│  MENÚ PRINCIPAL                         │
+│  → Todas las opciones de optimización   │
+│  → Benchmark DESPUÉS para comparar      │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
-## Paso 6: Verificar resultados
+## El Benchmark en detalle
+
+El benchmark ejecuta **10 secciones** y genera un reporte:
+
+| Sección | Qué mide |
+|---|---|
+| 1. Dispositivo | Modelo, Android, HyperOS, SoC, uptime |
+| 2. CPU | Load average, frecuencia, benchmark (10k iteraciones), top procesos |
+| 3. RAM | Total, usado, disponible, libre, cached, swap, top apps por RAM |
+| 4. Almacenamiento | Usado, disponible, tamaño de cache |
+| 5. Batería | Nivel, temperatura, voltaje, salud |
+| 6. Apps | Total, sistema, terceros, desactivadas, wakelocks |
+| 7. Servicios | Procesos activos, servicios en segundo plano, receivers |
+| 8. Red | WiFi, señal, scanning, roaming, DNS |
+| 9. Configuración | Animaciones, GPU, resolución, DPI, SELinux |
+| 10. Diagnóstico | **Identifica qué ralentiza y lo corrige automáticamente** |
+
+### ¿Qué detecta como problema?
+
+| Problema | Auto-fix |
+|---|---|
+| Bloatware activo | Sugiere ejecutar perfil |
+| RAM alta (>80%) | Cierra apps pesadas automáticamente |
+| Temperatura alta (>40°C) | Sugiere dejar enfriar |
+| Almacenamiento lleno (>85%) | Limpia cache automáticamente |
+| WiFi scanning activo | Lo desactiva automáticamente |
+| Animaciones por defecto (1x) | Las ajusta a 0.5x automáticamente |
+| GPU no forzada | La fuerza automáticamente |
+| Cache grande (>2GB) | Limpia parcialmente |
+| Muchos procesos (>400) | Cierra apps en segundo plano |
+| Sin reiniciar hace >7 días | Sugiere reiniciar |
+
+---
+
+## Orden recomendado
+
+### Primera vez
 
 ```bash
-./diagnostico.sh
+./optimizer.sh
+# 1. Conectar teléfono (automático)
+# 2. Verificar conexión (automático)
+# 3. Benchmark ANTES → elegí "S"
+# 4. Ver el diagnóstico y los auto-fixes
+# 5. Menú → opción 10 (Rescue Points) → crear backup
+# 6. Menú → opción 4 (Equilibrado) → aplicar
+# 7. Menú → opción 2 (Benchmark DESPUÉS) → comparar
+# 8. Menú → opción 13 (Test verificación) → confirmar
 ```
 
-Te muestra:
-- Estado de animaciones y GPU
-- Resolución (si la cambiaste)
-- Batería, RAM, CPU, almacenamiento
-- Cuántas apps están desactivadas
-- Rescue points disponibles
+### Después de optimizar
+
+```bash
+./optimizer.sh
+# 1. Conectar (automático)
+# 2. Benchmark DESPUÉS → comparar con el ANTES
+# 3. Si querés más rendimiento: perfil Rendimiento o Gaming
+# 4. Test de verificación → ver score
+```
+
+---
+
+## Menú completo
+
+```
+📊 Benchmark:
+  1) 🔍 Benchmark ANTES (diagnóstico)
+  2) 🔍 Benchmark DESPUÉS (verificar)
+
+🚀 Perfiles:
+  3) 🚀 Rendimiento (agresivo)
+  4) 📱 Equilibrado (recomendado)
+  5) 🔋 Batería (ahorro)
+  6) 🎮 Gaming (máximo rendimiento)
+
+⚡ Optimización avanzada:
+  7) 🧈 Fluidez (baseline profiles)
+  8) 🌐 Tweaks de red
+  9) 💾 Tweaks de memoria
+
+🔧 Herramientas:
+ 10) 🔧 Mantenimiento
+ 11) 🔍 Diagnóstico detallado
+ 12) 💾 Rescue Points
+ 13) 🧪 Test de verificación
+
+🚨 Emergencia:
+ 14) 🚨 Restaurar todo
+
+🔄 r) Reconectar dispositivo
+```
 
 ---
 
@@ -153,19 +252,7 @@ Te muestra:
 
 Esto:
 1. Te ofrece restaurar desde un rescue point (si existe)
-2. Si no, restaura todo manualmente:
-   - Apps del sistema
-   - Animaciones a 1x
-   - GPU por defecto
-   - Resolución original
-   - Red y memoria por defecto
-
-### Restaurar solo un rescue point
-
-```bash
-./rescue.sh
-# Elegí opción 3: Restaurar desde rescue point
-```
+2. Si no, restaura todo manualmente
 
 ### Si el teléfono no arranca
 
@@ -182,7 +269,8 @@ Si después de optimizar el teléfono se queda en bootloop:
 Una vez al mes, ejecutá:
 
 ```bash
-./mantenimiento.sh
+./optimizer.sh
+# Menú → opción 10 (Mantenimiento)
 ```
 
 Esto:
@@ -212,6 +300,12 @@ Sí, pero no al mismo tiempo. Si aplicás Rendimiento y después querés Baterí
 ### ¿Funciona en otros teléfonos Xiaomi?
 Los tweaks de animaciones, GPU, red y memoria funcionan en cualquier Android. El bloatware está optimizado para Redmi 14C / HyperOS — en otros modelos algunos paquetes pueden no existir (no pasa nada, simplemente los salta).
 
+### ¿Qué hace el benchmark exactamente?
+Ejecuta 10 secciones que miden CPU, RAM, almacenamiento, batería, apps, servicios, red y configuración. Identifica qué está ralentizando el teléfono y corrige automáticamente lo que puede (cierra apps, limpia cache, desactiva WiFi scanning, ajusta animaciones, fuerza GPU).
+
+### ¿El benchmark consume batería?
+Mínimo. Tarda ~30 segundos y usa operaciones de lectura. No afecta el rendimiento del teléfono.
+
 ---
 
 ## Resumen rápido
@@ -222,6 +316,7 @@ Los tweaks de animaciones, GPU, red y memoria funcionan en cualquier Android. El
 3. Conectar por USB, autorizar
 4. git clone + cd MejoraRedmi14c
 5. ./optimizer.sh
-6. Crear rescue point → Probar Equilibrado → Verificar
-7. Si algo mal: ./emergencia.sh
+6. El script guía: conectar → verificar → benchmark → menú
+7. Crear rescue point → probar Equilibrado → verificar
+8. Si algo mal: ./emergencia.sh
 ```

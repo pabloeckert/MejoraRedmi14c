@@ -6,18 +6,42 @@ Dos formas de usar: **scripts locales** (recomendado) o **app web**.
 
 ---
 
+## 🚀 Inicio rápido
+
+```bash
+# 1. Clonar
+git clone https://github.com/pabloeckert/MejoraRedmi14c.git
+cd MejoraRedmi14c
+chmod +x *.sh
+
+# 2. Ejecutar (guía todo el proceso)
+./optimizer.sh
+```
+
+El script:
+1. **Conecta** el teléfono automáticamente
+2. **Verifica** la conexión
+3. Ejecuta el **benchmark ANTES** (diagnóstico completo)
+4. Muestra el **menú** con todas las opciones
+
+---
+
 ## 🖥️ Scripts locales (ADB en la PC)
 
 ### Requisitos
-- ADB instalado (`platform-tools`)
+- ADB instalado (`platform-tools`) — ver [TUTORIAL.md](TUTORIAL.md)
 - Cable USB con datos
-- Depuración USB activada en el teléfono
+- Depurión USB activada en el teléfono
 
 ### Uso rápido
 
 ```bash
-# Menú interactivo con todas las opciones
+# Menú interactivo (flujo guiado)
 ./optimizer.sh
+
+# Benchmark directo
+./benchmark.sh antes        # Benchmark ANTES de optimizar
+./ benchmark.sh despues      # Benchmark DESPUÉS (para comparar)
 
 # Perfiles:
 ./perfil-rendimiento.sh    # 🚀 Máxima velocidad
@@ -40,6 +64,39 @@ Dos formas de usar: **scripts locales** (recomendado) o **app web**.
 
 ---
 
+## 📊 Benchmark
+
+El benchmark ejecuta **10 secciones** y genera un reporte detallado:
+
+| Sección | Qué mide |
+|---|---|
+| 1. Dispositivo | Modelo, Android, HyperOS, SoC, uptime |
+| 2. CPU | Load average, frecuencia, benchmark (10k iteraciones), top procesos |
+| 3. RAM | Total, usado, disponible, libre, cached, swap, top apps por RAM |
+| 4. Almacenamiento | Usado, disponible, tamaño de cache |
+| 5. Batería | Nivel, temperatura, voltaje, salud |
+| 6. Apps | Total, sistema, terceros, desactivadas, wakelocks |
+| 7. Servicios | Procesos activos, servicios en segundo plano, receivers |
+| 8. Red | WiFi, señal, scanning, roaming, DNS |
+| 9. Configuración | Animaciones, GPU, resolución, DPI, SELinux |
+| 10. Diagnóstico | **Identifica qué ralentiza y lo corrige automáticamente** |
+
+### Auto-fix de problemas
+
+El benchmark detecta y corrige automáticamente:
+
+| Problema | Auto-fix |
+|---|---|
+| RAM alta (>80%) | Cierra apps pesadas |
+| Almacenamiento lleno (>85%) | Limpia cache |
+| WiFi scanning activo | Lo desactiva |
+| Animaciones por defecto (1x) | Ajusta a 0.5x |
+| GPU no forzada | La fuerza |
+| Cache grande (>2GB) | Limpia parcialmente |
+| Muchos procesos (>400) | Cierra apps en segundo plano |
+
+---
+
 ## ¿Qué hace cada perfil?
 
 | Perfil | Animaciones | GPU | Bloatware | Red | Memoria | Cache |
@@ -49,66 +106,6 @@ Dos formas de usar: **scripts locales** (recomendado) o **app web**.
 | 🔋 Batería | 0.5x | Sin cambios | 13 apps | WiFi scan | — | Segura |
 | 🎮 Gaming | 0.3x | Forzada + Vulkan | 31 apps | ✅ | ✅ | Profunda |
 
-### Detalle de optimizaciones
-
-**🚀 Rendimiento**
-- Animaciones 0.3x (ultra rápidas)
-- GPU forzada + Vulkan
-- 28 apps de bloatware desactivadas
-- DNS optimizado, TCP buffer ampliado
-- WiFi scanning desactivado
-- Memoria: swappiness reducido, más apps en RAM
-- Cache profunda
-
-**📱 Equilibrado**
-- Animaciones 0.5x
-- GPU forzada
-- Solo 10 apps 100% seguras desactivadas
-- WiFi scanning desactivado
-- Cache ligera
-
-**🔋 Batería**
-- Animaciones 0.5x
-- Sin cambios de GPU (ahorra batería)
-- 13 apps que drenan batería desactivadas
-- WiFi scanning desactivado
-- Sync automática desactivada
-- Cache segura
-
-**🎮 Gaming**
-- Animaciones 0.3x
-- GPU forzada + Vulkan + sin efectos visuales
-- **Resolución reducida a 1280x576** (30-40% más FPS)
-- DPI reducido a 280
-- 31 apps desactivadas
-- Memoria optimizada al máximo (sin swap)
-- Todas las apps cerradas
-- Cache profunda
-- **⚠️ Los iconos pueden verse más grandes (normal)**
-
----
-
-## 🧈 Optimización avanzada
-
-### Fluidez (tweaks-smooth.sh)
-- Baseline profiles compilados para apps del sistema
-- Dexopt completo (speed-profile)
-- Animaciones 0.5x + GPU forzada + Vulkan
-- ⚠️ El dexopt tarda ~30 min y calienta el teléfono
-
-### Red (tweaks-red.sh)
-- DNS optimizado (muestreo reducido)
-- TCP buffer ampliado para mejor throughput
-- WiFi scanning desactivado (ahorra batería)
-- WiFi siempre activo en suspensión
-
-### Memoria (tweaks-memoria.sh)
-- Swappiness reducido (menos swap, más RAM)
-- Hasta 32 apps en memoria caché
-- Dalvik VM heap ampliado (512MB)
-- Low Memory Killer ajustado
-- HWUI texture cache ampliada
-
 ---
 
 ## 💾 Sistema de Rescue Points
@@ -116,11 +113,8 @@ Dos formas de usar: **scripts locales** (recomendado) o **app web**.
 Antes de cada optimización se crea automáticamente un **rescue point** que guarda:
 - Lista de todos los paquetes
 - Paquetes desactivados
-- Configuración de animaciones
-- Configuración de GPU
-- Resolución y DPI
-- Estado de batería
-- Props del sistema
+- Configuración de animaciones, GPU, resolución, DPI
+- Estado de batería y props del sistema
 
 ```bash
 ./rescue.sh
@@ -129,41 +123,6 @@ Antes de cada optimización se crea automáticamente un **rescue point** que gua
 # 3) Restaurar desde rescue point
 # 4) Eliminar rescue point
 ```
-
----
-
-## 🔍 Diagnóstico
-
-El diagnóstico ahora muestra:
-- Info completa del dispositivo (HyperOS, SoC, Security patch)
-- Estado de animaciones, GPU, Vulkan
-- Resolución original vs override
-- Batería (nivel, temperatura, voltaje, salud)
-- RAM (total, usado, disponible)
-- CPU (load, cores)
-- Almacenamiento (usado, disponible)
-- Apps desactivadas / de terceros / del sistema
-- SELinux status
-- WiFi scanning status
-- Rescue points disponibles
-- Top apps por consumo de batería
-
----
-
-## 🧹 Base de datos de bloatware
-
-Inspirada en [Universal Android Debloater](https://github.com/0x192/universal-android-debloater) y [BloatwareHatao](https://github.com/ImKKingshuk/BloatwareHatao).
-
-Categorías de seguridad:
-- 🟢 **RECOMMENDED** — Seguro de desactivar, sin dependencias
-- 🟡 **ADVANCED** — Puede afectar algunas funciones
-- 🔴 **DANGER** — Solo para expertos, puede romper cosas
-
-Paquetes documentados en `bloatware-db.sh` con:
-- Nombre del paquete
-- Categoría (Sistema, Anuncios, Social, Apps, etc.)
-- Nivel de seguridad
-- Descripción
 
 ---
 
@@ -177,23 +136,13 @@ Si algo anda mal después de optimizar:
 
 El script:
 1. Verifica si hay rescue points y ofrece restaurar desde uno
-2. Si no, restaura manualmente:
-   - Apps del sistema
-   - Animaciones (1x)
-   - GPU (por defecto)
-   - Resolución (original)
-   - Red y memoria (por defecto)
-   - Permisos de SystemUI
+2. Si no, restaura manualmente todo
 
 ---
 
 ## 🌐 App Web (WebUSB)
 
 Alternativa sin ADB en la PC. Abrí `index.html` en Chrome.
-
-### Requisitos
-- Chrome, Edge u Opera (WebUSB no funciona en Firefox/Safari)
-- `adb kill-server` antes de abrir (libera el USB para el navegador)
 
 ```bash
 adb kill-server
@@ -206,20 +155,22 @@ python3 -m http.server 8000
 ## Archivos
 
 ```
-optimizer.sh              ← Menú principal (empezar acá)
+optimizer.sh              ← Menú principal (flujo guiado)
+benchmark.sh              ← Benchmark completo (nuevo!)
+test-verificacion.sh      ← Test post-optimización
 perfil-rendimiento.sh     ← Perfil agresivo
 perfil-equilibrado.sh     ← Perfil balanceado
 perfil-bateria.sh         ← Perfil ahorro
-perfil-gaming.sh          ← Perfil gaming (nuevo!)
-tweaks-smooth.sh          ← Fluidez + baseline profiles (nuevo!)
-tweaks-red.sh             ← Optimización de red (nuevo!)
-tweaks-memoria.sh         ← Optimización de memoria (nuevo!)
-bloatware-db.sh           ← Base de datos de bloatware (nuevo!)
-rescue.sh                 ← Sistema de rescue points (nuevo!)
-test-verificacion.sh      ← Test post-optimización (nuevo!)
+perfil-gaming.sh          ← Perfil gaming
+tweaks-smooth.sh          ← Fluidez + baseline profiles
+tweaks-red.sh             ← Optimización de red
+tweaks-memoria.sh         ← Optimización de memoria
+bloatware-db.sh           ← Base de datos de bloatware
+rescue.sh                 ← Sistema de rescue points
 mantenimiento.sh          ← Limpieza mensual
 diagnostico.sh            ← Estado del sistema
 emergencia.sh             ← Restaurar todo
+TUTORIAL.md               ← Tutorial paso a paso
 
 index.html                ← App web
 adb.js                    ← Protocolo ADB sobre WebUSB
