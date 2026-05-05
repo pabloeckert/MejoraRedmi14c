@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Phone Optimizer v2 — Optimizador Android</title>
+  <title>Phone Optimizer v5 — Optimizador Android</title>
   <meta name="description" content="Optimiza tu Android desde el navegador. Limpieza de bloatware, monitoreo en tiempo real, optimización de rendimiento. Sin instalar nada.">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,7 +12,14 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <div id="app"></div>
+  <div id="app">
+    <div id="app-loading" style="display:flex;align-items:center;justify-content:center;height:100vh;font-family:Inter,sans-serif;color:#94a3b8;">
+      <div style="text-align:center">
+        <div style="font-size:48px;margin-bottom:16px">📱</div>
+        <div>Cargando Phone Optimizer...</div>
+      </div>
+    </div>
+  </div>
   <script src="adb.js"></script>
   <script src="app.js"></script>
 </body>

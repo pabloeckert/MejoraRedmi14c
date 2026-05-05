@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  🔥 MEGA OPTIMIZER v1.0 — Redmi 14C (256GB / 4-8GB RAM)
+#  🔥 MEGA OPTIMIZER v5.0 — Redmi 14C (256GB / 4-8GB RAM)
 #  HyperOS / Android 14 — MediaTek Helio G81 Ultra
 #
 #  OBJETIVO: Convertir este teléfono en una BESTIA.
@@ -19,6 +19,14 @@
 # los dispositivos. Cada comando usa || true o safe_compile para continuar.
 set +e
 
+DRY_RUN=0
+for arg in "$@"; do
+    case "$arg" in
+        --dry-run) DRY_RUN=1 ;;
+        --no-thermal) NO_THERMAL=1 ;;
+    esac
+done
+
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -29,6 +37,10 @@ NC='\033[0m'
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 LOG_FILE="$SCRIPT_DIR/mega-optimizer_${TIMESTAMP}.log"
+
+# Rotar logs: mantener últimos 5
+ls -t "$SCRIPT_DIR"/mega-optimizer_*.log 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null
+
 CHANGES=0
 
 log() {
@@ -55,12 +67,33 @@ fail() {
     log -e "  ${RED}❌ $1${NC}"
 }
 
+TOTAL_STEPS=12
+CURRENT_STEP=0
+
+progress() {
+    CURRENT_STEP=$((CURRENT_STEP + 1))
+    local pct=$((CURRENT_STEP * 100 / TOTAL_STEPS))
+    local filled=$((CURRENT_STEP * 20 / TOTAL_STEPS))
+    local empty=$((20 - filled))
+    local bar=$(printf '█%.0s' $(seq 1 $filled 2>/dev/null))$(printf '░%.0s' $(seq 1 $empty 2>/dev/null))
+    log ""
+    log -e "  ${CYAN}[${bar}] ${pct}% — Paso ${CURRENT_STEP}/${TOTAL_STEPS}${NC}"
+}
+
+run_cmd() {
+    if [ "$DRY_RUN" -eq 1 ]; then
+        log "  🔍 [DRY-RUN] $1"
+        return 0
+    fi
+    eval "$1"
+}
+
 # ═══════════════════════════════════════════════
 #  VERIFICACIÓN INICIAL
 # ═══════════════════════════════════════════════
 
 log ""
-log -e "${BOLD}🔥 MEGA OPTIMIZER v1.0 — Redmi 14C${NC}"
+log -e "${BOLD}🔥 MEGA OPTIMIZER v5.0 — Redmi 14C${NC}"
 log -e "${CYAN}   $(date '+%Y-%m-%d %H:%M:%S')${NC}"
 log ""
 
@@ -82,6 +115,29 @@ log "     Android $ANDROID | HyperOS ${HYPEROS:-N/A} | SoC: $SOC"
 log "     RAM: ${RAM_GB}GB"
 log ""
 
+# Validar que sea un dispositivo Xiaomi/Redmi/POCO
+MFR=$(adb shell getprop ro.product.manufacturer 2>/dev/null | tr -d '\r')
+if ! echo "$MFR" | grep -qi "xiaomi\|redmi\|poco"; then
+    warn "Este script está optimizado para dispositivos Xiaomi/Redmi/POCO."
+    warn "Dispositivo detectado: $MFR $DEVICE"
+    warn "Algunos tweaks pueden no ser compatibles."
+    read -p "  ¿Continuar de todos modos? [S/n]: " CONFIRM_MFR
+    if [ "$CONFIRM_MFR" = "n" ] || [ "$CONFIRM_MFR" = "N" ]; then
+        log "  Cancelado."
+        exit 0
+    fi
+fi
+
+# Verificar temperatura del dispositivo
+TEMP_RAW=$(adb shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*')
+TEMP_C_CHECK=$((TEMP_RAW / 10))
+if [ "$TEMP_C_CHECK" -gt 40 ] 2>/dev/null; then
+    fail "⚠️ El dispositivo está a ${TEMP_C_CHECK}°C (>40°C)."
+    fail "Esperá a que se enfríe antes de optimizar."
+    log "   Ejecutá este script cuando la temperatura baje de 35°C."
+    exit 1
+fi
+
 log -e "  ${YELLOW}⚠️  Este script va a:${NC}"
 log "     • Eliminar ~50 apps de bloatware"
 log "     • Poner animaciones en 0.1x (casi instantáneas)"
@@ -94,6 +150,13 @@ read -p "  ¿Continuar? [S/n]: " CONFIRM
 if [ "$CONFIRM" = "n" ] || [ "$CONFIRM" = "N" ]; then
     log "  Cancelado."
     exit 0
+fi
+
+if [ "$DRY_RUN" -eq 1 ]; then
+    log ""
+    log -e "  ${YELLOW}🔍 MODO DRY-RUN: No se aplicará ningún cambio real.${NC}"
+    log "     Solo se mostraría lo que se haría."
+    log ""
 fi
 
 # ═══════════════════════════════════════════════
@@ -139,6 +202,10 @@ NOTFOUND=0
 disable_app() {
     local pkg="$1"
     local desc="$2"
+    if [ "$DRY_RUN" -eq 1 ]; then
+        log "  🔍 [DRY-RUN] Desactivar: $desc ($pkg)"
+        return 0
+    fi
     # Verificar si ya está desactivada
     if adb shell pm list packages -d 2>/dev/null | grep -q "$pkg"; then
         ALREADY=$((ALREADY + 1))
@@ -295,9 +362,9 @@ log ""
 
 step "PASO 2: ANIMACIONES ULTRA RÁPIDAS (0.1x)"
 
-adb shell settings put global window_animation_scale 0.1
-adb shell settings put global transition_animation_scale 0.1
-adb shell settings put global animator_duration_scale 0.1
+run_cmd "adb shell settings put global window_animation_scale 0.1"
+run_cmd "adb shell settings put global transition_animation_scale 0.1"
+run_cmd "adb shell settings put global animator_duration_scale 0.1"
 ok "Animaciones a 0.1x — prácticamente instantáneas"
 
 # ═══════════════════════════════════════════════
@@ -306,12 +373,12 @@ ok "Animaciones a 0.1x — prácticamente instantáneas"
 
 step "PASO 3: GPU FORZADA + VULKAN + MSAA"
 
-adb shell settings put global force_gpu_rendering 1
-adb shell settings put global force_msaa 1
-adb shell settings put global debug.hwui.renderer skiavk
-adb shell settings put global debug.hwui.disable_draw_defer true
-adb shell settings put global debug.hwui.disable_draw_reorder true
-adb shell settings put global debug.enable_gpu_debug_layers 0
+run_cmd "adb shell settings put global force_gpu_rendering 1"
+run_cmd "adb shell settings put global force_msaa 1"
+run_cmd "adb shell settings put global debug.hwui.renderer skiavk"
+run_cmd "adb shell settings put global debug.hwui.disable_draw_defer true"
+run_cmd "adb shell settings put global debug.hwui.disable_draw_reorder true"
+run_cmd "adb shell settings put global debug.enable_gpu_debug_layers 0"
 ok "GPU rendering forzado"
 ok "Vulkan renderer activado"
 ok "MSAA forzado"
@@ -325,8 +392,8 @@ step "PASO 4: RESOLUCIÓN OPTIMIZADA PARA +FPS"
 
 # El Redmi 14C tiene 720x1600 nativo. Reducir un poco para ganar FPS
 # Sin que se note visualmente en una pantalla HD+
-adb shell wm size 640x1422
-adb shell wm density 240
+run_cmd "adb shell wm size 640x1422"
+run_cmd "adb shell wm density 240"
 ok "Resolución reducida a 640x1422 (de 720x1600)"
 ok "DPI ajustado a 240"
 log "     Nota: En pantalla HD+ casi no se nota la diferencia,"
@@ -339,23 +406,23 @@ log "     pero ganás ~15-20% más FPS en todo."
 step "PASO 5: MEMORIA Y GESTIÓN DE PROCESOS"
 
 # Swappiness bajo = menos swap, más RAM real
-adb shell settings put global sys_swappiness 30
+run_cmd "adb shell settings put global sys_swappiness 30"
 
 # Mantener más apps en memoria (menos reloads)
-adb shell settings put global activity_manager_constants "max_cached_processes=64"
+run_cmd "adb shell settings put global activity_manager_constants \"max_cached_processes=64\""
 
 # LMK más agresivo para liberar RAM cuando se necesita
-adb shell settings put global lmk_minfree_levels "1536,2048,4096,6144,10240,20480"
+run_cmd "adb shell settings put global lmk_minfree_levels \"1536,2048,4096,6144,10240,20480\""
 
 # Dalvik VM heap ampliado
-adb shell settings put global dalvik_vm_heapsize 512m
-adb shell settings put global dalvik_vm_heapgrowthlimit 256m
+run_cmd "adb shell settings put global dalvik_vm_heapsize 512m"
+run_cmd "adb shell settings put global dalvik_vm_heapgrowthlimit 256m"
 
 # HWUI cache ampliado
-adb shell settings put global hwui_texture_cache_size 96
-adb shell settings put global hwui_layer_cache_size 64
-adb shell settings put global hwui_r_buffer_cache_size 12
-adb shell settings put global hwui_gradient_cache_size 4
+run_cmd "adb shell settings put global hwui_texture_cache_size 96"
+run_cmd "adb shell settings put global hwui_layer_cache_size 64"
+run_cmd "adb shell settings put global hwui_r_buffer_cache_size 12"
+run_cmd "adb shell settings put global hwui_gradient_cache_size 4"
 
 ok "Swappiness reducido a 30"
 ok "Max cached processes: 64"
@@ -370,21 +437,21 @@ ok "HWUI cache ampliado"
 step "PASO 6: RED Y DNS OPTIMIZADOS"
 
 # DNS más rápido (Cloudflare + Google)
-adb shell settings put global dns_resolver_sample_validity_seconds 600
-adb shell settings put global dns_resolver_max_samples 3
-adb shell settings put global dns_resolver_min_samples 1
+run_cmd "adb shell settings put global dns_resolver_sample_validity_seconds 600"
+run_cmd "adb shell settings put global dns_resolver_max_samples 3"
+run_cmd "adb shell settings put global dns_resolver_min_samples 1"
 
 # TCP window más grande
-adb shell settings put global tcp_default_init_rwnd 10
+run_cmd "adb shell settings put global tcp_default_init_rwnd 10"
 
 # WiFi scan desactivado (ahorra batería + evita lag)
-adb shell settings put global wifi_scan_always_enabled 0
+run_cmd "adb shell settings put global wifi_scan_always_enabled 0"
 
 # Data roaming off
-adb shell settings put global data_roaming 0
+run_cmd "adb shell settings put global data_roaming 0"
 
 # Network scoring desactivado
-adb shell settings put global network_scoring_ui_enabled 0
+run_cmd "adb shell settings put global network_scoring_ui_enabled 0"
 
 ok "DNS validity: 600s (menos queries)"
 ok "TCP window: 10 (conexiones más rápidas)"
@@ -397,17 +464,25 @@ ok "Network scoring: desactivado"
 
 step "PASO 7: THERMAL Y CPU BOOST"
 
-# Desactivar thermal throttling (el teléfono puede calentarse más)
-adb shell settings put global thermal_limit_enabled 0 2>/dev/null
+# Thermal management — SEGURIDAD: NO desactivar por default
+# Solo desactivar con --no-thermal (el usuario acepta el riesgo)
+if [ "${NO_THERMAL:-0}" -eq 1 ]; then
+    adb shell settings put global thermal_limit_enabled 0 2>/dev/null
+    ok "Thermal limit desactivado (⚠️ con flag --no-thermal)"
+    warn "El teléfono puede calentarse más. Monitorizá la temperatura."
+else
+    log "  ℹ️  Thermal management MANTENIDO (seguro)."
+    log "     Para desactivar: ./mega-optimizer.sh --no-thermal"
+fi
 
 # Performance mode
-adb shell cmd power set-fixed-performance-mode-enabled true 2>/dev/null
+run_cmd "adb shell cmd power set-fixed-performance-mode-enabled true"
 
 # Screen refresh rate máximo
-adb shell settings put system peak_refresh_rate 90 2>/dev/null
-adb shell settings put system min_refresh_rate 90 2>/dev/null
+run_cmd "adb shell settings put system peak_refresh_rate 90"
+run_cmd "adb shell settings put system min_refresh_rate 90"
 
-ok "Thermal limit desactivado"
+ok "Performance mode activado"
 ok "Performance mode activado"
 ok "Refresh rate forzado a 90Hz"
 
@@ -418,22 +493,22 @@ ok "Refresh rate forzado a 90Hz"
 step "PASO 8: UI Y EXPERIENCIA VISUAL"
 
 # Desactivar blur y efectos pesados
-adb shell settings put global disable_window_blurs 1 2>/dev/null
+run_cmd "adb shell settings put global disable_window_blurs 1"
 
 # Touch más responsivo
-adb shell settings put system pointer_speed 7 2>/dev/null
+run_cmd "adb shell settings put system pointer_speed 7"
 
 # Desactivar haptic feedback pesado (ahorra batería)
-adb shell settings put system haptic_feedback_intensity 0 2>/dev/null
+run_cmd "adb shell settings put system haptic_feedback_intensity 0"
 
 # Font scale ligero
-adb shell settings put system font_scale 0.95 2>/dev/null
+run_cmd "adb shell settings put system font_scale 0.95"
 
 # Desactivar auto-brightness para respuesta instantánea
-adb shell settings put system screen_brightness_mode 0 2>/dev/null
+run_cmd "adb shell settings put system screen_brightness_mode 0"
 
 # Brillo fijo en 70% (respuesta de pantalla más rápida)
-adb shell settings put system screen_brightness 179 2>/dev/null
+run_cmd "adb shell settings put system screen_brightness 179"
 
 ok "Window blur desactivado"
 ok "Touch speed: máximo"
@@ -548,18 +623,53 @@ ok "bg-dexopt job ejecutado"
 step "PASO 12: SERVICIOS Y SYNC"
 
 # Auto-time (no consume recursos)
-adb shell settings put global auto_time 1
-adb shell settings put global auto_time_zone 1
+run_cmd "adb shell settings put global auto_time 1"
+run_cmd "adb shell settings put global auto_time_zone 1"
 
 # Desactivar Bluetooth scanning
-adb shell settings put global bluetooth_always_scanning 0 2>/dev/null
+run_cmd "adb shell settings put global bluetooth_always_scanning 0"
 
 # Desactivar NFC scanning
-adb shell settings put global nfc_enabled 0 2>/dev/null
+run_cmd "adb shell settings put global nfc_enabled 0"
 
 ok "Auto-time activado"
 ok "Bluetooth scanning: desactivado"
 ok "NFC: desactivado (si no lo usás)"
+
+# ═══════════════════════════════════════════════
+#  HEALTH CHECK POST-APLICACIÓN
+# ═══════════════════════════════════════════════
+
+step "HEALTH CHECK: Verificando sistema..."
+
+# Verificar que ADB sigue conectado
+if ! adb get-state >/dev/null 2>&1; then
+    fail "⚠️ Se perdió la conexión ADB durante la optimización."
+    log "   Reiniciá el teléfono y verificá con: ./emergencia.sh"
+else
+    ok "Conexión ADB: OK"
+fi
+
+# Verificar RAM disponible post-optimización
+MEM_AVAIL_POST=$(adb shell cat /proc/meminfo 2>/dev/null | grep "MemAvailable:" | grep -o '[0-9]*')
+MEM_TOTAL_POST=$(adb shell cat /proc/meminfo 2>/dev/null | grep "MemTotal:" | grep -o '[0-9]*')
+if [ -n "$MEM_AVAIL_POST" ] && [ -n "$MEM_TOTAL_POST" ]; then
+    MEM_PCT_POST=$(( (MEM_TOTAL_POST - MEM_AVAIL_POST) * 100 / MEM_TOTAL_POST ))
+    if [ "$MEM_PCT_POST" -gt 90 ]; then
+        warn "RAM al ${MEM_PCT_POST}% post-optimización. Considerá cerrar apps."
+    else
+        ok "RAM: ${MEM_PCT_POST}% usado (OK)"
+    fi
+fi
+
+# Verificar temperatura post-optimización
+TEMP_POST=$(adb shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*')
+TEMP_C_POST=$((TEMP_POST / 10))
+if [ "$TEMP_C_POST" -gt 45 ]; then
+    warn "Temperatura alta: ${TEMP_C_POST}°C. Dejá enfriar el teléfono."
+else
+    ok "Temperatura: ${TEMP_C_POST}°C (OK)"
+fi
 
 # ═══════════════════════════════════════════════
 #  RESUMEN FINAL

@@ -71,6 +71,7 @@ ABI=$(adb shell getprop ro.product.cpu.abi 2>/dev/null | tr -d '\r')
 SOC=$(adb shell getprop ro.hardware 2>/dev/null | tr -d '\r')
 BOARD=$(adb shell getprop ro.product.board 2>/dev/null | tr -d '\r')
 SERIAL=$(adb shell getprop ro.serialno 2>/dev/null | tr -d '\r')
+SERIAL_MASKED="${SERIAL:0:4}****"
 UPTIME=$(adb shell cat /proc/uptime 2>/dev/null | cut -d' ' -f1 | cut -d'.' -f1)
 UPTIME_HOURS=$((UPTIME / 3600))
 UPTIME_MINS=$(((UPTIME % 3600) / 60))
@@ -84,6 +85,7 @@ info "Security:     $SECURITY"
 info "CPU ABI:      $ABI"
 info "SoC:          $SOC"
 info "Board:        $BOARD"
+info "Serial:       $SERIAL_MASKED"
 info "Tiempo encendido: ${UPTIME_HOURS}h ${UPTIME_MINS}m"
 echo "" >> "$REPORT_FILE"
 
@@ -97,7 +99,7 @@ LOAD1=$(adb shell cat /proc/loadavg 2>/dev/null | awk '{print $1}')
 LOAD5=$(adb shell cat /proc/loadavg 2>/dev/null | awk '{print $2}')
 LOAD15=$(adb shell cat /proc/loadavg 2>/dev/null | awk '{print $3}')
 
-CPU_PCT=$(echo "scale=0; $LOAD1 * 100 / $CORES" | bc 2>/dev/null || echo "?")
+CPU_PCT=$(awk "BEGIN {printf \"%d\", $LOAD1 * 100 / $CORES}" 2>/dev/null || echo "?")
 
 info "Cores:        $CORES"
 info "Load avg:     $LOAD1 (1m) / $LOAD5 (5m) / $LOAD15 (15m)"
@@ -156,11 +158,11 @@ SWAP_FREE=$(adb shell cat /proc/meminfo 2>/dev/null | grep "SwapFree:" | grep -o
 if [ -n "$MEM_TOTAL" ] && [ -n "$MEM_AVAIL" ]; then
     MEM_USED=$((MEM_TOTAL - MEM_AVAIL))
     MEM_PCT=$((MEM_USED * 100 / MEM_TOTAL))
-    MEM_TOTAL_GB=$(echo "scale=2; $MEM_TOTAL / 1048576" | bc 2>/dev/null)
-    MEM_USED_GB=$(echo "scale=2; $MEM_USED / 1048576" | bc 2>/dev/null)
-    MEM_AVAIL_GB=$(echo "scale=2; $MEM_AVAIL / 1048576" | bc 2>/dev/null)
-    MEM_FREE_GB=$(echo "scale=2; $MEM_FREE / 1048576" | bc 2>/dev/null)
-    MEM_CACHED_GB=$(echo "scale=2; $MEM_CACHED / 1048576" | bc 2>/dev/null)
+    MEM_TOTAL_GB=$(awk "BEGIN {printf \"%.2f\", $MEM_TOTAL / 1048576}" 2>/dev/null)
+    MEM_USED_GB=$(awk "BEGIN {printf \"%.2f\", $MEM_USED / 1048576}" 2>/dev/null)
+    MEM_AVAIL_GB=$(awk "BEGIN {printf \"%.2f\", $MEM_AVAIL / 1048576}" 2>/dev/null)
+    MEM_FREE_GB=$(awk "BEGIN {printf \"%.2f\", $MEM_FREE / 1048576}" 2>/dev/null)
+    MEM_CACHED_GB=$(awk "BEGIN {printf \"%.2f\", $MEM_CACHED / 1048576}" 2>/dev/null)
 
     info "RAM Total:    ${MEM_TOTAL_GB} GB"
     info "RAM Usada:    ${MEM_USED_GB} GB (${MEM_PCT}%)"
@@ -211,9 +213,9 @@ if [ -n "$STORAGE" ]; then
     USED_KB=$(echo "$STORAGE" | awk '{print $3}')
     AVAIL_KB=$(echo "$STORAGE" | awk '{print $4}')
     if [ -n "$TOTAL_KB" ] && [ "$TOTAL_KB" -gt 0 ] 2>/dev/null; then
-        TOTAL_GB=$(echo "scale=1; $TOTAL_KB / 1048576" | bc 2>/dev/null)
-        USED_GB=$(echo "scale=1; $USED_KB / 1048576" | bc 2>/dev/null)
-        AVAIL_GB=$(echo "scale=1; $AVAIL_KB / 1048576" | bc 2>/dev/null)
+        TOTAL_GB=$(awk "BEGIN {printf \"%.1f\", $TOTAL_KB / 1048576}" 2>/dev/null)
+        USED_GB=$(awk "BEGIN {printf \"%.1f\", $USED_KB / 1048576}" 2>/dev/null)
+        AVAIL_GB=$(awk "BEGIN {printf \"%.1f\", $AVAIL_KB / 1048576}" 2>/dev/null)
         STORAGE_PCT=$((USED_KB * 100 / TOTAL_KB))
 
         info "Total:        ${TOTAL_GB} GB"
@@ -248,7 +250,7 @@ section "5/10" "BATERÍA Y TEMPERATURA"
 
 BATTERY=$(adb shell dumpsys battery 2>/dev/null | grep "level:" | grep -o '[0-9]*')
 TEMP=$(adb shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*')
-TEMP_C=$(echo "scale=1; $TEMP / 10" | bc 2>/dev/null)
+TEMP_C=$(awk "BEGIN {printf \"%.1f\", $TEMP / 10}" 2>/dev/null || echo "?")
 VOLTAGE=$(adb shell dumpsys battery 2>/dev/null | grep "voltage:" | grep -o '[0-9]*')
 HEALTH=$(adb shell dumpsys battery 2>/dev/null | grep "health:" | grep -o '[0-9]*')
 CHARGING=$(adb shell dumpsys battery 2>/dev/null | grep "AC powered:" | grep -o 'true\|false')

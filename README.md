@@ -1,6 +1,19 @@
-Optimizador Android por ADB — Redmi 14C / HyperOS
+Optimizador Android por ADB — Redmi 14C / HyperOS (v5.0)
 
 Dos formas de usar: scripts locales (recomendado) o app web.
+
+## ⚠️ Seguridad
+
+Este proyecto prioriza la seguridad de tu dispositivo:
+
+- **Thermal management**: ya NO se desactiva por default. Solo se desactiva con el flag `--no-thermal` y un warning explícito. Esto evita sobrecalentamientos peligrosos.
+- **Validación de modelo**: antes de ejecutar cualquier optimización, se verifica que el dispositivo sea Xiaomi/Redmi/POCO. Si no lo es, se advierte y se pide confirmación.
+- **Check de temperatura**: si el dispositivo está a más de 40°C, el script aborta automáticamente para evitar daños.
+- **Modo dry-run**: podés probar qué haría el mega-optimizer sin aplicar nada real con `./mega-optimizer.sh --dry-run`.
+
+## Changelog
+
+Ver [CHANGELOG.md](CHANGELOG.md) para el historial completo de cambios.
 
 # 1. Clonar
 git clone https://github.com/pabloeckert/MejoraRedmi14c.git
@@ -20,7 +33,7 @@ El script:
 
 - Muestra el menú con todas las opciones
 
-- ADB instalado (platform-tools) — ver [TUTORIAL.md](/pabloeckert/MejoraRedmi14c/blob/main/TUTORIAL.md)
+- ADB instalado (platform-tools) — ver [TUTORIAL.md](TUTORIAL.md)
 
 - Cable USB con datos
 

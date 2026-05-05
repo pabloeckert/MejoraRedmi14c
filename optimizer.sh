@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  MejoraRedmi14c v4.0 — Menú principal
+#  MejoraRedmi14c v5.0 — Menú principal
 #  Optimizador Android por ADB
 #  Redmi 14C / HyperOS
 #
@@ -27,7 +27,7 @@ connect_device() {
     clear
     echo ""
     echo "╔═══════════════════════════════════════════╗"
-    echo "║     📱 MejoraRedmi14c v4.0                ║"
+    echo "║     📱 MejoraRedmi14c v5.0                ║"
     echo "║     Optimizador Android por ADB            ║"
     echo "╠═══════════════════════════════════════════╣"
     echo "║                                           ║"
@@ -60,6 +60,19 @@ connect_device() {
             echo "     Android $ANDROID"
             [ -n "$HYPEROS" ] && [ "$HYPEROS" != "null" ] && echo "     HyperOS $HYPEROS"
             echo ""
+
+            # Validar que sea un dispositivo Xiaomi/Redmi/POCO
+            if ! echo "$MFR" | grep -qi "xiaomi\|redmi\|poco"; then
+                echo -e "  ${YELLOW}⚠️  Este script está optimizado para dispositivos Xiaomi/Redmi/POCO.${NC}"
+                echo "     Dispositivo detectado: $MFR $DEVICE"
+                echo "     Algunos tweaks pueden no ser compatibles."
+                read -p "  ¿Continuar de todos modos? [S/n]: " CONFIRM_MFR_OPT
+                if [ "$CONFIRM_MFR_OPT" = "n" ] || [ "$CONFIRM_MFR_OPT" = "N" ]; then
+                    echo "  Cancelado."
+                    exit 0
+                fi
+            fi
+
             echo "  Verificando autorización..."
 
             STATE=$(adb get-state 2>/dev/null | tr -d '\r')
@@ -148,14 +161,19 @@ verify_connection() {
     # Estado rápido
     BATTERY=$(adb shell dumpsys battery 2>/dev/null | grep "level:" | grep -o '[0-9]*')
     TEMP=$(adb shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*')
-    TEMP_C=$(echo "scale=1; $TEMP / 10" | bc 2>/dev/null || echo "?")
+    TEMP_C=$(awk "BEGIN {printf \"%.1f\", $TEMP / 10}" 2>/dev/null || echo "?")
     MEM_TOTAL=$(adb shell cat /proc/meminfo 2>/dev/null | grep "MemTotal:" | grep -o '[0-9]*')
     MEM_AVAIL=$(adb shell cat /proc/meminfo 2>/dev/null | grep "MemAvailable:" | grep -o '[0-9]*')
     DISABLED=$(adb shell pm list packages -d 2>/dev/null | grep -c "package:" || echo "0")
     TOTAL=$(adb shell pm list packages 2>/dev/null | grep -c "package:" || echo "0")
 
     echo "  📊 Estado rápido"
-    echo "     🔋 Batería:       ${BATTERY}% (${TEMP_C}°C)"
+    echo "     🔋 Batería:       ${BATTERY}%"
+    TEMP_VAL=$(adb shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*')
+    if [ -n "$TEMP_VAL" ]; then
+        TEMP_DISP=$((TEMP_VAL / 10))
+        echo "     🌡️  Temperatura:    ${TEMP_DISP}°C"
+    fi
     if [ -n "$MEM_TOTAL" ] && [ -n "$MEM_AVAIL" ]; then
         MEM_PCT=$(( (MEM_TOTAL - MEM_AVAIL) * 100 / MEM_TOTAL ))
         echo "     💾 RAM:           ${MEM_PCT}% usado"
@@ -182,7 +200,7 @@ show_menu() {
     clear
     echo ""
     echo "╔═══════════════════════════════════════════════════════════════════╗"
-    echo "║     📱 MejoraRedmi14c v4.1                                        ║"
+    echo "║     📱 MejoraRedmi14c v5.0                                        ║"
     echo "║     Optimizador Android por ADB                                    ║"
     echo "╠═══════════════════════════════════════════════════════════════════╣"
     echo "║                                                                   ║"
@@ -195,65 +213,67 @@ show_menu() {
     echo "╠═══════════════════════════════════════════════════════════════════╣"
     echo "║                                                                   ║"
     echo "║  🔥 MEGA OPTIMIZER (todo en uno):                                 ║"
-    echo "║   1) 🔥 Mega Optimizer (RECOMENDADO)                              ║"
+    echo "║   1) 📱 Equilibrado (RECOMENDADO)                                 ║"
+    echo "║       → Buen balance entre velocidad y duración de batería        ║"
+    echo "║   2) 🔥 Mega Optimizer (avanzado)                                 ║"
     echo "║       → Hace TODO de una: limpia basura, acelera apps,            ║"
     echo "║         optimiza RAM, red, GPU y bloatware en ~5 min              ║"
-    echo "║   2) 🔍 Verificar optimizaciones                                  ║"
+    echo "║   3) 🔍 Verificar optimizaciones                                  ║"
     echo "║       → Revisa qué se aplicó y qué falta                          ║"
-    echo "║   3) 🚨 Restaurar todo a fábrica                                   ║"
+    echo "║   4) 🚨 Restaurar todo a fábrica                                   ║"
     echo "║       → Vuelve TODO al estado original (como recién comprado)     ║"
     echo "║                                                                   ║"
     echo "║  💾 Backup:                                                       ║"
-    echo "║   4) 💾 Backup general local                                       ║"
+    echo "║   5) 💾 Backup general local                                       ║"
     echo "║       → Guarda configs, apps y estado del teléfono en tu PC       ║"
     echo "║                                                                   ║"
     echo "║  🛤️  Ruta autónoma:                                                ║"
-    echo "║   5) 🛤️  Ruta óptima automática                                     ║"
+    echo "║   6) 🛤️  Ruta óptima automática                                     ║"
     echo "║       → Analiza tu teléfono y aplica la mejor config sin que       ║"
     echo "║         hagas nada                                                ║"
     echo "║                                                                   ║"
     echo "║  📊 Benchmark:                                                    ║"
-    echo "║   6) 🔍 Benchmark ANTES (diagnóstico)                             ║"
+    echo "║   7) 🔍 Benchmark ANTES (diagnóstico)                             ║"
     echo "║       → Mide qué tan rápido es tu teléfono AHORA                  ║"
-    echo "║   7) 🔍 Benchmark DESPUÉS (verificar)                             ║"
+    echo "║   8) 🔍 Benchmark DESPUÉS (verificar)                             ║"
     echo "║       → Mide la mejora después de optimizar                       ║"
     echo "║                                                                   ║"
     echo "║  🚀 Perfiles de optimización:                                     ║"
-    echo "║   8) 🚀 Rendimiento (agresivo)                                    ║"
+    echo "║   9) 🚀 Rendimiento (agresivo)                                    ║"
     echo "║       → Máxima velocidad, sacrifica un poco de batería            ║"
-    echo "║   9) 📱 Equilibrado (recomendado)                                 ║"
+    echo "║  10) 📱 Equilibrado (recomendado)                                 ║"
     echo "║       → Buen balance entre velocidad y duración de batería        ║"
-    echo "║  10) 🔋 Batería (ahorro)                                          ║"
+    echo "║  11) 🔋 Batería (ahorro)                                          ║"
     echo "║       → Prioriza que dure todo el día                              ║"
-    echo "║  11) 🎮 Gaming (máximo rendimiento)                               ║"
+    echo "║  12) 🎮 Gaming (máximo rendimiento)                               ║"
     echo "║       → Para juegos pesados: GPU al mango, sin distracciones      ║"
     echo "║                                                                   ║"
     echo "║  📸💬 Fix apps específicas:                                        ║"
-    echo "║  12) 📸💬 Fix Cámara + WhatsApp                                    ║"
+    echo "║  13) 📸💬 Fix Cámara + WhatsApp                                    ║"
     echo "║       → Arregla cámara lenta y WhatsApp que se traba              ║"
     echo "║                                                                   ║"
     echo "║  ⚡ Optimización avanzada:                                        ║"
-    echo "║  13) 🧈 Fluidez (baseline profiles)                               ║"
+    echo "║  14) 🧈 Fluidez (baseline profiles)                               ║"
     echo "║       → Hace que todo se sienta más suave al deslizar             ║"
-    echo "║  14) 🌐 Tweaks de red                                             ║"
+    echo "║  15) 🌐 Tweaks de red                                             ║"
     echo "║       → Internet más rápido: DNS, TCP, WiFi optimizado            ║"
-    echo "║  15) 💾 Tweaks de memoria                                         ║"
+    echo "║  16) 💾 Tweaks de memoria                                         ║"
     echo "║       → Mejor gestión de RAM: menos apps que se cierran solas     ║"
     echo "║                                                                   ║"
     echo "║  🔧 Herramientas:                                                 ║"
-    echo "║  16) 🔧 Mantenimiento                                             ║"
+    echo "║  17) 🔧 Mantenimiento                                             ║"
     echo "║       → Limpieza periódica de cache y archivos basura             ║"
-    echo "║  17) 🔍 Diagnóstico detallado                                     ║"
+    echo "║  18) 🔍 Diagnóstico detallado                                     ║"
     echo "║       → Muestra todo el estado del teléfono en detalle            ║"
-    echo "║  18) 💾 Rescue Points                                             ║"
+    echo "║  19) 💾 Rescue Points                                             ║"
     echo "║       → Carga de seguridad: podés volver atrás si algo falla      ║"
-    echo "║  19) 🧪 Test de verificación                                      ║"
+    echo "║  20) 🧪 Test de verificación                                      ║"
     echo "║       → Verifica que todas las optimizaciones se aplicaron bien    ║"
-    echo "║  20) 🔧 Reparación rápida                                         ║"
+    echo "║  21) 🔧 Reparación rápida                                         ║"
     echo "║       → Arregla problemas comunes sin restaurar todo              ║"
     echo "║                                                                   ║"
     echo "║  🚨 Emergencia:                                                   ║"
-    echo "║  21) 🚨 Restaurar todo (emergencia)                               ║"
+    echo "║  22) 🚨 Restaurar todo (emergencia)                               ║"
     echo "║       → Último recurso: revierte TODO como si nada hubiera        ║"
     echo "║         pasado                                                   ║"
     echo "║                                                                   ║"
@@ -303,33 +323,34 @@ while true; do
     fi
 
     case $CHOICE in
-        1) bash "$SCRIPT_DIR/mega-optimizer.sh" ;;
-        2) bash "$SCRIPT_DIR/mega-verificar.sh" ;;
-        3)
+        1) bash "$SCRIPT_DIR/perfil-equilibrado.sh" ;;
+        2) bash "$SCRIPT_DIR/mega-optimizer.sh" ;;
+        3) bash "$SCRIPT_DIR/mega-verificar.sh" ;;
+        4)
             echo -e "  ${YELLOW}⚠️  Esto va a restaurar TODAS las apps y configuraciones${NC}"
             read -p "  ¿Estás seguro? [S/n]: " CONFIRM
             if [ "$CONFIRM" != "n" ] && [ "$CONFIRM" != "N" ]; then
                 bash "$SCRIPT_DIR/mega-restaurar.sh"
             fi
             ;;
-        4) bash "$SCRIPT_DIR/backup.sh" ;;
-        5) bash "$SCRIPT_DIR/ruta-optima.sh" ;;
-        6) run_benchmark "antes" ;;
-        7) run_benchmark "despues" ;;
-        8) bash "$SCRIPT_DIR/perfil-rendimiento.sh" ;;
-        9) bash "$SCRIPT_DIR/perfil-equilibrado.sh" ;;
-       10) bash "$SCRIPT_DIR/perfil-bateria.sh" ;;
-       11) bash "$SCRIPT_DIR/perfil-gaming.sh" ;;
-       12) bash "$SCRIPT_DIR/fix-cam-whatsapp.sh" ;;
-       13) bash "$SCRIPT_DIR/tweaks-smooth.sh" ;;
-       14) bash "$SCRIPT_DIR/tweaks-red.sh" ;;
-       15) bash "$SCRIPT_DIR/tweaks-memoria.sh" ;;
-       16) bash "$SCRIPT_DIR/mantenimiento.sh" ;;
-       17) bash "$SCRIPT_DIR/diagnostico.sh" ;;
-       18) bash "$SCRIPT_DIR/rescue.sh" ;;
-       19) bash "$SCRIPT_DIR/test-verificacion.sh" ;;
-       20) bash "$SCRIPT_DIR/rapido.sh" ;;
-       21) bash "$SCRIPT_DIR/emergencia.sh" ;;
+        5) bash "$SCRIPT_DIR/backup.sh" ;;
+        6) bash "$SCRIPT_DIR/ruta-optima.sh" ;;
+        7) run_benchmark "antes" ;;
+        8) run_benchmark "despues" ;;
+        9) bash "$SCRIPT_DIR/perfil-rendimiento.sh" ;;
+       10) bash "$SCRIPT_DIR/perfil-equilibrado.sh" ;;
+       11) bash "$SCRIPT_DIR/perfil-bateria.sh" ;;
+       12) bash "$SCRIPT_DIR/perfil-gaming.sh" ;;
+       13) bash "$SCRIPT_DIR/fix-cam-whatsapp.sh" ;;
+       14) bash "$SCRIPT_DIR/tweaks-smooth.sh" ;;
+       15) bash "$SCRIPT_DIR/tweaks-red.sh" ;;
+       16) bash "$SCRIPT_DIR/tweaks-memoria.sh" ;;
+       17) bash "$SCRIPT_DIR/mantenimiento.sh" ;;
+       18) bash "$SCRIPT_DIR/diagnostico.sh" ;;
+       19) bash "$SCRIPT_DIR/rescue.sh" ;;
+       20) bash "$SCRIPT_DIR/test-verificacion.sh" ;;
+       21) bash "$SCRIPT_DIR/rapido.sh" ;;
+       22) bash "$SCRIPT_DIR/emergencia.sh" ;;
         r|R) connect_device ;;
         0) echo "  ¡Chau! 👋"; exit 0 ;;
         *) echo -e "  ${RED}❌ Opción no válida${NC}" ;;

@@ -1,5 +1,5 @@
 /**
- * Phone Optimizer — App Logic (v2.1)
+ * Phone Optimizer — App Logic (v5.0)
  * Runs entirely in the browser via WebUSB ADB
  *
  * v2.1 — Based on Pablo's real-world scripts:
@@ -38,7 +38,7 @@ const PROFILES = {
       'com.amazon.appmanager', 'com.netflix.partner.activation',
     ],
   },
-  casual: {
+  equilibrado: {
     name: '📱 Equilibrado',
     desc: 'Mejora el rendimiento sin perder funcionalidades.',
     icon: '📱',
@@ -208,6 +208,9 @@ class PhoneOptimizerApp {
     this.renderApp();
     this.bindEvents();
     this.checkSupport();
+    // Hide loading spinner
+    const loading = document.getElementById('app-loading');
+    if (loading) loading.style.display = 'none';
   }
 
   checkSupport() {
@@ -231,7 +234,7 @@ class PhoneOptimizerApp {
         <div class="header-left">
           <div class="logo">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12" y2="18.01"/></svg>
-            <span>Phone Optimizer <span class="version-tag">v2.1</span></span>
+            <span>Phone Optimizer <span class="version-tag">v5.0</span></span>
           </div>
         </div>
         <div class="header-right">
@@ -513,7 +516,7 @@ class PhoneOptimizerApp {
           <!-- ═══ SHELL TAB ═══ -->
           <div id="tab-shell" class="tab-content">
             <div class="terminal-container">
-              <div id="terminal-output" class="terminal-output">Phone Optimizer Terminal v2.1\nEscribí comandos ADB shell.\nEj: dumpsys battery, getprop ro.product.model\n\n</div>
+              <div id="terminal-output" class="terminal-output">Phone Optimizer Terminal v5.0\nEscribí comandos ADB shell.\nEj: dumpsys battery, getprop ro.product.model\n\n</div>
               <div class="terminal-input-row">
                 <span class="terminal-prompt">$</span>
                 <input id="terminal-input" type="text" class="terminal-input" placeholder="shell command..." autocomplete="off">
@@ -781,7 +784,9 @@ class PhoneOptimizerApp {
         document.getElementById('m-cpu').textContent = `${cpuPct}% (${load} load)`;
         document.getElementById('bar-cpu').style.width = `${cpuPct}%`;
       }
-    } catch (e) {}
+    } catch (e) {
+      this.log('error', `Metrics update failed: ${e.message}`);
+    }
   }
 
   // ═══════════════════════════════════════════════════════
@@ -823,6 +828,21 @@ class PhoneOptimizerApp {
     resultEl.style.display = 'block';
     resultEl.innerHTML = '<span class="spinner"></span> Aplicando perfil...';
     this._currentProfile = profile;
+
+    // Thermal safety check
+    try {
+      const batteryOut = await this.adb.shell('dumpsys battery');
+      const tempMatch = batteryOut.match(/temperature:\s*(\d+)/);
+      if (tempMatch) {
+        const tempC = parseInt(tempMatch[1]) / 10;
+        if (tempC > 40) {
+          resultEl.innerHTML = `<strong>⚠️ Dispositivo a ${tempC}°C (>40°C)</strong><br>Esperá a que se enfríe antes de aplicar un perfil.`;
+          resultEl.className = 'card-result error';
+          this.log('error', `Temperatura alta (${tempC}°C) — perfil cancelado`);
+          return;
+        }
+      }
+    } catch (e) { /* continue if can't check temp */ }
 
     let step = 0;
     const total = 3 + (profile.gpu ? 1 : 0) + (profile.killAll ? 1 : 0);
@@ -1454,6 +1474,20 @@ class PhoneOptimizerApp {
 
 // Boot
 document.addEventListener('DOMContentLoaded', () => {
-  window.app = new PhoneOptimizerApp();
-  window.app.init();
+  try {
+    window.app = new PhoneOptimizerApp();
+    window.app.init();
+  } catch (err) {
+    const appEl = document.getElementById('app');
+    if (appEl) {
+      const loading = document.getElementById('app-loading');
+      if (loading) loading.style.display = 'none';
+      appEl.innerHTML += `<div style="padding:24px;color:#ef4444;font-family:Inter,sans-serif">
+        <h2>⚠️ Error al cargar</h2>
+        <p>${err.message}</p>
+        <p>Recargá la página o usá los scripts de terminal.</p>
+      </div>`;
+    }
+    console.error('App init error:', err);
+  }
 });

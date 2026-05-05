@@ -1,4 +1,4 @@
-# Tutorial — MejoraRedmi14c v3.0
+# Tutorial — MejoraRedmi14c v5.0
 
 Guía paso a paso para optimizar tu Redmi 14C desde cero.
 
@@ -305,6 +305,9 @@ Ejecuta 10 secciones que miden CPU, RAM, almacenamiento, batería, apps, servici
 
 ### ¿El benchmark consume batería?
 Mínimo. Tarda ~30 segundos y usa operaciones de lectura. No afecta el rendimiento del teléfono.
+
+### ¿Qué pasa con el thermal management?
+Desde la versión v5.0, el thermal management ya **NO se desactiva por default**. Esto es más seguro para tu dispositivo. Solo se desactiva si pasás explícitamente el flag `--no-thermal` al ejecutar el mega-optimizer. Sin el flag, el sistema de control térmico del teléfono se mantiene activo, lo que protege contra sobrecalentamientos. Si necesitás máximo rendimiento y aceptás el riesgo, ejecutá: `./mega-optimizer.sh --no-thermal`
 
 ---
 
