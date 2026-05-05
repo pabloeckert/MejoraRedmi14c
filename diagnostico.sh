@@ -1,12 +1,15 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  DIAGNÓSTICO — MejoraRedmi14c v3.0
+#  DIAGNÓSTICO — MejoraRedmi14c
 #  Informe completo del estado del dispositivo
 #  Inspirado en: BloatwareHatao (device health monitoring)
 # ═══════════════════════════════════════════════════════════════
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
 echo ""
-echo "🔍 DIAGNÓSTICO — MejoraRedmi14c v3.0"
+echo "🔍 DIAGNÓSTICO — MejoraRedmi14c v$VERSION"
 echo "════════════════════════════════════════════"
 echo ""
 

@@ -1,6 +1,9 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
 #  Base de datos de bloatware — Redmi 14C / HyperOS
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
 #  Inspirado en: UAD, BloatwareHatao, HyperOS-debloat
 #
 #  Categorías de seguridad:

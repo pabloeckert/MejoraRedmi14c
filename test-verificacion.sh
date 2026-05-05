@@ -1,6 +1,8 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  TEST DE VERIFICACIÓN — MejoraRedmi14c v3.0
+#  TEST DE VERIFICACIÓN — MejoraRedmi14c v5.0
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config.sh"
 #  Ejecutá esto DESPUÉS de optimizar para verificar que todo
 #  se aplicó correctamente y el teléfono está al máximo.
 #

@@ -1,6 +1,8 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  REPARACIÓN RÁPIDA — MejoraRedmi14c v3.0
+#  REPARACIÓN RÁPIDA — MejoraRedmi14c v5.0
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config.sh"
 #  Arregla los problemas más comunes causados por los tweaks
 #  Sin restaurar TODO (más rápido y selectivo que emergencia.sh)
 #

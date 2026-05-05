@@ -1,14 +1,17 @@
 #!/bin/bash
 # ═══════════════════════════════════════════
-#  Phone Optimizer v2.1 — MANTENIMIENTO
+#  MANTENIMIENTO — MejoraRedmi14c
 #  Ejecutá esto 1 vez al mes
 #  Solo cache + cerrar apps (sin desactivar nada)
 # ═══════════════════════════════════════════
 
 set +e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
 echo ""
-echo "🔧 MANTENIMIENTO — Phone Optimizer v2.1"
+echo "🔧 MANTENIMIENTO — MejoraRedmi14c v$VERSION"
 echo "════════════════════════════════════════════"
 echo ""
 
@@ -30,18 +33,8 @@ echo "      ✅ Cache limpiada"
 
 # ─── 2. CERRAR APPS ───
 echo "[2/3] 💀 Cerrando apps en segundo plano..."
-APPS=(
-    "com.facebook.katana"
-    "com.instagram.android"
-    "com.zhiliaoapp.musically"
-    "com.google.android.youtube"
-    "com.snapchat.android"
-    "com.twitter.android"
-    "com.spotify.music"
-    "com.whatsapp"
-)
 KILLED=0
-for APP in "${APPS[@]}"; do
+for APP in "${HEAVY_APPS[@]}"; do
     adb shell am force-stop "$APP" 2>/dev/null && KILLED=$((KILLED + 1))
 done
 echo "      ✅ $KILLED apps cerradas"

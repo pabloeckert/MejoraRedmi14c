@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  Perfil EQUILIBRADO — MejoraRedmi14c v3.0
+#  Perfil EQUILIBRADO — MejoraRedmi14c
 #  Para: uso diario sin perder funciones
 #  Animaciones 0.5x + GPU + 10 apps seguras
 # ═══════════════════════════════════════════════════════════════
@@ -8,11 +8,12 @@
 set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
 source "$SCRIPT_DIR/bloatware-db.sh"
 source "$SCRIPT_DIR/rescue.sh"
 
 echo ""
-echo "📱 PERFIL EQUILIBRADO — MejoraRedmi14c v3.0"
+echo "📱 PERFIL EQUILIBRADO — MejoraRedmi14c v$VERSION"
 echo "════════════════════════════════════════════"
 echo ""
 
@@ -35,10 +36,10 @@ echo "   ✅ Rescue point '$RESCUE_NAME' creado"
 echo ""
 
 # ─── 1. ANIMACIONES ───
-echo "[1/5] 💨 Animaciones rápidas (0.5x)..."
-adb shell settings put global window_animation_scale 0.5
-adb shell settings put global transition_animation_scale 0.5
-adb shell settings put global animator_duration_scale 0.5
+echo "[1/5] 💨 Animaciones rápidas ($ANIM_EQUILIBRADO)..."
+adb shell settings put global window_animation_scale "$ANIM_EQUILIBRADO"
+adb shell settings put global transition_animation_scale "$ANIM_EQUILIBRADO"
+adb shell settings put global animator_duration_scale "$ANIM_EQUILIBRADO"
 echo "      ✅ Animaciones ajustadas"
 
 # ─── 2. GPU ───

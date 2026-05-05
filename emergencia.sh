@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  MODO EMERGENCIA — MejoraRedmi14c v3.0
+#  MODO EMERGENCIA — MejoraRedmi14c v5.0
 #  Restaura TODO a los valores de fábrica
 #  Usar cuando algo anda mal después de optimizar
 # ═══════════════════════════════════════════════════════════════
@@ -8,10 +8,11 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
 source "$SCRIPT_DIR/rescue.sh"
 
 echo ""
-echo "🚨 MODO EMERGENCIA — MejoraRedmi14c v3.0"
+echo "🚨 MODO EMERGENCIA — MejoraRedmi14c v$VERSION"
 echo "════════════════════════════════════════════"
 echo ""
 
@@ -168,10 +169,28 @@ adb shell settings put global auto_time_zone 1 2>/dev/null
 echo "      ✅ Red y memoria restauradas"
 
 # ─── 6. REPARAR PERMISOS ───
-echo "[6/6] 🔧 Reparando permisos del sistema..."
+echo "[6/7] 🔧 Reparando permisos del sistema..."
 adb shell pm grant com.android.systemui android.permission.SYSTEM_ALERT_WINDOW 2>/dev/null
 adb shell pm grant com.android.systemui android.permission.READ_PHONE_STATE 2>/dev/null
 echo "      ✅ Permisos reparados"
+
+# ─── 7. RESTAURAR THERMAL, VISUAL Y OTROS ───
+echo "[7/7] ⚙️  Restaurando thermal, visual y otros..."
+adb shell settings delete global thermal_limit_enabled 2>/dev/null
+adb shell cmd power set-fixed-performance-mode-enabled false 2>/dev/null
+adb shell settings delete system peak_refresh_rate 2>/dev/null
+adb shell settings delete system min_refresh_rate 2>/dev/null
+adb shell settings delete global disable_window_blurs 2>/dev/null
+adb shell settings delete system pointer_speed 2>/dev/null
+adb shell settings delete system haptic_feedback_intensity 2>/dev/null
+adb shell settings delete system font_scale 2>/dev/null
+adb shell settings put system screen_brightness_mode 1 2>/dev/null
+adb shell settings delete system screen_brightness 2>/dev/null
+adb shell settings put global bluetooth_always_scanning 1 2>/dev/null
+adb shell settings put global nfc_enabled 1 2>/dev/null
+adb shell settings delete global network_scoring_ui_enabled 2>/dev/null
+adb shell settings delete global lmk_minfree_levels 2>/dev/null
+echo "      ✅ Thermal, visual y otros restaurados"
 
 echo ""
 echo "════════════════════════════════════════════"
@@ -194,7 +213,8 @@ echo "   [2/6] Animaciones:         Restauradas a 1x"
 echo "   [3/6] GPU:                 Valores por defecto"
 echo "   [4/6] Resolución:          Restaurada a nativa"
 echo "   [5/6] Red y memoria:       Valores por defecto"
-echo "   [6/6] Permisos:            Reparados"
+echo "   [6/7] Permisos:            Reparados"
+echo "   [7/7] Thermal/Visual:      Restaurados"
 echo ""
 echo "   El teléfono debería funcionar como antes."
 echo "   Si sigue lento, reiniciá el teléfono."

@@ -12,8 +12,23 @@
 set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
 source "$SCRIPT_DIR/bloatware-db.sh"
 source "$SCRIPT_DIR/rescue.sh"
+
+# ─── VERIFICAR SESIÓN ANTERIOR ───
+if [ -f "$SCRIPT_DIR/.gaming-resolution-backup" ]; then
+    echo "⚠️  Se detectó una sesión de gaming anterior sin restaurar."
+    read -p "  ¿Restaurar resolución ahora? [S/n]: " FIX_RES
+    if [ "$FIX_RES" != "n" ] && [ "$FIX_RES" != "N" ]; then
+        SAVED_SIZE=$(head -1 "$SCRIPT_DIR/.gaming-resolution-backup")
+        SAVED_DPI=$(tail -1 "$SCRIPT_DIR/.gaming-resolution-backup")
+        adb shell wm size reset 2>/dev/null
+        adb shell wm density reset 2>/dev/null
+        rm -f "$SCRIPT_DIR/.gaming-resolution-backup"
+        echo "✅ Resolución restaurada."
+    fi
+fi
 
 # ─── GUARDAR RESOLUCIÓN ORIGINAL ───
 ORIGINAL_SIZE=$(adb shell wm size 2>/dev/null | grep "Physical size:" | grep -o '[0-9]*x[0-9]*')
@@ -25,8 +40,13 @@ restore_resolution() {
     echo "🔄 Restaurando resolución original..."
     adb shell wm size reset 2>/dev/null
     adb shell wm density reset 2>/dev/null
+    rm -f "$SCRIPT_DIR/.gaming-resolution-backup"
     echo "✅ Resolución restaurada a ${ORIGINAL_SIZE} @ ${ORIGINAL_DPI}dpi"
 }
+
+# Guardar resolución en archivo (backup adicional al trap)
+echo "$ORIGINAL_SIZE" > "$SCRIPT_DIR/.gaming-resolution-backup"
+echo "$ORIGINAL_DPI" >> "$SCRIPT_DIR/.gaming-resolution-backup"
 
 # Trap: restaurar resolución si el usuario interrumpe (Ctrl+C) o si termina normal
 trap restore_resolution EXIT
@@ -71,10 +91,10 @@ echo "      ℹ️  Se restaurará automáticamente al salir del script"
 echo ""
 
 # ─── 2. ANIMACIONES MÍNIMAS ───
-echo "[2/7] ⚡ Animaciones al mínimo (0.3x)..."
-adb shell settings put global window_animation_scale 0.3
-adb shell settings put global transition_animation_scale 0.3
-adb shell settings put global animator_duration_scale 0.3
+echo "[2/7] ⚡ Animaciones al mínimo ($ANIM_GAMING)..."
+adb shell settings put global window_animation_scale "$ANIM_GAMING"
+adb shell settings put global transition_animation_scale "$ANIM_GAMING"
+adb shell settings put global animator_duration_scale "$ANIM_GAMING"
 echo "      ✅ Animaciones ultra rápidas"
 
 # ─── 3. GPU MÁXIMA ───
@@ -90,8 +110,8 @@ echo "      ✅ GPU forzada + Vulkan + sin efectos"
 
 # ─── 4. MEMORIA MÁXIMA ───
 echo "[4/7] 🧠 Memoria al máximo..."
-adb shell settings put global sys_swappiness 30 2>/dev/null
-adb shell settings put global activity_manager_constants "max_cached_processes=64" 2>/dev/null
+adb shell settings put global sys_swappiness "$SWAPPINESS_GAMING" 2>/dev/null
+adb shell settings put global activity_manager_constants "max_cached_processes=$MAX_CACHED_GAMING" 2>/dev/null
 # Desactivar compresión de memoria
 adb shell settings put global zram_enabled 0 2>/dev/null
 echo "      ✅ Memoria optimizada para gaming"
@@ -106,20 +126,9 @@ echo "      ✅ $DISABLED apps desactivadas ($ALREADY ya estaban, $NOTFOUND no e
 
 # ─── 6. KILL APPS ───
 echo "[6/7] 💀 Cerrando TODAS las apps..."
-# Kill de todo excepto el sistema
-APPS=(
-    "com.facebook.katana"
-    "com.instagram.android"
-    "com.zhiliaoapp.musically"
-    "com.google.android.youtube"
-    "com.snapchat.android"
-    "com.twitter.android"
-    "com.spotify.music"
-    "com.whatsapp"
-    "com.google.android.gm"
-    "com.google.android.apps.maps"
+# Kill de todo excepto el sistema (HEAVY_APPS + extras gaming)
+GAMING_APPS=("${HEAVY_APPS[@]}"
     "com.google.android.apps.photos"
-    "com.android.chrome"
     "com.google.android.apps.messaging"
     "com.google.android.apps.nbu.files"
     "com.miui.cloudservice"
@@ -127,7 +136,7 @@ APPS=(
     "com.miui.cloudbackup"
 )
 KILLED=0
-for APP in "${APPS[@]}"; do
+for APP in "${GAMING_APPS[@]}"; do
     adb shell am force-stop "$APP" 2>/dev/null && KILLED=$((KILLED + 1))
 done
 echo "      ✅ $KILLED apps cerradas"

@@ -2,6 +2,8 @@
 # ═══════════════════════════════════════════════════════════════
 #  Sistema de Rescue Points — MejoraRedmi14c
 #  Inspirado en: BloatwareHatao
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config.sh"
 #
 #  Guarda snapshots del estado del dispositivo ANTES de optimizar
 #  para poder restaurar si algo sale mal.

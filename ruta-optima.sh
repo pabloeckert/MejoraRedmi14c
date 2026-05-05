@@ -1,6 +1,8 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  RUTA ÓPTIMA AUTÓNOMA — MejoraRedmi14c v3.0
+#  RUTA ÓPTIMA AUTÓNOMA — MejoraRedmi14c v5.0
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config.sh"
 #  Analiza el dispositivo y aplica la mejor configuración
 #  automáticamente, sin intervención del usuario.
 #

@@ -16,12 +16,8 @@
 # los dispositivos. Cada comando usa || true para continuar si falla.
 set +e
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
 
 CHANGES=0
 
@@ -181,13 +177,13 @@ echo ""
 
 # 3.1 Aumentar cached processes (más apps en RAM)
 echo "  [1/4] Aumentando apps en memoria..."
-adb shell settings put global activity_manager_constants "max_cached_processes=96" 2>/dev/null
-ok "Max cached processes: 96 (WhatsApp y cámara no se van a matar)"
+adb shell settings put global activity_manager_constants "max_cached_processes=$MAX_CACHED_FIX_CAM" 2>/dev/null
+ok "Max cached processes: $MAX_CACHED_FIX_CAM (WhatsApp y cámara no se van a matar)"
 
 # 3.2 Bajar swappiness (menos swap = apps más rápidas al volver)
 echo "  [2/4] Reduciendo swappiness..."
-adb shell settings put global sys_swappiness 20 2>/dev/null
-ok "Swappiness: 20 (apps se quedan en RAM real)"
+adb shell settings put global sys_swappiness "$SWAPPINESS_FIX_CAM" 2>/dev/null
+ok "Swappiness: $SWAPPINESS_FIX_CAM (apps se quedan en RAM real)"
 
 # 3.3 Ajustar LMK para no matar apps importantes
 echo "  [3/4] Ajustando Low Memory Killer..."
@@ -196,8 +192,8 @@ ok "LMK ajustado (thresholds más altos = menos kills)"
 
 # 3.4 HWUI cache más grande (scrolling más suave en WhatsApp)
 echo "  [4/4] Ampliando HWUI cache..."
-adb shell settings put global hwui_texture_cache_size 128 2>/dev/null
-adb shell settings put global hwui_layer_cache_size 80 2>/dev/null
+adb shell settings put global hwui_texture_cache_size "$HWUI_TEXTURE_XL" 2>/dev/null
+adb shell settings put global hwui_layer_cache_size "$HWUI_LAYER_XL" 2>/dev/null
 ok "HWUI cache ampliado (scrolling suave)"
 
 echo ""
@@ -210,23 +206,8 @@ echo -e "${CYAN}  ═══ 🔇 MATANDO SERVICIOS PESADOS ═══${NC}"
 echo ""
 
 echo "  Cerrando apps que roban RAM de cámara y WhatsApp..."
-APPS=(
-    "com.facebook.katana"
-    "com.instagram.android"
-    "com.zhiliaoapp.musically"
-    "com.google.android.youtube"
-    "com.snapchat.android"
-    "com.twitter.android"
-    "com.spotify.music"
-    "com.google.android.apps.maps"
-    "com.google.android.gm"
-    "com.android.chrome"
-    "com.reddit.frontpage"
-    "com.pinterest"
-)
-
 KILLED=0
-for APP in "${APPS[@]}"; do
+for APP in "${HEAVY_APPS[@]}"; do
     adb shell am force-stop "$APP" 2>/dev/null && KILLED=$((KILLED + 1))
 done
 ok "$KILLED apps pesadas cerradas (más RAM para cámara y WhatsApp)"

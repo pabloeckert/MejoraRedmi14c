@@ -4,12 +4,8 @@
 #  Verifica que todas las optimizaciones se aplicaron correctamente
 # ═══════════════════════════════════════════════════════════════
 
-GREEN='\033[0;32m'
-RED='\033[0;31m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
 
 PASS=0
 FAIL=0
@@ -84,9 +80,9 @@ echo -e "${CYAN}  💾 MEMORIA${NC}"
 SWAP=$(adb shell settings get global sys_swappiness 2>/dev/null | tr -d '\r')
 PROC=$(adb shell settings get global activity_manager_constants 2>/dev/null | tr -d '\r')
 HEAP=$(adb shell settings get global dalvik_vm_heapsize 2>/dev/null | tr -d '\r')
-check "Swappiness" "30" "$SWAP"
+check "Swappiness" "$SWAPPINESS_RENDIMIENTO" "$SWAP"
 check "Max cached processes" "64" "$PROC"
-check "Dalvik heap" "512m" "$HEAP"
+check "Dalvik heap" "$DALVIK_HEAP" "$HEAP"
 
 # RED
 echo ""
@@ -94,8 +90,8 @@ echo -e "${CYAN}  🌐 RED${NC}"
 DNS=$(adb shell settings get global dns_resolver_sample_validity_seconds 2>/dev/null | tr -d '\r')
 TCP=$(adb shell settings get global tcp_default_init_rwnd 2>/dev/null | tr -d '\r')
 WIFI=$(adb shell settings get global wifi_scan_always_enabled 2>/dev/null | tr -d '\r')
-check "DNS validity" "600" "$DNS"
-check "TCP window" "10" "$TCP"
+check "DNS validity" "$DNS_VALIDITY" "$DNS"
+check "TCP window" "$TCP_RWND" "$TCP"
 check "WiFi scan disabled" "0" "$WIFI"
 
 # BLOATWARE

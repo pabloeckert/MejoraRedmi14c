@@ -1,5 +1,6 @@
 #!/bin/bash
 # Registra qué perfil se aplicó y cuándo
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config.sh"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_APPLY="$SCRIPT_DIR/apply-history.log"
 

@@ -1,6 +1,8 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  BACKUP GENERAL — MejoraRedmi14c v3.0
+#  BACKUP GENERAL — MejoraRedmi14c v5.0
+
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/config.sh"
 #  Crea un backup completo del estado del dispositivo
 #  Guarda todo en una carpeta con la identidad del teléfono
 #

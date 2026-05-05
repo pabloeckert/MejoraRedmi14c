@@ -6,6 +6,9 @@
 #  Optimiza DNS, TCP, buffer de red y conexiones WiFi
 # ═══════════════════════════════════════════════════════════════
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
 echo ""
 echo "🌐 Tweaks de Red — MejoraRedmi14c"
 echo "════════════════════════════════════════════"
@@ -14,7 +17,7 @@ echo ""
 # ─── DNS RÁPIDO ───
 echo "[1/4] 🔗 Configurando DNS rápido..."
 # Google DNS + Cloudflare DNS
-adb shell settings put global dns_resolver_sample_validity_seconds 600 2>/dev/null
+adb shell settings put global dns_resolver_sample_validity_seconds "$DNS_VALIDITY" 2>/dev/null
 adb shell settings put global dns_resolver_min_samples 2 2>/dev/null
 adb shell settings put global dns_resolver_max_samples 64 2>/dev/null
 echo "      ✅ DNS optimizado"
@@ -22,7 +25,7 @@ echo "      ✅ DNS optimizado"
 # ─── TCP ───
 echo "[2/4] 📡 Optimizando TCP..."
 # Buffer TCP más grande para mejor throughput
-adb shell settings put global tcp_default_init_rwnd 10 2>/dev/null
+adb shell settings put global tcp_default_init_rwnd "$TCP_RWND" 2>/dev/null
 echo "      ✅ TCP buffer optimizado"
 
 # ─── WIFI ───

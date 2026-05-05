@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  BENCHMARK COMPLETO — MejoraRedmi14c v3.0
+#  BENCHMARK COMPLETO — MejoraRedmi14c
 #  Ejecutar ANTES y DESPUÉS de optimizar para comparar.
 #
 #  Mide: CPU, RAM, almacenamiento, apps, procesos, servicios,
@@ -10,6 +10,7 @@
 # ═══════════════════════════════════════════════════════════════
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 MODE="${1:-antes}"
 REPORT_FILE="$SCRIPT_DIR/benchmark_${MODE}_${TIMESTAMP}.txt"
@@ -34,7 +35,7 @@ good() { echo -e "  ${GREEN}✅ $1${NC}"; echo "  ✅ $1" >> "$REPORT_FILE"; }
 
 echo ""
 header
-echo -e "${CYAN}  📊 BENCHMARK COMPLETO — MejoraRedmi14c v3.0${NC}"
+echo -e "${CYAN}  📊 BENCHMARK COMPLETO — MejoraRedmi14c v$VERSION${NC}"
 echo -e "${CYAN}  Modo: ${MODE^^}${NC}"
 echo -e "${CYAN}  $(date '+%Y-%m-%d %H:%M:%S')${NC}"
 header
@@ -43,7 +44,7 @@ echo ""
 # Iniciar reporte
 {
     echo "════════════════════════════════════════════"
-    echo "  BENCHMARK COMPLETO — MejoraRedmi14c v3.0"
+    echo "  BENCHMARK COMPLETO — MejoraRedmi14c v$VERSION"
     echo "  Modo: ${MODE^^}"
     echo "  Fecha: $(date -Iseconds)"
     echo "════════════════════════════════════════════"
@@ -436,7 +437,6 @@ echo "" >> "$REPORT_FILE"
 section "10/10" "DIAGNÓSTICO — ¿QUÉ RALENTIZA EL TELÉFONO?"
 
 PROBLEMS=0
-FIXES_APPLIED=0
 
 echo ""
 
@@ -452,28 +452,7 @@ fi
 # --- Check 2: RAM alta ---
 if [ -n "$MEM_PCT" ] && [ "$MEM_PCT" -gt 80 ]; then
     problem "RAM ALTA ($MEM_PCT%): Poca memoria disponible"
-    info "  → Solución: Cerrando apps en segundo plano..."
-    # Auto-fix: cerrar apps pesadas
-    APPS_TO_KILL=(
-        "com.facebook.katana"
-        "com.instagram.android"
-        "com.zhiliaoapp.musically"
-        "com.google.android.youtube"
-        "com.snapchat.android"
-        "com.twitter.android"
-        "com.spotify.music"
-        "com.whatsapp"
-    )
-    for APP in "${APPS_TO_KILL[@]}"; do
-        adb shell am force-stop "$APP" 2>/dev/null
-    done
-    # Re-check
-    MEM_AVAIL_NEW=$(adb shell cat /proc/meminfo 2>/dev/null | grep "MemAvailable:" | grep -o '[0-9]*')
-    if [ -n "$MEM_AVAIL_NEW" ] && [ "$MEM_AVAIL_NEW" -gt "$MEM_AVAIL" ]; then
-        MEM_FREED=$(( (MEM_AVAIL_NEW - MEM_AVAIL) / 1024 ))
-        good "  → Liberados ${MEM_FREED}MB de RAM"
-        FIXES_APPLIED=$((FIXES_APPLIED + 1))
-    fi
+    info "  → Solución: Ejecutá un perfil de optimización o cerrá apps manualmente"
     PROBLEMS=$((PROBLEMS + 1))
 else
     good "RAM OK ($MEM_PCT%)"
@@ -493,14 +472,7 @@ fi
 # --- Check 4: Almacenamiento lleno ---
 if [ -n "$STORAGE_PCT" ] && [ "$STORAGE_PCT" -gt 85 ]; then
     problem "ALMACENAMIENTO LLENO ($STORAGE_PCT%): Afecta rendimiento general"
-    info "  → Solución: Limpiando cache..."
-    adb shell pm trim-caches 1G 2>/dev/null
-    adb shell "rm -rf /sdcard/DCIM/.thumbnails/*" 2>/dev/null
-    adb shell "rm -rf /data/local/tmp/*" 2>/dev/null
-    adb shell "rm -rf /data/tombstones/*" 2>/dev/null
-    adb shell "rm -rf /data/anr/*" 2>/dev/null
-    good "  → Cache limpiada"
-    FIXES_APPLIED=$((FIXES_APPLIED + 1))
+    info "  → Solución: Ejecutá ./mantenimiento.sh o limpiá cache manualmente"
     PROBLEMS=$((PROBLEMS + 1))
 else
     good "Almacenamiento OK ($STORAGE_PCT%)"
@@ -509,10 +481,7 @@ fi
 # --- Check 5: WiFi scanning activo ---
 if [ "$WIFI_SCAN" != "0" ]; then
     problem "WiFi SCANNING ACTIVO: Consume batería en segundo plano"
-    info "  → Solución: Desactivando WiFi scanning..."
-    adb shell settings put global wifi_scan_always_enabled 0 2>/dev/null
-    good "  → WiFi scanning desactivado"
-    FIXES_APPLIED=$((FIXES_APPLIED + 1))
+    info "  → Solución: Ejecutá un perfil de optimización para desactivarlo"
     PROBLEMS=$((PROBLEMS + 1))
 else
     good "WiFi scanning desactivado"
@@ -521,12 +490,7 @@ fi
 # --- Check 6: Animaciones por defecto ---
 if [ "$WIN" = "1" ] || [ "$WIN" = "null" ] || [ -z "$WIN" ]; then
     warn_info "ANIMACIONES POR DEFECTO (1x): Más lentas de lo necesario"
-    info "  → Solución: Ajustando a 0.5x..."
-    adb shell settings put global window_animation_scale 0.5 2>/dev/null
-    adb shell settings put global transition_animation_scale 0.5 2>/dev/null
-    adb shell settings put global animator_duration_scale 0.5 2>/dev/null
-    good "  → Animaciones ajustadas a 0.5x"
-    FIXES_APPLIED=$((FIXES_APPLIED + 1))
+    info "  → Solución: Ejecutá un perfil de optimización para ajustarlas"
     PROBLEMS=$((PROBLEMS + 1))
 else
     good "Animaciones optimizadas (${WIN}x)"
@@ -535,11 +499,7 @@ fi
 # --- Check 7: GPU no forzada ---
 if [ "$GPU" != "1" ]; then
     warn_info "GPU RENDERING NO FORZADO: Algunas apps usan CPU para renderizar"
-    info "  → Solución: Forzando GPU rendering..."
-    adb shell settings put global force_gpu_rendering 1 2>/dev/null
-    adb shell settings put global force_msaa 1 2>/dev/null
-    good "  → GPU rendering forzado"
-    FIXES_APPLIED=$((FIXES_APPLIED + 1))
+    info "  → Solución: Ejecutá un perfil de optimización para forzar GPU"
     PROBLEMS=$((PROBLEMS + 1))
 else
     good "GPU rendering forzado"
@@ -548,10 +508,7 @@ fi
 # --- Check 8: Cache grande ---
 if [ -n "$CACHE_MB" ] && [ "$CACHE_MB" -gt 2000 ]; then
     problem "CACHE GRANDE (${CACHE_MB}MB): Ocupa espacio y puede ralentizar"
-    info "  → Solución: Limpiando cache..."
-    adb shell pm trim-caches 512M 2>/dev/null
-    good "  → Cache parcialmente limpiada"
-    FIXES_APPLIED=$((FIXES_APPLIED + 1))
+    info "  → Solución: Ejecutá ./mantenimiento.sh para limpiar cache"
     PROBLEMS=$((PROBLEMS + 1))
 else
     good "Cache tamaño OK (${CACHE_MB:-?}MB)"
@@ -560,10 +517,7 @@ fi
 # --- Check 9: Muchos procesos ---
 if [ "$RUNNING_PROCS" -gt 400 ]; then
     problem "MUCHOS PROCESOS ($RUNNING_PROCS): Consume RAM y CPU"
-    info "  → Solución: Cerrando apps en segundo plano..."
-    adb shell am kill-all 2>/dev/null
-    good "  → Procesos en segundo plano cerrados"
-    FIXES_APPLIED=$((FIXES_APPLIED + 1))
+    info "  → Solución: Cerrá apps manualmente o ejecutá un perfil de optimización"
     PROBLEMS=$((PROBLEMS + 1))
 else
     good "Procesos OK ($RUNNING_PROCS)"
@@ -608,15 +562,10 @@ echo ""
 
 echo "  ──── Problemas encontrados ────"
 echo "  🔴 Problemas:     $PROBLEMS"
-echo "  🔧 Fixes aplicados: $FIXES_APPLIED"
 echo ""
 
 if [ "$PROBLEMS" -eq 0 ]; then
     echo -e "  ${GREEN}🏆 ¡TELÉFONO PERFECTAMENTE OPTIMIZADO!${NC}"
-elif [ "$FIXES_APPLIED" -ge "$PROBLEMS" ]; then
-    echo -e "  ${GREEN}✅ Se encontraron $PROBLEMS problemas y se corrigieron automáticamente${NC}"
-elif [ "$FIXES_APPLIED" -gt 0 ]; then
-    echo -e "  ${YELLOW}⚠️  Se corrigieron $FIXES_APPLIED de $PROBLEMS problemas. Ejecutá un perfil para el resto.${NC}"
 else
     echo -e "  ${RED}🔴 Se encontraron $PROBLEMS problemas. Ejecutá un perfil de optimización.${NC}"
 fi
@@ -639,6 +588,5 @@ echo ""
     echo "  Apps: $TOTAL_APPS total, $DISABLED_APPS desactivadas"
     echo "  Procesos: $RUNNING_PROCS"
     echo "  Problemas: $PROBLEMS"
-    echo "  Fixes aplicados: $FIXES_APPLIED"
     echo "════════════════════════════════════════════"
 } >> "$REPORT_FILE"

@@ -23,3 +23,9 @@ backups/
 # Internal/test files
 PROMPT.md
 test-resultados.txt
+
+# Gaming resolution backup
+.gaming-resolution-backup
+
+# GitHub Pages build output
+_site/

@@ -6,7 +6,7 @@ Dos formas de usar: scripts locales (recomendado) o app web.
 
 Este proyecto prioriza la seguridad de tu dispositivo:
 
-- **Thermal management**: ya NO se desactiva por default. Solo se desactiva con el flag `--no-thermal` y un warning explícito. Esto evita sobrecalentamientos peligrosos.
+- **Thermal management**: ya NO se desactiva por default. Solo se desactiva con el flag `--no-thermal` y requiere escribir `SI_ESTOY_SEGURO` explícitamente. Esto evita sobrecalentamientos peligrosos.
 - **Validación de modelo**: antes de ejecutar cualquier optimización, se verifica que el dispositivo sea Xiaomi/Redmi/POCO. Si no lo es, se advierte y se pide confirmación.
 - **Check de temperatura**: si el dispositivo está a más de 40°C, el script aborta automáticamente para evitar daños.
 - **Modo dry-run**: podés probar qué haría el mega-optimizer sin aplicar nada real con `./mega-optimizer.sh --dry-run`.
@@ -67,7 +67,7 @@ La forma más rápida de optimizar el teléfono. Ejecuta 12 pasos automáticamen
 
 ### Restaurar todo a fábrica:
 
-./mega-restaurar.sh
+./emergencia.sh
 
 # Menú interactivo (flujo guiado)
 ./optimizer.sh
@@ -130,33 +130,33 @@ WiFi, señal, scanning, roaming, DNS
 Animaciones, GPU, resolución, DPI, SELinux
 
 10. Diagnóstico
-Identifica qué ralentiza y lo corrige automáticamente
+Identifica qué ralentiza y sugiere soluciones
 
-El benchmark detecta y corrige automáticamente:
+El benchmark detecta problemas y sugiere soluciones (sin modificar el sistema):
 
 Problema
-Auto-fix
+Sugerencia
 
 RAM alta (>80%)
-Cierra apps pesadas
+Ejecutá un perfil o cerrá apps
 
 Almacenamiento lleno (>85%)
-Limpia cache
+Limpiá cache con mantenimiento
 
 WiFi scanning activo
-Lo desactiva
+Desactivalo con un perfil
 
 Animaciones por defecto (1x)
-Ajusta a 0.5x
+Ajustá con un perfil
 
 GPU no forzada
-La fuerza
+Forzá con un perfil
 
 Cache grande (>2GB)
-Limpia parcialmente
+Limpiá con mantenimiento
 
 Muchos procesos (>400)
-Cierra apps en segundo plano
+Cerrá apps en segundo plano
 
 Perfil
 Animaciones
@@ -233,7 +233,7 @@ python3 -m http.server 8000
 optimizer.sh ← Menú principal (flujo guiado)
 mega-optimizer.sh ← 🔥 Mega optimizer (todo en uno)
 mega-verificar.sh ← 🔍 Verificar optimizaciones
-mega-restaurar.sh ← 🚨 Restaurar a fábrica
+config.sh ← ⚙️ Configuración compartida
 fix-cam-whatsapp.sh ← 📸💬 Fix cámara + WhatsApp
 benchmark.sh ← Benchmark completo
 test-verificacion.sh ← Test post-optimización
@@ -249,6 +249,10 @@ rescue.sh ← Sistema de rescue points
 mantenimiento.sh ← Limpieza mensual
 diagnostico.sh ← Estado del sistema
 emergencia.sh ← Restaurar todo
+rapido.sh ← Reparación rápida
+ruta-optima.sh ← Ruta óptima autónoma
+log-apply.sh ← Log de perfiles aplicados
+LICENSE ← Licencia MIT
 TUTORIAL.md ← Tutorial paso a paso
 
 index.html ← App web
