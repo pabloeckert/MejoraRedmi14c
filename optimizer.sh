@@ -215,20 +215,23 @@ show_menu() {
     echo "║    10) 🔋 Batería (ahorro)                ║"
     echo "║    11) 🎮 Gaming (máximo rendimiento)     ║"
     echo "║                                           ║"
+    echo "║   📸💬 Fix apps específicas:               ║"
+    echo "║    12) 📸💬 Fix Cámara + WhatsApp         ║"
+    echo "║                                           ║"
     echo "║   ⚡ Optimización avanzada:               ║"
-    echo "║    12) 🧈 Fluidez (baseline profiles)     ║"
-    echo "║    13) 🌐 Tweaks de red                   ║"
-    echo "║    14) 💾 Tweaks de memoria               ║"
+    echo "║    13) 🧈 Fluidez (baseline profiles)     ║"
+    echo "║    14) 🌐 Tweaks de red                   ║"
+    echo "║    15) 💾 Tweaks de memoria               ║"
     echo "║                                           ║"
     echo "║   🔧 Herramientas:                        ║"
-    echo "║    15) 🔧 Mantenimiento                   ║"
-    echo "║    16) 🔍 Diagnóstico detallado            ║"
-    echo "║    17) 💾 Rescue Points                   ║"
-    echo "║    18) 🧪 Test de verificación             ║"
-    echo "║    19) 🔧 Reparación rápida               ║"
+    echo "║    16) 🔧 Mantenimiento                   ║"
+    echo "║    17) 🔍 Diagnóstico detallado            ║"
+    echo "║    18) 💾 Rescue Points                   ║"
+    echo "║    19) 🧪 Test de verificación             ║"
+    echo "║    20) 🔧 Reparación rápida               ║"
     echo "║                                           ║"
     echo "║   🚨 Emergencia:                          ║"
-    echo "║    20) 🚨 Restaurar todo (emergencia)     ║"
+    echo "║    21) 🚨 Restaurar todo (emergencia)     ║"
     echo "║                                           ║"
     echo "║     r) 🔄 Reconectar dispositivo          ║"
     echo "║     0) Salir                              ║"
@@ -293,15 +296,16 @@ while true; do
         9) bash "$SCRIPT_DIR/perfil-equilibrado.sh" ;;
        10) bash "$SCRIPT_DIR/perfil-bateria.sh" ;;
        11) bash "$SCRIPT_DIR/perfil-gaming.sh" ;;
-       12) bash "$SCRIPT_DIR/tweaks-smooth.sh" ;;
-       13) bash "$SCRIPT_DIR/tweaks-red.sh" ;;
-       14) bash "$SCRIPT_DIR/tweaks-memoria.sh" ;;
-       15) bash "$SCRIPT_DIR/mantenimiento.sh" ;;
-       16) bash "$SCRIPT_DIR/diagnostico.sh" ;;
-       17) bash "$SCRIPT_DIR/rescue.sh" ;;
-       18) bash "$SCRIPT_DIR/test-verificacion.sh" ;;
-       19) bash "$SCRIPT_DIR/rapido.sh" ;;
-       20) bash "$SCRIPT_DIR/emergencia.sh" ;;
+       12) bash "$SCRIPT_DIR/fix-cam-whatsapp.sh" ;;
+       13) bash "$SCRIPT_DIR/tweaks-smooth.sh" ;;
+       14) bash "$SCRIPT_DIR/tweaks-red.sh" ;;
+       15) bash "$SCRIPT_DIR/tweaks-memoria.sh" ;;
+       16) bash "$SCRIPT_DIR/mantenimiento.sh" ;;
+       17) bash "$SCRIPT_DIR/diagnostico.sh" ;;
+       18) bash "$SCRIPT_DIR/rescue.sh" ;;
+       19) bash "$SCRIPT_DIR/test-verificacion.sh" ;;
+       20) bash "$SCRIPT_DIR/rapido.sh" ;;
+       21) bash "$SCRIPT_DIR/emergencia.sh" ;;
         r|R) connect_device ;;
         0) echo "  ¡Chau! 👋"; exit 0 ;;
         *) echo -e "  ${RED}❌ Opción no válida${NC}" ;;

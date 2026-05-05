@@ -69,6 +69,9 @@ La forma más rápida de optimizar el teléfono. Ejecuta 12 pasos automáticamen
 ./perfil-bateria.sh # 🔋 Ahorro de batería
 ./perfil-gaming.sh # 🎮 Máximo rendimiento para gaming
 
+# Fix apps específicas:
+./fix-cam-whatsapp.sh # 📸💬 Fix cámara lenta + WhatsApp lento
+
 # Optimización avanzada:
 ./tweaks-smooth.sh # 🧈 Baseline profiles + dexopt
 ./tweaks-red.sh # 🌐 DNS, TCP, WiFi
@@ -218,6 +221,7 @@ optimizer.sh ← Menú principal (flujo guiado)
 mega-optimizer.sh ← 🔥 Mega optimizer (todo en uno)
 mega-verificar.sh ← 🔍 Verificar optimizaciones
 mega-restaurar.sh ← 🚨 Restaurar a fábrica
+fix-cam-whatsapp.sh ← 📸💬 Fix cámara + WhatsApp
 benchmark.sh ← Benchmark completo
 test-verificacion.sh ← Test post-optimización
 perfil-rendimiento.sh ← Perfil agresivo
