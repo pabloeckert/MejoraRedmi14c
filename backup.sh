@@ -21,7 +21,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo ""
-echo "💾 BACKUP GENERAL — MejoraRedmi14c v3.0"
+echo "💾 BACKUP GENERAL — MejoraRedmi14c v$VERSION"
 echo "════════════════════════════════════════════"
 echo ""
 

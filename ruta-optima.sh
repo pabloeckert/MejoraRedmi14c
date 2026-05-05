@@ -30,7 +30,7 @@ NC='\033[0m'
 
 echo ""
 echo -e "${BOLD}╔═══════════════════════════════════════════════════╗${NC}"
-echo -e "${BOLD}║  🛤️  RUTA ÓPTIMA AUTÓNOMA — MejoraRedmi14c v3.0  ║${NC}"
+echo -e "${BOLD}║  🛤️  RUTA ÓPTIMA AUTÓNOMA — MejoraRedmi14c v$VERSION  ║${NC}"
 echo -e "${BOLD}║  Tu teléfono, optimizado sin que hagas nada       ║${NC}"
 echo -e "${BOLD}╚═══════════════════════════════════════════════════╝${NC}"
 echo ""
