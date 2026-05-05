@@ -34,6 +34,7 @@ Dos formas de usar: **scripts locales** (recomendado) o **app web**.
 ./diagnostico.sh           # 🔍 Estado completo del dispositivo
 ./mantenimiento.sh         # 🔧 Limpieza periódica
 ./rescue.sh                # 💾 Sistema de rescue points
+./test-verificacion.sh     # 🧪 Verificar que todo se aplicó bien
 ./emergencia.sh            # 🚨 Restaurar TODO
 ```
 
@@ -215,6 +216,7 @@ tweaks-red.sh             ← Optimización de red (nuevo!)
 tweaks-memoria.sh         ← Optimización de memoria (nuevo!)
 bloatware-db.sh           ← Base de datos de bloatware (nuevo!)
 rescue.sh                 ← Sistema de rescue points (nuevo!)
+test-verificacion.sh      ← Test post-optimización (nuevo!)
 mantenimiento.sh          ← Limpieza mensual
 diagnostico.sh            ← Estado del sistema
 emergencia.sh             ← Restaurar todo
