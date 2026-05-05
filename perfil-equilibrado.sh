@@ -1,14 +1,18 @@
 #!/bin/bash
-# ═══════════════════════════════════════════
-#  Phone Optimizer v2.1 — Perfil EQUILIBRADO
+# ═══════════════════════════════════════════════════════════════
+#  Perfil EQUILIBRADO — MejoraRedmi14c v3.0
 #  Para: uso diario sin perder funciones
-#  Animaciones 0.5x + GPU + solo 3 apps seguras
-# ═══════════════════════════════════════════
+#  Animaciones 0.5x + GPU + 10 apps seguras
+# ═══════════════════════════════════════════════════════════════
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/bloatware-db.sh"
+source "$SCRIPT_DIR/rescue.sh"
+
 echo ""
-echo "📱 PERFIL EQUILIBRADO — Phone Optimizer v2.1"
+echo "📱 PERFIL EQUILIBRADO — MejoraRedmi14c v3.0"
 echo "════════════════════════════════════════════"
 echo ""
 
@@ -23,51 +27,56 @@ ANDROID=$(adb shell getprop ro.build.version.release 2>/dev/null | tr -d '\r')
 echo "📱 Dispositivo: $DEVICE (Android $ANDROID)"
 echo ""
 
+# ─── GUARDAR RESCUE POINT ───
+echo "💾 Creando rescue point..."
+RESCUE_NAME="pre-equilibrado_$(date +%Y%m%d_%H%M%S)"
+create_rescue_point "$RESCUE_NAME" > /dev/null
+echo "   ✅ Rescue point '$RESCUE_NAME' creado"
+echo ""
+
 # ─── 1. ANIMACIONES ───
-echo "[1/4] 💨 Animaciones rápidas (0.5x)..."
+echo "[1/5] 💨 Animaciones rápidas (0.5x)..."
 adb shell settings put global window_animation_scale 0.5
 adb shell settings put global transition_animation_scale 0.5
 adb shell settings put global animator_duration_scale 0.5
 echo "      ✅ Animaciones ajustadas"
 
 # ─── 2. GPU ───
-echo "[2/4] 🎨 Forzando renderizado GPU..."
+echo "[2/5] 🎨 Forzando renderizado GPU..."
 adb shell settings put global force_gpu_rendering 1
 adb shell settings put global force_msaa 1
 echo "      ✅ GPU rendering activado"
 
 # ─── 3. BLOATWARE (solo 100% seguro) ───
-echo "[3/4] 🧹 Desactivando bloatware seguro..."
-BLOAT=(
-    "com.miui.analytics"
-    "com.miui.msa.global"
-    "com.xiaomi.glgm"
-)
-
-DISABLED=0
-for PKG in "${BLOAT[@]}"; do
-    OUT=$(adb shell pm disable-user --user 0 "$PKG" 2>&1)
-    if echo "$OUT" | grep -q "disabled\|Success"; then
-        DISABLED=$((DISABLED + 1))
-    fi
-done
-echo "      ✅ $DISABLED apps desactivadas"
+echo "[3/5] 🧹 Desactivando bloatware seguro..."
+RESULT=$(disable_packages EQUILIBRADO_BLOAT)
+DISABLED=$(echo "$RESULT" | awk '{print $1}')
+ALREADY=$(echo "$RESULT" | awk '{print $2}')
+NOTFOUND=$(echo "$RESULT" | awk '{print $3}')
+echo "      ✅ $DISABLED apps desactivadas ($ALREADY ya estaban, $NOTFOUND no encontradas)"
 
 # ─── 4. CACHE LIGERA ───
-echo "[4/4] 🗑️  Limpiando cache (segura)..."
+echo "[4/5] 🗑️  Cache ligera..."
 adb shell pm trim-caches 256M 2>/dev/null
 adb shell "rm -rf /sdcard/DCIM/.thumbnails/*" 2>/dev/null
 echo "      ✅ Cache limpiada"
+
+# ─── 5. RED ───
+echo "[5/5] 🌐 Optimizando red..."
+adb shell settings put global wifi_scan_always_enabled 0 2>/dev/null
+echo "      ✅ WiFi scanning desactivado"
 
 echo ""
 echo "════════════════════════════════════════════"
 echo "📱 ¡PERFIL EQUILIBRADO APLICADO!"
 echo "════════════════════════════════════════════"
 echo ""
-echo "   Animaciones: 0.5x"
-echo "   GPU:         Forzada"
-echo "   Bloatware:   Solo $DISABLED apps (seguras)"
-echo "   Cache:       Ligera"
+echo "   Animaciones:  0.5x"
+echo "   GPU:          Forzada"
+echo "   Bloatware:    $DISABLED apps (seguras)"
+echo "   Cache:        Ligera"
+echo "   Red:          WiFi scanning desactivado"
 echo ""
-echo "   Para revertir: ./emergencia.sh"
+echo "   💾 Rescue point: $RESCUE_NAME"
+echo "   Para revertir: ./emergencia.sh o ./rescue.sh"
 echo ""
