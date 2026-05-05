@@ -271,6 +271,18 @@ show_menu() {
     echo "║  20) 🔧 Reparación rápida                                         ║"
     echo "║       → Arregla problemas comunes sin restaurar todo              ║"
     echo "║                                                                   ║"
+    echo "║  🚀📸💬 Turbo:                                                     ║"
+    echo "║  22) 🚀📸💬 WhatsApp + Cámara ULTRA RÁPIDOS                       ║"
+    echo "║       → speed compile + pre-calentado + memoria optimizada        ║"
+    echo "║  23) ⚡ Boot más rápido                                           ║"
+    echo "║       → Desactiva boot receivers + dexopt apps críticas           ║"
+    echo "║  24) ⏱️  Medir tiempo de arranque                                  ║"
+    echo "║       → Compara antes/después del reboot                          ║"
+    echo "║                                                                   ║"
+    echo "║  🚀 Todo en uno:                                                  ║"
+    echo "║  25) 🚀 OPTIMIZACIÓN COMPLETA + LOG + REBOOT                     ║"
+    echo "║       → Ejecuta TODO: mega + turbo + verificar + log + reinicio  ║"
+    echo "║                                                                   ║"
     echo "║  🚨 Emergencia:                                                   ║"
     echo "║  21) 🚨 Restaurar todo (emergencia)                               ║"
     echo "║       → Último recurso: revierte TODO como si nada hubiera        ║"
@@ -349,6 +361,19 @@ while true; do
        19) bash "$SCRIPT_DIR/test-verificacion.sh" ;;
        20) bash "$SCRIPT_DIR/rapido.sh" ;;
        21) bash "$SCRIPT_DIR/emergencia.sh" ;;
+       22) bash "$SCRIPT_DIR/turbo-apps.sh" ;;
+       23) bash "$SCRIPT_DIR/optimize-boot.sh" ;;
+       24) bash "$SCRIPT_DIR/measure-boot.sh" ;;
+       25)
+            echo -e "  ${BOLD}🚀 OPTIMIZACIÓN COMPLETA${NC}"
+            echo "     Esto va a ejecutar: mega-optimizer + turbo-apps + verificar"
+            echo "     Genera log en ./logs/ y reinicia el teléfono automáticamente."
+            echo ""
+            read -p "  ¿Ejecutar optimización completa? [S/n]: " CONFIRM_FULL
+            if [ "$CONFIRM_FULL" != "n" ] && [ "$CONFIRM_FULL" != "N" ]; then
+                bash "$SCRIPT_DIR/run-optimize.sh"
+            fi
+            ;;
         r|R) connect_device ;;
         0) echo "  ¡Chau! 👋"; exit 0 ;;
         *) echo -e "  ${RED}❌ Opción no válida${NC}" ;;
