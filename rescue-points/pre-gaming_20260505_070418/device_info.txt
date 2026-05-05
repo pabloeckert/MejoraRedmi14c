@@ -1,0 +1,7 @@
+model=2409BRN2CL
+manufacturer=Xiaomi
+android=16
+sdk=36
+build=BP2A.250605.031.A3
+hyperos=OS3.0
+timestamp=2026-05-05T07:04:19-03:00
