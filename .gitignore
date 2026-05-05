@@ -8,3 +8,14 @@ logs/*.json
 !logs/.gitkeep
 .env
 !installer/
+
+# Benchmark results (generated at runtime)
+benchmark_antes_*.txt
+benchmark_despues_*.txt
+
+# Rescue points (contain device-specific data)
+rescue-points/*/
+!rescue-points/.gitkeep
+
+# Backups (contain device-specific data)
+backups/

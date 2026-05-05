@@ -1,2 +1,0 @@
-size=Physical size: 720x1640
-density=Physical density: 320

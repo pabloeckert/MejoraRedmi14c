@@ -1,7 +1,0 @@
-# Renderizado
-hwui=
-renderthread=
-
-# Memoria
-dalvik_heap=512m
-dalvik_growth=256m

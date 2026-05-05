@@ -193,30 +193,36 @@ show_menu() {
     echo "║                                           ║"
     echo "╠═══════════════════════════════════════════╣"
     echo "║                                           ║"
+    echo "║   💾 Backup:                              ║"
+    echo "║     1) 💾 Backup general local             ║"
+    echo "║                                           ║"
+    echo "║   🛤️  Ruta autónoma:                       ║"
+    echo "║     2) 🛤️  Ruta óptima automática          ║"
+    echo "║                                           ║"
     echo "║   📊 Benchmark:                           ║"
-    echo "║     1) 🔍 Benchmark ANTES (diagnóstico)   ║"
-    echo "║     2) 🔍 Benchmark DESPUÉS (verificar)   ║"
+    echo "║     3) 🔍 Benchmark ANTES (diagnóstico)   ║"
+    echo "║     4) 🔍 Benchmark DESPUÉS (verificar)   ║"
     echo "║                                           ║"
     echo "║   🚀 Perfiles de optimización:            ║"
-    echo "║     3) 🚀 Rendimiento (agresivo)          ║"
-    echo "║     4) 📱 Equilibrado (recomendado)       ║"
-    echo "║     5) 🔋 Batería (ahorro)                ║"
-    echo "║     6) 🎮 Gaming (máximo rendimiento)     ║"
+    echo "║     5) 🚀 Rendimiento (agresivo)          ║"
+    echo "║     6) 📱 Equilibrado (recomendado)       ║"
+    echo "║     7) 🔋 Batería (ahorro)                ║"
+    echo "║     8) 🎮 Gaming (máximo rendimiento)     ║"
     echo "║                                           ║"
     echo "║   ⚡ Optimización avanzada:               ║"
-    echo "║     7) 🧈 Fluidez (baseline profiles)     ║"
-    echo "║     8) 🌐 Tweaks de red                   ║"
-    echo "║     9) 💾 Tweaks de memoria               ║"
+    echo "║     9) 🧈 Fluidez (baseline profiles)     ║"
+    echo "║    10) 🌐 Tweaks de red                   ║"
+    echo "║    11) 💾 Tweaks de memoria               ║"
     echo "║                                           ║"
     echo "║   🔧 Herramientas:                        ║"
-    echo "║    10) 🔧 Mantenimiento                   ║"
-    echo "║    11) 🔍 Diagnóstico detallado            ║"
-    echo "║    12) 💾 Rescue Points                   ║"
-    echo "║    13) 🧪 Test de verificación             ║"
-    echo "║    14) 🔧 Reparación rápida               ║"
+    echo "║    12) 🔧 Mantenimiento                   ║"
+    echo "║    13) 🔍 Diagnóstico detallado            ║"
+    echo "║    14) 💾 Rescue Points                   ║"
+    echo "║    15) 🧪 Test de verificación             ║"
+    echo "║    16) 🔧 Reparación rápida               ║"
     echo "║                                           ║"
     echo "║   🚨 Emergencia:                          ║"
-    echo "║    15) 🚨 Restaurar todo                  ║"
+    echo "║    17) 🚨 Restaurar todo                  ║"
     echo "║                                           ║"
     echo "║     r) 🔄 Reconectar dispositivo          ║"
     echo "║     0) Salir                              ║"
@@ -264,21 +270,23 @@ while true; do
     fi
 
     case $CHOICE in
-        1) run_benchmark "antes" ;;
-        2) run_benchmark "despues" ;;
-        3) bash "$SCRIPT_DIR/perfil-rendimiento.sh" ;;
-        4) bash "$SCRIPT_DIR/perfil-equilibrado.sh" ;;
-        5) bash "$SCRIPT_DIR/perfil-bateria.sh" ;;
-        6) bash "$SCRIPT_DIR/perfil-gaming.sh" ;;
-        7) bash "$SCRIPT_DIR/tweaks-smooth.sh" ;;
-        8) bash "$SCRIPT_DIR/tweaks-red.sh" ;;
-        9) bash "$SCRIPT_DIR/tweaks-memoria.sh" ;;
-       10) bash "$SCRIPT_DIR/mantenimiento.sh" ;;
-       11) bash "$SCRIPT_DIR/diagnostico.sh" ;;
-       12) bash "$SCRIPT_DIR/rescue.sh" ;;
-       13) bash "$SCRIPT_DIR/test-verificacion.sh" ;;
-       14) bash "$SCRIPT_DIR/rapido.sh" ;;
-       15) bash "$SCRIPT_DIR/emergencia.sh" ;;
+        1) bash "$SCRIPT_DIR/backup.sh" ;;
+        2) bash "$SCRIPT_DIR/ruta-optima.sh" ;;
+        3) run_benchmark "antes" ;;
+        4) run_benchmark "despues" ;;
+        5) bash "$SCRIPT_DIR/perfil-rendimiento.sh" ;;
+        6) bash "$SCRIPT_DIR/perfil-equilibrado.sh" ;;
+        7) bash "$SCRIPT_DIR/perfil-bateria.sh" ;;
+        8) bash "$SCRIPT_DIR/perfil-gaming.sh" ;;
+        9) bash "$SCRIPT_DIR/tweaks-smooth.sh" ;;
+       10) bash "$SCRIPT_DIR/tweaks-red.sh" ;;
+       11) bash "$SCRIPT_DIR/tweaks-memoria.sh" ;;
+       12) bash "$SCRIPT_DIR/mantenimiento.sh" ;;
+       13) bash "$SCRIPT_DIR/diagnostico.sh" ;;
+       14) bash "$SCRIPT_DIR/rescue.sh" ;;
+       15) bash "$SCRIPT_DIR/test-verificacion.sh" ;;
+       16) bash "$SCRIPT_DIR/rapido.sh" ;;
+       17) bash "$SCRIPT_DIR/emergencia.sh" ;;
         r|R) connect_device ;;
         0) echo "  ¡Chau! 👋"; exit 0 ;;
         *) echo "  ❌ Opción no válida" ;;

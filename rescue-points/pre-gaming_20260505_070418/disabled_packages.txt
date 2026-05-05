@@ -1,5 +1,0 @@
-com.android.nfc
-com.android.virtualization.terminal
-com.google.android.devicelockcontroller
-com.google.android.gms.supervision
-com.miui.weather2

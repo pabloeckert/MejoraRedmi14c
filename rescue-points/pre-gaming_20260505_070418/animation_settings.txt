@@ -1,3 +1,0 @@
-window_animation=0.3
-transition_animation=0.3
-animator_duration=0.3
