@@ -59,7 +59,7 @@ SYSTEM_APPS=(
 echo "      Compilando apps del sistema..."
 for APP in "${SYSTEM_APPS[@]}"; do
     TOTAL=$((TOTAL + 1))
-    OUT=$(adb shell cmd package compile -m speed-profile -f "$APP" 2>&1)
+    OUT=$(adb shell cmd package compile -m everything-profile -f "$APP" 2>&1)
     if [ $? -eq 0 ]; then
         COMPILED=$((COMPILED + 1))
         echo "        ✅ $APP"
@@ -77,12 +77,18 @@ THIRD_TOTAL=0
 
 for APP in $USER_APPS; do
     THIRD_TOTAL=$((THIRD_TOTAL + 1))
-    adb shell cmd package compile -m speed-profile -f "$APP" 2>/dev/null
+    adb shell cmd package compile -m everything-profile -f "$APP" 2>/dev/null
     if [ $? -eq 0 ]; then
         THIRD_COMPILED=$((THIRD_COMPILED + 1))
     fi
 done
 echo "      ✅ $THIRD_COMPILED/$THIRD_TOTAL apps de terceros compiladas"
+
+# Forzar bg-dexopt job para que Android no recompile por su cuenta
+echo ""
+echo "      Forzando dexopt en background..."
+adb shell pm bg-dexopt-job 2>/dev/null
+echo "      ✅ bg-dexopt job ejecutado"
 
 # ─── 4. VERIFICACIÓN ───
 echo "[4/4] 🔍 Verificando optimización..."
@@ -98,7 +104,7 @@ echo ""
 echo "   Animaciones:  0.5x (sedosas)"
 echo "   GPU:          Forzada + Vulkan"
 echo "   Profiles:     Baseline compilados"
-echo "   Dexopt:       Speed-profile aplicado"
+echo "   Dexopt:       Everything-profile aplicado"
 echo ""
 echo "   ⚠️  Reiniciá el teléfono para mejores resultados"
 echo ""

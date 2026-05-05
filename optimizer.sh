@@ -213,9 +213,10 @@ show_menu() {
     echo "║    11) 🔍 Diagnóstico detallado            ║"
     echo "║    12) 💾 Rescue Points                   ║"
     echo "║    13) 🧪 Test de verificación             ║"
+    echo "║    14) 🔧 Reparación rápida               ║"
     echo "║                                           ║"
     echo "║   🚨 Emergencia:                          ║"
-    echo "║    14) 🚨 Restaurar todo                  ║"
+    echo "║    15) 🚨 Restaurar todo                  ║"
     echo "║                                           ║"
     echo "║     r) 🔄 Reconectar dispositivo          ║"
     echo "║     0) Salir                              ║"
@@ -276,7 +277,8 @@ while true; do
        11) bash "$SCRIPT_DIR/diagnostico.sh" ;;
        12) bash "$SCRIPT_DIR/rescue.sh" ;;
        13) bash "$SCRIPT_DIR/test-verificacion.sh" ;;
-       14) bash "$SCRIPT_DIR/emergencia.sh" ;;
+       14) bash "$SCRIPT_DIR/rapido.sh" ;;
+       15) bash "$SCRIPT_DIR/emergencia.sh" ;;
         r|R) connect_device ;;
         0) echo "  ¡Chau! 👋"; exit 0 ;;
         *) echo "  ❌ Opción no válida" ;;

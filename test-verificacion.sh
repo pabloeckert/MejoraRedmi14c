@@ -99,6 +99,32 @@ fi
 echo ""
 
 # ═══════════════════════════════════════════════
+#  SECCIÓN 2.5: RESOLUCIÓN
+# ═══════════════════════════════════════════════
+echo "╔═══════════════════════════════════════════╗"
+echo "║  2.5 RESOLUCIÓN / DPI                      ║"
+echo "╚═══════════════════════════════════════════╝"
+
+OVERRIDE_SIZE=$(adb shell wm size 2>/dev/null | grep "Override size:" | grep -o '[0-9]*x[0-9]*')
+OVERRIDE_DPI=$(adb shell wm density 2>/dev/null | grep "Override density:" | grep -o '[0-9]*')
+
+if [ -n "$OVERRIDE_SIZE" ]; then
+    fail "Resolución alterada: override $OVERRIDE_SIZE (puede causar pantalla en rectángulo)"
+else
+    PHYSICAL_SIZE=$(adb shell wm size 2>/dev/null | grep "Physical size:" | grep -o '[0-9]*x[0-9]*')
+    pass "Resolución nativa: $PHYSICAL_SIZE (sin override)"
+fi
+
+if [ -n "$OVERRIDE_DPI" ]; then
+    fail "DPI alterado: override $OVERRIDE_DPI (puede causar iconos gigantes)"
+else
+    PHYSICAL_DPI=$(adb shell wm density 2>/dev/null | grep "Physical density:" | grep -o '[0-9]*')
+    pass "DPI nativo: ${PHYSICAL_DPI} (sin override)"
+fi
+
+echo ""
+
+# ═══════════════════════════════════════════════
 #  SECCIÓN 3: BLOATWARE
 # ═══════════════════════════════════════════════
 echo "╔═══════════════════════════════════════════╗"

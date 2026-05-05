@@ -6,6 +6,7 @@
 #
 #  Reduce resolución + GPU + memoria + kill apps para gaming
 #  ⚠️  La reducción de resolución puede causar iconos grandes
+#  ✅  Ahora restaura resolución automáticamente al salir
 # ═══════════════════════════════════════════════════════════════
 
 set -e
@@ -13,6 +14,22 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/bloatware-db.sh"
 source "$SCRIPT_DIR/rescue.sh"
+
+# ─── GUARDAR RESOLUCIÓN ORIGINAL ───
+ORIGINAL_SIZE=$(adb shell wm size 2>/dev/null | grep "Physical size:" | grep -o '[0-9]*x[0-9]*')
+ORIGINAL_DPI=$(adb shell wm density 2>/dev/null | grep "Physical density:" | grep -o '[0-9]*')
+
+# ─── RESTAURAR RESOLUCIÓN AL SALIR ───
+restore_resolution() {
+    echo ""
+    echo "🔄 Restaurando resolución original..."
+    adb shell wm size reset 2>/dev/null
+    adb shell wm density reset 2>/dev/null
+    echo "✅ Resolución restaurada a ${ORIGINAL_SIZE} @ ${ORIGINAL_DPI}dpi"
+}
+
+# Trap: restaurar resolución si el usuario interrumpe (Ctrl+C) o si termina normal
+trap restore_resolution EXIT
 
 echo ""
 echo "🎮 PERFIL GAMING — MejoraRedmi14c"
@@ -50,7 +67,7 @@ echo "      Resolución actual: $CURRENT_SIZE @ ${CURRENT_DPI}dpi"
 adb shell wm size 1280x576 2>/dev/null
 adb shell wm density 280 2>/dev/null
 echo "      ✅ Resolución reducida a 1280x576 @ 280dpi"
-echo "      ⚠️  Los iconos pueden verse más grandes (normal)"
+echo "      ℹ️  Se restaurará automáticamente al salir del script"
 echo ""
 
 # ─── 2. ANIMACIONES MÍNIMAS ───
@@ -141,6 +158,8 @@ echo ""
 echo "   💾 Rescue point: $RESCUE_NAME"
 echo "   Para revertir: ./emergencia.sh o ./rescue.sh"
 echo ""
-echo "   ⚠️  Reiniciá el teléfono después de la sesión de gaming"
-echo "      para restaurar la resolución normal."
+echo "   ℹ️  La resolución se restaurará automáticamente"
+echo "      cuando salgas de este script (Enter o Ctrl+C)"
 echo ""
+echo "   Presioná Enter para restaurar resolución y salir..."
+read -p "  "
