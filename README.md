@@ -39,6 +39,54 @@ El script:
 
 - Depurión USB activada en el teléfono
 
+# 🚀 TODO EN UNO (recomendado)
+
+La forma más completa: ejecuta mega-optimizer + turbo apps + verificación + log + reinicio automático:
+
+    ./run-optimize.sh
+
+Opciones:
+- `--dry-run` → Ver qué haría sin aplicar
+- `--no-reboot` → No reiniciar al terminar
+- `--no-thermal` → Desactivar thermal management
+- `--no-turbo` → Saltar WhatsApp + cámara turbo
+
+Los logs se guardan automáticamente en `./logs/`.
+
+# 📸💬 WhatsApp + Cámara ULTRA RÁPIDOS
+
+Versión mejorada de fix-cam-whatsapp.sh con optimizaciones adicionales:
+
+    ./turbo-apps.sh
+
+Qué hace:
+- Compila WhatsApp y cámara con modo `speed` (NO speed-profile) → arranque instantáneo
+- Pre-calienta la cámara (clases ya cargadas en memoria)
+- Pre-carga WhatsApp en memoria (no se recarga al volver)
+- Optimiza base de datos de WhatsApp
+- Limpia thumbnails masivos de cámara
+- Compila share sheet, contactos y teclado
+- Desactiva AI scene detection y watermark de cámara
+- Ajusta memoria para que no maten apps
+
+# ⚡ Boot Más Rápido
+
+Para acelerar el tiempo de encendido:
+
+    ./optimize-boot.sh
+
+Qué hace:
+- Desactiva ~30 apps con boot receivers innecesarios
+- Limpia cache de arranque
+- dexopt de apps críticas del sistema (SystemUI, Home, Settings...)
+- Optimiza servicios que compiten al inicio
+
+### Medir diferencia:
+
+    ./measure-boot.sh     # Ejecutar ANTES
+    # ... optimizar y rebootear ...
+    ./measure-boot.sh     # Ejecutar DESPUÉS
+
 # 🔥 Mega Optimizer (TODO EN UNO)
 
 La forma más rápida de optimizar el teléfono. Ejecuta 12 pasos automáticamente:
@@ -83,12 +131,18 @@ La forma más rápida de optimizar el teléfono. Ejecuta 12 pasos automáticamen
 ./perfil-gaming.sh # 🎮 Máximo rendimiento para gaming
 
 # Fix apps específicas:
-./fix-cam-whatsapp.sh # 📸💬 Fix cámara lenta + WhatsApp lento
+./fix-cam-whatsapp.sh     # 📸💬 Fix cámara lenta + WhatsApp lento
+./turbo-apps.sh           # 🚀📸💬 WhatsApp + Cámara ULTRA RÁPIDOS (mejorado)
 
 # Optimización avanzada:
-./tweaks-smooth.sh # 🧈 Baseline profiles + dexopt
-./tweaks-red.sh # 🌐 DNS, TCP, WiFi
-./tweaks-memoria.sh # 💾 RAM, Dalvik, HWUI
+./tweaks-smooth.sh        # 🧈 Baseline profiles + dexopt
+./tweaks-red.sh           # 🌐 DNS, TCP, WiFi
+./tweaks-memoria.sh       # 💾 RAM, Dalvik, HWUI
+
+# Scripts nuevos:
+./run-optimize.sh         # 🚀 TODO EN UNO + log + reinicio automático
+./optimize-boot.sh        # ⚡ Boot más rápido (desactiva boot receivers + dexopt)
+./measure-boot.sh         # ⏱️ Mide tiempo de arranque (antes/después)
 
 # Herramientas:
 ./diagnostico.sh # 🔍 Estado completo del dispositivo
@@ -230,12 +284,16 @@ adb kill-server
 python3 -m http.server 8000
 # Abrir http://localhost:8000
 
-optimizer.sh ← Menú principal (flujo guiado)
-mega-optimizer.sh ← 🔥 Mega optimizer (todo en uno)
-mega-verificar.sh ← 🔍 Verificar optimizaciones
-config.sh ← ⚙️ Configuración compartida
-fix-cam-whatsapp.sh ← 📸💬 Fix cámara + WhatsApp
-benchmark.sh ← Benchmark completo
+optimizer.sh            ← Menú principal (flujo guiado)
+mega-optimizer.sh       ← 🔥 Mega optimizer (todo en uno)
+mega-verificar.sh       ← 🔍 Verificar optimizaciones
+config.sh               ← ⚙️ Configuración compartida
+fix-cam-whatsapp.sh     ← 📸💬 Fix cámara + WhatsApp
+turbo-apps.sh           ← 🚀📸💬 WhatsApp + Cámara ULTRA RÁPIDOS
+run-optimize.sh         ← 🚀 TODO EN UNO + log + reinicio automático
+optimize-boot.sh        ← ⚡ Boot más rápido
+measure-boot.sh         ← ⏱️ Mide tiempo de arranque
+benchmark.sh            ← Benchmark completo
 test-verificacion.sh ← Test post-optimización
 perfil-rendimiento.sh ← Perfil agresivo
 perfil-equilibrado.sh ← Perfil balanceado
