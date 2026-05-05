@@ -1,6 +1,6 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  MejoraRedmi14c v3.0 — Menú principal
+#  MejoraRedmi14c v4.0 — Menú principal
 #  Optimizador Android por ADB
 #  Redmi 14C / HyperOS
 #
@@ -17,6 +17,7 @@ RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[0;36m'
+BOLD='\033[1m'
 NC='\033[0m'
 
 # ═══════════════════════════════════════════════
@@ -26,7 +27,7 @@ connect_device() {
     clear
     echo ""
     echo "╔═══════════════════════════════════════════╗"
-    echo "║     📱 MejoraRedmi14c v3.0                ║"
+    echo "║     📱 MejoraRedmi14c v4.0                ║"
     echo "║     Optimizador Android por ADB            ║"
     echo "╠═══════════════════════════════════════════╣"
     echo "║                                           ║"
@@ -181,7 +182,7 @@ show_menu() {
     clear
     echo ""
     echo "╔═══════════════════════════════════════════╗"
-    echo "║     📱 MejoraRedmi14c v3.0                ║"
+    echo "║     📱 MejoraRedmi14c v4.0                ║"
     echo "║     Optimizador Android por ADB            ║"
     echo "╠═══════════════════════════════════════════╣"
     echo "║                                           ║"
@@ -193,36 +194,41 @@ show_menu() {
     echo "║                                           ║"
     echo "╠═══════════════════════════════════════════╣"
     echo "║                                           ║"
+    echo "║   🔥 MEGA OPTIMIZER (todo en uno):        ║"
+    echo "║     1) 🔥 Mega Optimizer (RECOMENDADO)    ║"
+    echo "║     2) 🔍 Verificar optimizaciones        ║"
+    echo "║     3) 🚨 Restaurar todo a fábrica         ║"
+    echo "║                                           ║"
     echo "║   💾 Backup:                              ║"
-    echo "║     1) 💾 Backup general local             ║"
+    echo "║     4) 💾 Backup general local             ║"
     echo "║                                           ║"
     echo "║   🛤️  Ruta autónoma:                       ║"
-    echo "║     2) 🛤️  Ruta óptima automática          ║"
+    echo "║     5) 🛤️  Ruta óptima automática          ║"
     echo "║                                           ║"
     echo "║   📊 Benchmark:                           ║"
-    echo "║     3) 🔍 Benchmark ANTES (diagnóstico)   ║"
-    echo "║     4) 🔍 Benchmark DESPUÉS (verificar)   ║"
+    echo "║     6) 🔍 Benchmark ANTES (diagnóstico)   ║"
+    echo "║     7) 🔍 Benchmark DESPUÉS (verificar)   ║"
     echo "║                                           ║"
     echo "║   🚀 Perfiles de optimización:            ║"
-    echo "║     5) 🚀 Rendimiento (agresivo)          ║"
-    echo "║     6) 📱 Equilibrado (recomendado)       ║"
-    echo "║     7) 🔋 Batería (ahorro)                ║"
-    echo "║     8) 🎮 Gaming (máximo rendimiento)     ║"
+    echo "║     8) 🚀 Rendimiento (agresivo)          ║"
+    echo "║     9) 📱 Equilibrado (recomendado)       ║"
+    echo "║    10) 🔋 Batería (ahorro)                ║"
+    echo "║    11) 🎮 Gaming (máximo rendimiento)     ║"
     echo "║                                           ║"
     echo "║   ⚡ Optimización avanzada:               ║"
-    echo "║     9) 🧈 Fluidez (baseline profiles)     ║"
-    echo "║    10) 🌐 Tweaks de red                   ║"
-    echo "║    11) 💾 Tweaks de memoria               ║"
+    echo "║    12) 🧈 Fluidez (baseline profiles)     ║"
+    echo "║    13) 🌐 Tweaks de red                   ║"
+    echo "║    14) 💾 Tweaks de memoria               ║"
     echo "║                                           ║"
     echo "║   🔧 Herramientas:                        ║"
-    echo "║    12) 🔧 Mantenimiento                   ║"
-    echo "║    13) 🔍 Diagnóstico detallado            ║"
-    echo "║    14) 💾 Rescue Points                   ║"
-    echo "║    15) 🧪 Test de verificación             ║"
-    echo "║    16) 🔧 Reparación rápida               ║"
+    echo "║    15) 🔧 Mantenimiento                   ║"
+    echo "║    16) 🔍 Diagnóstico detallado            ║"
+    echo "║    17) 💾 Rescue Points                   ║"
+    echo "║    18) 🧪 Test de verificación             ║"
+    echo "║    19) 🔧 Reparación rápida               ║"
     echo "║                                           ║"
     echo "║   🚨 Emergencia:                          ║"
-    echo "║    17) 🚨 Restaurar todo                  ║"
+    echo "║    20) 🚨 Restaurar todo (emergencia)     ║"
     echo "║                                           ║"
     echo "║     r) 🔄 Reconectar dispositivo          ║"
     echo "║     0) Salir                              ║"
@@ -270,26 +276,35 @@ while true; do
     fi
 
     case $CHOICE in
-        1) bash "$SCRIPT_DIR/backup.sh" ;;
-        2) bash "$SCRIPT_DIR/ruta-optima.sh" ;;
-        3) run_benchmark "antes" ;;
-        4) run_benchmark "despues" ;;
-        5) bash "$SCRIPT_DIR/perfil-rendimiento.sh" ;;
-        6) bash "$SCRIPT_DIR/perfil-equilibrado.sh" ;;
-        7) bash "$SCRIPT_DIR/perfil-bateria.sh" ;;
-        8) bash "$SCRIPT_DIR/perfil-gaming.sh" ;;
-        9) bash "$SCRIPT_DIR/tweaks-smooth.sh" ;;
-       10) bash "$SCRIPT_DIR/tweaks-red.sh" ;;
-       11) bash "$SCRIPT_DIR/tweaks-memoria.sh" ;;
-       12) bash "$SCRIPT_DIR/mantenimiento.sh" ;;
-       13) bash "$SCRIPT_DIR/diagnostico.sh" ;;
-       14) bash "$SCRIPT_DIR/rescue.sh" ;;
-       15) bash "$SCRIPT_DIR/test-verificacion.sh" ;;
-       16) bash "$SCRIPT_DIR/rapido.sh" ;;
-       17) bash "$SCRIPT_DIR/emergencia.sh" ;;
+        1) bash "$SCRIPT_DIR/mega-optimizer.sh" ;;
+        2) bash "$SCRIPT_DIR/mega-verificar.sh" ;;
+        3)
+            echo -e "  ${YELLOW}⚠️  Esto va a restaurar TODAS las apps y configuraciones${NC}"
+            read -p "  ¿Estás seguro? [S/n]: " CONFIRM
+            if [ "$CONFIRM" != "n" ] && [ "$CONFIRM" != "N" ]; then
+                bash "$SCRIPT_DIR/mega-restaurar.sh"
+            fi
+            ;;
+        4) bash "$SCRIPT_DIR/backup.sh" ;;
+        5) bash "$SCRIPT_DIR/ruta-optima.sh" ;;
+        6) run_benchmark "antes" ;;
+        7) run_benchmark "despues" ;;
+        8) bash "$SCRIPT_DIR/perfil-rendimiento.sh" ;;
+        9) bash "$SCRIPT_DIR/perfil-equilibrado.sh" ;;
+       10) bash "$SCRIPT_DIR/perfil-bateria.sh" ;;
+       11) bash "$SCRIPT_DIR/perfil-gaming.sh" ;;
+       12) bash "$SCRIPT_DIR/tweaks-smooth.sh" ;;
+       13) bash "$SCRIPT_DIR/tweaks-red.sh" ;;
+       14) bash "$SCRIPT_DIR/tweaks-memoria.sh" ;;
+       15) bash "$SCRIPT_DIR/mantenimiento.sh" ;;
+       16) bash "$SCRIPT_DIR/diagnostico.sh" ;;
+       17) bash "$SCRIPT_DIR/rescue.sh" ;;
+       18) bash "$SCRIPT_DIR/test-verificacion.sh" ;;
+       19) bash "$SCRIPT_DIR/rapido.sh" ;;
+       20) bash "$SCRIPT_DIR/emergencia.sh" ;;
         r|R) connect_device ;;
         0) echo "  ¡Chau! 👋"; exit 0 ;;
-        *) echo "  ❌ Opción no válida" ;;
+        *) echo -e "  ${RED}❌ Opción no válida${NC}" ;;
     esac
 
     echo ""
