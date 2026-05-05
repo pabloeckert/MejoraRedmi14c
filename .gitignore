@@ -19,3 +19,7 @@ rescue-points/*/
 
 # Backups (contain device-specific data)
 backups/
+
+# Internal/test files
+PROMPT.md
+test-resultados.txt
