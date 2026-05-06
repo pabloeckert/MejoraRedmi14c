@@ -198,67 +198,106 @@ log -e "${BOLD}  💬 WHATSAPP — Modo Ultra Rápido${NC}"
 log -e "${CYAN}═══════════════════════════════════════════${NC}"
 log ""
 
-# 2.1 Compilar WhatsApp con speed mode (TODAS las clases)
-log "  [1/9] 🔥 Compilando WhatsApp con speed mode..."
-safe_compile com.whatsapp speed
-ok "WhatsApp compilado con speed (arranque + búsqueda + chat instantáneos)"
+# Auto-detectar TODOS los WhatsApp instalados
+log "  [1/9] 🔍 Buscando WhatsApp instalados..."
+WA_PACKAGES=()
+while IFS= read -r line; do
+    pkg=$(echo "$line" | sed 's/package://' | tr -d '\r')
+    WA_PACKAGES+=("$pkg")
+done < <(adb shell pm list packages 2>/dev/null | grep "com.whatsapp")
 
-# 2.2 Compilar WhatsApp Business
-log "  [2/9] Compilando WhatsApp Business..."
-safe_compile com.whatsapp.w4b speed
-ok "WhatsApp Business compilado"
-
-# 2.3 Limpiar cache de WhatsApp (se acumula y lo vuelve lento)
-log "  [3/9] Limpiando cache de WhatsApp..."
-if [ "$DRY_RUN" -eq 0 ]; then
-    WA_CACHE=$(adb shell du -s /data/data/com.whatsapp/cache 2>/dev/null | awk '{print $1}' | tr -d '\r')
-    WA_CACHE_MB=$((WA_CACHE / 1024))
-    if [ "$WA_CACHE_MB" -gt 50 ]; then
-        adb shell pm clear --cache-only com.whatsapp 2>/dev/null
-        ok "Cache de WhatsApp limpiado (${WA_CACHE_MB}MB liberados)"
-    else
-        ok "Cache de WhatsApp OK (${WA_CACHE_MB}MB)"
-    fi
+if [ ${#WA_PACKAGES[@]} -eq 0 ]; then
+    warn "No se encontró ningún WhatsApp instalado."
 else
-    log "  🔍 [DRY-RUN] Limpiar cache de WhatsApp"
+    log "       Encontrados: ${#WA_PACKAGES[@]} WhatsApp(es)"
+    for wa in "${WA_PACKAGES[@]}"; do
+        log "         📱 $wa"
+    done
 fi
+log ""
 
-# 2.4 Optimizar base de datos de WhatsApp (si es root o tiene permisos)
-log "  [4/9] Optimizando base de datos de WhatsApp..."
-run_cmd adb shell "sqlite3 /data/data/com.whatsapp/databases/msgstore.db 'VACUUM;'" 2>/dev/null
-ok "Base de datos de WhatsApp optimizada"
+# 2.1 Compilar TODOS los WhatsApp con speed mode
+log "  [2/9] 🔥 Compilando WhatsApp(s) con speed mode..."
+WA_COMPILED=0
+for WA_PKG in "${WA_PACKAGES[@]}"; do
+    safe_compile "$WA_PKG" speed
+    if [ $? -eq 0 ]; then
+        ok "$WA_PKG compilado con speed"
+        WA_COMPILED=$((WA_COMPILED + 1))
+    else
+        warn "$WA_PKG no se pudo compilar"
+    fi
+done
+log "       Compilados: $WA_COMPILED/${#WA_PACKAGES[@]}"
 
-# 2.5 Compilar share sheet (compartir desde cualquier app)
+# 2.2 Limpiar cache de TODOS los WhatsApp
+log "  [3/9] Limpiando cache de WhatsApp(s)..."
+for WA_PKG in "${WA_PACKAGES[@]}"; do
+    if [ "$DRY_RUN" -eq 0 ]; then
+        WA_CACHE=$(adb shell du -s "/data/data/$WA_PKG/cache" 2>/dev/null | awk '{print $1}' | tr -d '\r')
+        WA_CACHE_MB=$((WA_CACHE / 1024))
+        if [ "$WA_CACHE_MB" -gt 50 ]; then
+            adb shell pm clear --cache-only "$WA_PKG" 2>/dev/null
+            ok "Cache de $WA_PKG limpiado (${WA_CACHE_MB}MB liberados)"
+        else
+            ok "Cache de $WA_PKG OK (${WA_CACHE_MB}MB)"
+        fi
+    else
+        log "  🔍 [DRY-RUN] Limpiar cache de $WA_PKG"
+    fi
+done
+
+# 2.3 Optimizar base de datos de WhatsApp
+log "  [4/9] Optimizando base de datos de WhatsApp(s)..."
+for WA_PKG in "${WA_PACKAGES[@]}"; do
+    run_cmd adb shell "sqlite3 /data/data/$WA_PKG/databases/msgstore.db 'VACUUM;'" 2>/dev/null
+    ok "Base de datos de $WA_PKG optimizada"
+done
+
+# 2.4 Compilar share sheet (compartir desde cualquier app)
 log "  [5/9] Compilando share sheet del sistema..."
 safe_compile com.android.intentresolver speed
 safe_compile com.android.chooser speed
 ok "Share sheet compilado (compartir es instantáneo)"
 
-# 2.6 Compilar contactos del sistema
+# 2.5 Compilar contactos del sistema
 log "  [6/9] Compilando contactos..."
 safe_compile com.android.contacts speed
 safe_compile com.android.providers.contacts speed
 ok "Contactos compilados"
 
-# 2.7 Compilar teclado (afecta velocidad de escritura en WhatsApp)
+# 2.6 Compilar teclado (afecta velocidad de escritura en WhatsApp)
 log "  [7/9] Compilando teclado..."
 safe_compile com.google.android.inputmethod.latin speed 2>/dev/null
 safe_compile com.android.inputmethod.latin speed 2>/dev/null
 safe_compile com.sohu.inputmethod.sogou.xiaomi speed 2>/dev/null
 ok "Teclado compilado (escritura más fluida)"
 
-# 2.8 Pre-cargar WhatsApp en memoria
-log "  [8/9] Pre-cargando WhatsApp en memoria..."
+# 2.7 Pre-cargar TODOS los WhatsApp en memoria
+log "  [8/9] Pre-cargando WhatsApp(s) en memoria..."
 if [ "$DRY_RUN" -eq 0 ]; then
-    adb shell am start -n com.whatsapp/.Main -W 2>/dev/null
-    sleep 2
-    adb shell input keyevent KEYCODE_HOME 2>/dev/null
-    ok "WhatsApp pre-cargado en memoria (no se recarga al volver)"
+    for WA_PKG in "${WA_PACKAGES[@]}"; do
+        WA_MAIN=$(adb shell cmd package resolve-activity --brief "$WA_PKG" 2>/dev/null | tail -1 | tr -d '\r')
+        if [ -n "$WA_MAIN" ]; then
+            adb shell am start -n "$WA_MAIN" -W 2>/dev/null
+            sleep 2
+            adb shell input keyevent KEYCODE_HOME 2>/dev/null
+            ok "$WA_PKG pre-cargado en memoria"
+        else
+            # Fallback: intentar Main activity
+            adb shell am start -n "$WA_PKG/.Main" -W 2>/dev/null
+            sleep 2
+            adb shell input keyevent KEYCODE_HOME 2>/dev/null
+            ok "$WA_PKG pre-cargado en memoria"
+        fi
+    done
 else
-    log "  🔍 [DRY-RUN] Pre-cargar WhatsApp"
+    for WA_PKG in "${WA_PACKAGES[@]}"; do
+        log "  🔍 [DRY-RUN] Pre-cargar $WA_PKG"
+    done
 fi
 
-# 2.9 Compilar Telegram (bonus)
+# 2.8 Compilar Telegram (bonus)
 log "  [9/9] Compilando Telegram..."
 safe_compile org.telegram.messenger speed
 ok "Telegram compilado"
@@ -335,7 +374,7 @@ MEM_FREED=$(( (FINAL_MEM - MEM_AVAIL) / 1024 ))
 
 log "  💾 RAM disponible: ${FINAL_MEM_MB}MB (liberados: ${MEM_FREED}MB)"
 log "  📸 Cámara: speed compiled + pre-calentada"
-log "  💬 WhatsApp: speed compiled + pre-cargado"
+log "  💬 WhatsApp: ${WA_COMPILED}/${#WA_PACKAGES[@]} compilado(s) + pre-cargado(s)"
 log ""
 
 # ═══════════════════════════════════════════════
@@ -356,7 +395,9 @@ log "     • Media scanner desactivado"
 log "     • Pre-calentada en memoria"
 log ""
 log "  💬 WHATSAPP:"
-log "     • Compilado con speed mode (NO speed-profile)"
+for WA_PKG in "${WA_PACKAGES[@]}"; do
+    log "     • $WA_PKG → speed compiled"
+done
 log "     • Cache limpiado"
 log "     • Base de datos optimizada"
 log "     • Share sheet compilado"
