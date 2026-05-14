@@ -20,14 +20,6 @@ set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# ─── COLORES ───
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
-
 echo ""
 echo -e "${BOLD}╔═══════════════════════════════════════════════════╗${NC}"
 echo -e "${BOLD}║  🛤️  RUTA ÓPTIMA AUTÓNOMA — MejoraRedmi14c v$VERSION  ║${NC}"

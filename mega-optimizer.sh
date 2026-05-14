@@ -34,18 +34,13 @@ for arg in "$@"; do
     esac
 done
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
-
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-LOG_FILE="$SCRIPT_DIR/mega-optimizer_${TIMESTAMP}.log"
+LOG_DIR="$SCRIPT_DIR/logs"
+mkdir -p "$LOG_DIR"
+LOG_FILE="$LOG_DIR/mega-optimizer_${TIMESTAMP}.log"
 
 # Rotar logs: mantener últimos 5
-ls -t "$SCRIPT_DIR"/mega-optimizer_*.log 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null
+ls -t "$LOG_DIR"/mega-optimizer_*.log 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null
 
 CHANGES=0
 THERMAL_STATUS="mantenido"

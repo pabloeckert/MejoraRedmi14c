@@ -1,10 +1,10 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════
-#  Configuración compartida — MejoraRedmi14c v5.0
+#  Configuración compartida — MejoraRedmi14c v5.1
 #  Todos los scripts deben sourcear este archivo
 # ═══════════════════════════════════════════════
 
-VERSION="5.0"
+VERSION="5.1"
 
 # ─── Valores de optimización (CANON) ───
 # Estos son los ÚNICOS valores válidos. No inventar otros.
