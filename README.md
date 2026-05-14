@@ -1,97 +1,81 @@
-Optimizador Android por ADB — Redmi 14C / HyperOS (v5.0)
+# MejoraRedmi14c v5.1
 
-Dos formas de usar: scripts locales (recomendado) o app web.
+Optimizador Android por ADB para Redmi 14C / HyperOS. Dos formas de usar: scripts locales (recomendado) o app web WebUSB.
+
+## Requisitos
+
+- ADB instalado (platform-tools) — ver [TUTORIAL.md](TUTORIAL.md)
+- Cable USB con transferencia de datos
+- Depuración USB activada en el teléfono
+- PC con Windows, Mac o Linux
+
+## Inicio rápido
+
+```bash
+git clone https://github.com/pabloeckert/MejoraRedmi14c.git
+cd MejoraRedmi14c
+chmod +x *.sh
+./optimizer.sh   # Menú interactivo — guía todo el proceso
+```
 
 ## ⚠️ Seguridad
 
 Este proyecto prioriza la seguridad de tu dispositivo:
 
-- **Thermal management**: ya NO se desactiva por default. Solo se desactiva con el flag `--no-thermal` y requiere escribir `SI_ESTOY_SEGURO` explícitamente. Esto evita sobrecalentamientos peligrosos.
-- **Validación de modelo**: antes de ejecutar cualquier optimización, se verifica que el dispositivo sea Xiaomi/Redmi/POCO. Si no lo es, se advierte y se pide confirmación.
-- **Check de temperatura**: si el dispositivo está a más de 40°C, el script aborta automáticamente para evitar daños.
-- **Modo dry-run**: podés probar qué haría el mega-optimizer sin aplicar nada real con `./mega-optimizer.sh --dry-run`.
+- **Thermal management**: NO se desactiva por default. Solo con `--no-thermal` y confirmación explícita `SI_ESTOY_SEGURO`. Evita sobrecalentamientos.
+- **Validación de modelo**: verifica que el dispositivo sea Xiaomi/Redmi/POCO antes de ejecutar. Si no lo es, pide confirmación.
+- **Check de temperatura**: aborta automáticamente si el dispositivo supera 40°C.
+- **Modo dry-run**: probá qué haría el optimizer sin aplicar nada: `./mega-optimizer.sh --dry-run`
+- **Rescue points**: backup automático antes de cada optimización — restauración garantizada.
 
-## Changelog
+## Uso
 
-Ver [CHANGELOG.md](CHANGELOG.md) para el historial completo de cambios.
+### Todo en uno (recomendado)
 
-# 1. Clonar
-git clone https://github.com/pabloeckert/MejoraRedmi14c.git
-cd MejoraRedmi14c
-chmod +x *.sh
+Ejecuta mega-optimizer + turbo apps + verificación + log + reinicio:
 
-# 2. Ejecutar (guía todo el proceso)
-./optimizer.sh
-
-El script:
-
-- Conecta el teléfono automáticamente
-
-- Verifica la conexión
-
-- Ejecuta el benchmark ANTES (diagnóstico completo)
-
-- Muestra el menú con todas las opciones
-
-- ADB instalado (platform-tools) — ver [TUTORIAL.md](TUTORIAL.md)
-
-- Cable USB con datos
-
-- Depurión USB activada en el teléfono
-
-# 🚀 TODO EN UNO (recomendado)
-
-La forma más completa: ejecuta mega-optimizer + turbo apps + verificación + log + reinicio automático:
-
-    ./run-optimize.sh
+```bash
+./run-optimize.sh
+```
 
 Opciones:
-- `--dry-run` → Ver qué haría sin aplicar
-- `--no-reboot` → No reiniciar al terminar
-- `--no-thermal` → Desactivar thermal management
-- `--no-turbo` → Saltar WhatsApp + cámara turbo
 
-Los logs se guardan automáticamente en `./logs/`.
+| Flag | Efecto |
+|------|--------|
+| `--dry-run` | Ver qué haría sin aplicar |
+| `--no-reboot` | No reiniciar al terminar |
+| `--no-thermal` | Desactivar thermal management |
+| `--no-turbo` | Saltar WhatsApp + cámara turbo |
 
-# 📸💬 WhatsApp + Cámara ULTRA RÁPIDOS
+Los logs se guardan en `./logs/`.
 
-Versión mejorada de fix-cam-whatsapp.sh con optimizaciones adicionales:
+### WhatsApp + Cámara ultra rápidos
 
-    ./turbo-apps.sh
+```bash
+./turbo-apps.sh
+```
 
-Qué hace:
-- Compila WhatsApp y cámara con modo `speed` (NO speed-profile) → arranque instantáneo
-- Pre-calienta la cámara (clases ya cargadas en memoria)
-- Pre-carga WhatsApp en memoria (no se recarga al volver)
+- Compila WhatsApp y cámara en modo `speed` → arranque instantáneo
+- Pre-calienta la cámara (clases ya cargadas en RAM)
+- Pre-carga WhatsApp para que no se recargue al volver
 - Optimiza base de datos de WhatsApp
 - Limpia thumbnails masivos de cámara
-- Compila share sheet, contactos y teclado
-- Desactiva AI scene detection y watermark de cámara
-- Ajusta memoria para que no maten apps
+- Desactiva AI scene detection y watermark
 
-# ⚡ Boot Más Rápido
+### Boot más rápido
 
-Para acelerar el tiempo de encendido:
+```bash
+./optimize-boot.sh       # Aplicar
+./measure-boot.sh        # Medir ANTES y DESPUÉS
+```
 
-    ./optimize-boot.sh
+Desactiva ~30 apps con boot receivers innecesarios, limpia cache de arranque y dexopt de apps críticas del sistema.
 
-Qué hace:
-- Desactiva ~30 apps con boot receivers innecesarios
-- Limpia cache de arranque
-- dexopt de apps críticas del sistema (SystemUI, Home, Settings...)
-- Optimiza servicios que compiten al inicio
+## Mega Optimizer — 12 pasos automáticos
 
-### Medir diferencia:
-
-    ./measure-boot.sh     # Ejecutar ANTES
-    # ... optimizar y rebootear ...
-    ./measure-boot.sh     # Ejecutar DESPUÉS
-
-# 🔥 Mega Optimizer (TODO EN UNO)
-
-La forma más rápida de optimizar el teléfono. Ejecuta 12 pasos automáticamente:
-
+```bash
 ./mega-optimizer.sh
+```
 
 | Paso | Qué hace | Impacto |
 |------|----------|---------|
@@ -109,223 +93,126 @@ La forma más rápida de optimizar el teléfono. Ejecuta 12 pasos automáticamen
 | 11 | Dexopt speed-profile (compila apps nativamente) | 🔥🔥🔥 |
 | 12 | Bluetooth/NFC scanning off | 🔥 |
 
-### Verificar que todo se aplicó:
+```bash
+./mega-verificar.sh   # Verificar que todo se aplicó
+./emergencia.sh       # Restaurar todo a fábrica
+```
 
-./mega-verificar.sh
+## Perfiles rápidos
 
-### Restaurar todo a fábrica:
+```bash
+./perfil-rendimiento.sh   # 🚀 Máxima velocidad
+./perfil-equilibrado.sh   # 📱 Uso diario
+./perfil-bateria.sh       # 🔋 Ahorro de batería
+./perfil-gaming.sh        # 🎮 Gaming
+```
 
-./emergencia.sh
+| Perfil | Animaciones | GPU | Bloatware | Red | Memoria | Cache |
+|--------|-------------|-----|-----------|-----|---------|-------|
+| 🚀 Rendimiento | 0.3x | Forzada + Vulkan | 28 apps | ✅ | ✅ | Profunda |
+| 📱 Equilibrado | 0.5x | Forzada | 10 apps | WiFi scan | — | Ligera |
+| 🔋 Batería | 0.5x | Sin cambios | 13 apps | WiFi scan | — | Segura |
+| 🎮 Gaming | 0.3x | Forzada + Vulkan | 31 apps | ✅ | ✅ | Profunda |
 
-# Menú interactivo (flujo guiado)
-./optimizer.sh
+## Benchmark
 
-# Benchmark directo
-./benchmark.sh antes # Benchmark ANTES de optimizar
-./benchmark.sh despues # Benchmark DESPUÉS (para comparar)
+```bash
+./benchmark.sh antes    # Diagnóstico ANTES de optimizar
+./benchmark.sh despues  # Comparar DESPUÉS
+```
 
-# Perfiles:
-./perfil-rendimiento.sh # 🚀 Máxima velocidad
-./perfil-equilibrado.sh # 📱 Uso diario
-./perfil-bateria.sh # 🔋 Ahorro de batería
-./perfil-gaming.sh # 🎮 Máximo rendimiento para gaming
+El benchmark ejecuta 10 secciones y genera un reporte en `./logs/`:
 
-# Fix apps específicas:
-./fix-cam-whatsapp.sh     # 📸💬 Fix cámara lenta + WhatsApp lento
-./turbo-apps.sh           # 🚀📸💬 WhatsApp + Cámara ULTRA RÁPIDOS (mejorado)
+| Sección | Qué mide |
+|---------|----------|
+| 1. Dispositivo | Modelo, Android, HyperOS, SoC, uptime |
+| 2. CPU | Load average, frecuencia, benchmark, top procesos |
+| 3. RAM | Total, usado, disponible, cached, swap, top apps |
+| 4. Almacenamiento | Usado, disponible, tamaño de cache |
+| 5. Batería | Nivel, temperatura, voltaje, salud |
+| 6. Apps | Total, sistema, terceros, desactivadas, wakelocks |
+| 7. Servicios | Procesos activos, servicios en segundo plano |
+| 8. Red | WiFi, señal, scanning, roaming, DNS |
+| 9. Configuración | Animaciones, GPU, resolución, DPI, SELinux |
+| 10. Diagnóstico | Identifica qué ralentiza y sugiere soluciones |
 
-# Optimización avanzada:
-./tweaks-smooth.sh        # 🧈 Baseline profiles + dexopt
-./tweaks-red.sh           # 🌐 DNS, TCP, WiFi
-./tweaks-memoria.sh       # 💾 RAM, Dalvik, HWUI
+Problemas que detecta automáticamente:
 
-# Scripts nuevos:
-./run-optimize.sh         # 🚀 TODO EN UNO + log + reinicio automático
-./optimize-boot.sh        # ⚡ Boot más rápido (desactiva boot receivers + dexopt)
-./measure-boot.sh         # ⏱️ Mide tiempo de arranque (antes/después)
+| Problema | Sugerencia |
+|----------|------------|
+| RAM alta (>80%) | Ejecutá un perfil o cerrá apps |
+| Almacenamiento lleno (>85%) | Limpiá cache con `./mantenimiento.sh` |
+| WiFi scanning activo | Desactivalo con un perfil |
+| Animaciones por defecto (1x) | Ajustá con un perfil |
+| GPU no forzada | Forzá con un perfil |
+| Cache grande (>2GB) | Limpiá con `./mantenimiento.sh` |
+| Muchos procesos (>400) | Cerrá apps en segundo plano |
 
-# Herramientas:
-./diagnostico.sh # 🔍 Estado completo del dispositivo
-./mantenimiento.sh # 🔧 Limpieza periódica
-./rescue.sh # 💾 Sistema de rescue points
-./test-verificacion.sh # 🧪 Verificar que todo se aplicó bien
-./emergencia.sh # 🚨 Restaurar TODO
+## Sistema de rescue points
 
-El benchmark ejecuta 10 secciones y genera un reporte detallado:
-
-Sección
-Qué mide
-
-1. Dispositivo
-Modelo, Android, HyperOS, SoC, uptime
-
-2. CPU
-Load average, frecuencia, benchmark (10k iteraciones), top procesos
-
-3. RAM
-Total, usado, disponible, libre, cached, swap, top apps por RAM
-
-4. Almacenamiento
-Usado, disponible, tamaño de cache
-
-5. Batería
-Nivel, temperatura, voltaje, salud
-
-6. Apps
-Total, sistema, terceros, desactivadas, wakelocks
-
-7. Servicios
-Procesos activos, servicios en segundo plano, receivers
-
-8. Red
-WiFi, señal, scanning, roaming, DNS
-
-9. Configuración
-Animaciones, GPU, resolución, DPI, SELinux
-
-10. Diagnóstico
-Identifica qué ralentiza y sugiere soluciones
-
-El benchmark detecta problemas y sugiere soluciones (sin modificar el sistema):
-
-Problema
-Sugerencia
-
-RAM alta (>80%)
-Ejecutá un perfil o cerrá apps
-
-Almacenamiento lleno (>85%)
-Limpiá cache con mantenimiento
-
-WiFi scanning activo
-Desactivalo con un perfil
-
-Animaciones por defecto (1x)
-Ajustá con un perfil
-
-GPU no forzada
-Forzá con un perfil
-
-Cache grande (>2GB)
-Limpiá con mantenimiento
-
-Muchos procesos (>400)
-Cerrá apps en segundo plano
-
-Perfil
-Animaciones
-GPU
-Bloatware
-Red
-Memoria
-Cache
-
-🚀 Rendimiento
-0.3x
-Forzada + Vulkan
-28 apps
-✅
-✅
-Profunda
-
-📱 Equilibrado
-0.5x
-Forzada
-10 apps
-WiFi scan
-—
-Ligera
-
-🔋 Batería
-0.5x
-Sin cambios
-13 apps
-WiFi scan
-—
-Segura
-
-🎮 Gaming
-0.3x
-Forzada + Vulkan
-31 apps
-✅
-✅
-Profunda
-
-Antes de cada optimización se crea automáticamente un rescue point que guarda:
-
-- Lista de todos los paquetes
-
-- Paquetes desactivados
-
+Antes de cada optimización se crea automáticamente un rescue point con:
+- Lista de paquetes activos y desactivados
 - Configuración de animaciones, GPU, resolución, DPI
+- Props del sistema y estado de batería
 
-- Estado de batería y props del sistema
+```bash
+./rescue.sh   # Gestionar rescue points (listar, crear, restaurar, eliminar)
+./emergencia.sh   # Restaurar TODO a fábrica (usa rescue point si existe)
+```
 
-./rescue.sh
-# 1) Listar rescue points
-# 2) Crear rescue point manual
-# 3) Restaurar desde rescue point
-# 4) Eliminar rescue point
+## Herramientas adicionales
 
-Si algo anda mal después de optimizar:
+```bash
+./benchmark.sh          # 📊 Benchmark completo (10 secciones)
+./diagnostico.sh        # 🔍 Estado completo del dispositivo
+./mantenimiento.sh      # 🔧 Limpieza periódica (mensual)
+./test-verificacion.sh  # 🧪 Verificar que todo se aplicó bien
+./rapido.sh             # ⚡ Reparación rápida
+./fix-cam-whatsapp.sh   # 📸💬 Fix cámara lenta + WhatsApp lento
+./tweaks-smooth.sh      # 🧈 Baseline profiles + dexopt
+./tweaks-red.sh         # 🌐 DNS, TCP, WiFi
+./tweaks-memoria.sh     # 💾 RAM, Dalvik, HWUI
+```
 
-./emergencia.sh
+## App web (sin ADB en la PC)
 
-El script:
+Alternativa al ADB por línea de comandos. Usa WebUSB directo desde el navegador:
 
-- Verifica si hay rescue points y ofrece restaurar desde uno
-
-- Si no, restaura manualmente todo
-
-Alternativa sin ADB en la PC. Abrí index.html en Chrome.
-
-adb kill-server
+```bash
 python3 -m http.server 8000
-# Abrir http://localhost:8000
+# Abrir http://localhost:8000 en Chrome/Edge/Brave
+```
 
-optimizer.sh            ← Menú principal (flujo guiado)
-mega-optimizer.sh       ← 🔥 Mega optimizer (todo en uno)
-mega-verificar.sh       ← 🔍 Verificar optimizaciones
-config.sh               ← ⚙️ Configuración compartida
-fix-cam-whatsapp.sh     ← 📸💬 Fix cámara + WhatsApp
-turbo-apps.sh           ← 🚀📸💬 WhatsApp + Cámara ULTRA RÁPIDOS
-run-optimize.sh         ← 🚀 TODO EN UNO + log + reinicio automático
+O directamente: abrí `index.html` en Chrome con el teléfono conectado.
+
+## Estructura del proyecto
+
+```
+config.sh               ← ⚙️  Configuración compartida (fuente de verdad)
+bloatware-db.sh         ← 📋 Base de datos de bloatware
+optimizer.sh            ← 🎛️  Menú principal (flujo guiado)
+mega-optimizer.sh       ← 🔥 Mega optimizer (12 pasos)
+run-optimize.sh         ← 🚀 TODO EN UNO + log + reinicio
+turbo-apps.sh           ← 📱 WhatsApp + cámara ultra rápidos
 optimize-boot.sh        ← ⚡ Boot más rápido
-measure-boot.sh         ← ⏱️ Mide tiempo de arranque
-benchmark.sh            ← Benchmark completo
-test-verificacion.sh ← Test post-optimización
-perfil-rendimiento.sh ← Perfil agresivo
-perfil-equilibrado.sh ← Perfil balanceado
-perfil-bateria.sh ← Perfil ahorro
-perfil-gaming.sh ← Perfil gaming
-tweaks-smooth.sh ← Fluidez + baseline profiles
-tweaks-red.sh ← Optimización de red
-tweaks-memoria.sh ← Optimización de memoria
-bloatware-db.sh ← Base de datos de bloatware
-rescue.sh ← Sistema de rescue points
-mantenimiento.sh ← Limpieza mensual
-diagnostico.sh ← Estado del sistema
-emergencia.sh ← Restaurar todo
-rapido.sh ← Reparación rápida
-ruta-optima.sh ← Ruta óptima autónoma
-log-apply.sh ← Log de perfiles aplicados
-LICENSE ← Licencia MIT
-TUTORIAL.md ← Tutorial paso a paso
+measure-boot.sh         ← ⏱️  Mide tiempo de arranque
+benchmark.sh            ← 📊 Benchmark completo
+mega-verificar.sh       ← 🔍 Verificar optimizaciones
+rescue.sh               ← 💾 Sistema de rescue points
+emergencia.sh           ← 🚨 Restaurar todo
+index.html / app.js     ← 🌐 App web WebUSB
+adb.js                  ← 🔌 Protocolo ADB sobre WebUSB
+```
 
-index.html ← App web
-adb.js ← Protocolo ADB sobre WebUSB
-app.js ← Lógica de la app web
-styles.css ← Estilos
+## Changelog
 
-- [Universal Android Debloater](https://github.com/0x192/universal-android-debloater) — Base de datos de paquetes
+Ver [CHANGELOG.md](CHANGELOG.md) para el historial completo de cambios.
 
-- [BloatwareHatao](https://github.com/ImKKingshuk/BloatwareHatao) — Sistema de rescue points, seguridad por niveles
+## Créditos
 
-- [HyperOS Debloat](https://github.com/leechuanfeng/hyperos-debloat) — Lista de paquetes HyperOS
-
-- [ADB Android Optimizer](https://github.com/SchneeSchmitt/ADB-Android-Optimizer) — Tweaks de red, memoria, Dalvik
-
-- [Smooth Android Script](https://github.com/polhdez/smooth_android_script) — Baseline profiles, dexopt
-
-- [Android Boost Performance](https://github.com/Naritsumi/Android-boost-performance) — Reducción de resolución para gaming
+- [Universal Android Debloater](https://github.com/0x192/universal-android-debloater) — base de datos de paquetes
+- [BloatwareHatao](https://github.com/ImKKingshuk/BloatwareHatao) — rescue points, seguridad por niveles
+- [HyperOS Debloat](https://github.com/leechuanfeng/hyperos-debloat) — lista de paquetes HyperOS
+- [ADB Android Optimizer](https://github.com/SchneeSchmitt/ADB-Android-Optimizer) — tweaks de red, memoria, Dalvik
+- [Smooth Android Script](https://github.com/polhdez/smooth_android_script) — baseline profiles, dexopt
+- [Android Boost Performance](https://github.com/Naritsumi/Android-boost-performance) — reducción de resolución para gaming

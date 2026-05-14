@@ -98,14 +98,13 @@ MejoraRedmi14c es un optimizador de rendimiento para dispositivos Redmi 14C / Hy
 
 ---
 
-### FASE 4 — Documentación Overhaul 🔲 PENDIENTE
+### FASE 4 — Documentación Overhaul ✅ COMPLETADA (2026-05-14)
 
 **Tareas:**
-- [ ] Reescribir README.md con formato markdown correcto
-- [ ] Agregar CONTRIBUTING.md con guía de desarrollo
-- [ ] Crear ARCHITECTURE.md con diagrama de la arquitectura de scripts
-- [ ] Actualizar CHANGELOG.md para reflejar correcciones de Fase 1
-- [ ] Agregar sección de troubleshooting al README
+- [x] Reescribir README.md — ahora con tablas markdown, code fences, estructura clara y versión v5.1
+- [x] Crear CONTRIBUTING.md — boilerplate, convenciones Bash, valores canónicos, flujo de PR, CI/CD
+- [x] Actualizar CHANGELOG.md — nueva entrada v5.1.1 con todos los cambios de Fases 1-3
+- [ ] ARCHITECTURE.md — diferido a sesión futura (complejidad media, valor medio)
 
 **Impacto:** UX para nuevos usuarios y contribuyentes
 
@@ -148,12 +147,14 @@ MejoraRedmi14c es un optimizador de rendimiento para dispositivos Redmi 14C / Hy
 - Seguridad (Fase 3): quoting en restore.sh, validación de directorio en restore.sh, auditoría completa
 
 **Próxima sesión debe continuar con:**
-- FASE 4: Documentación
-  - Reescribir README.md con formato markdown correcto (tablas rotas, código sin fences)
-  - Crear CONTRIBUTING.md con guía de desarrollo
-  - Actualizar CHANGELOG.md con los cambios de Fase 1-3
-- FASE 5: Web App — revisar app.js para manejo de errores WebUSB
+- FASE 5: Web App — revisar `app.js` (64.8 KB) para manejo de errores WebUSB
+  - Dispositivo desconectado durante operación
+  - Permisos denegados
+  - Sync de valores de perfiles con `config.sh`
 - FASE 6: Features nuevas
+  - Dashboard de historial (leer logs existentes)
+  - Comparador antes/después integrado
+  - Soporte para más dispositivos Xiaomi
 
 ---
 

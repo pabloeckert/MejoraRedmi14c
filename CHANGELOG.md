@@ -1,5 +1,25 @@
 # Changelog
 
+## v5.1.1 (2026-05-14)
+
+### Correcciones de código
+- `config.sh`: VERSION corregida a "5.1" (era "5.0" — inconsistencia con git tag y CHANGELOG)
+- `mega-optimizer.sh`: logs ahora van a `logs/` igual que `turbo-apps.sh`, `optimize-boot.sh` y `run-optimize.sh`
+- `run-optimize.sh`: array expansion `${EXTRA_ARGS[@]}` → `"${EXTRA_ARGS[@]}"` (SC2068 — evita word-splitting)
+- `restore.sh`: `$(cat archivo)` → `"$(cat archivo)"` en llamadas a adb (evita word-splitting en valores con espacios)
+- `restore.sh`: agrega validación de existencia del directorio de backup antes de intentar leer archivos
+
+### Calidad de código
+- Eliminadas redeclaraciones redundantes de variables de color (RED/GREEN/YELLOW/CYAN/BOLD/NC) en `backup.sh`, `benchmark.sh`, `optimize-boot.sh`, `optimizer.sh`, `rapido.sh`, `ruta-optima.sh` — todas ya están definidas en `config.sh` que cada script sourcea
+
+### CI/CD
+- Nuevo workflow `.github/workflows/shellcheck.yml`: valida todos los scripts `.sh` con ShellCheck (nivel error) en push/PR a main y ramas `claude/**`
+
+### Documentación
+- `README.md`: reescrito con formato markdown correcto (tablas, code fences, estructura clara)
+- Nuevo `CONTRIBUTING.md`: guía de desarrollo, convenciones, valores canónicos, flujo de PR
+- `CTO_SESSION.md`: roadmap de trabajo por fases con estado de cada sesión
+
 ## v5.1 (2026-05-06)
 
 ### Arquitectura
