@@ -128,7 +128,7 @@ fi
 section "FASE 2/5: MEGA OPTIMIZER (12 pasos)"
 
 if [ -f "$SCRIPT_DIR/mega-optimizer.sh" ]; then
-    bash "$SCRIPT_DIR/mega-optimizer.sh" ${EXTRA_ARGS[@]} 2>&1 | tee -a "$LOG_FILE"
+    bash "$SCRIPT_DIR/mega-optimizer.sh" "${EXTRA_ARGS[@]}" 2>&1 | tee -a "$LOG_FILE"
     MEGA_EXIT=$?
     log ""
     log "  Exit code mega-optimizer: $MEGA_EXIT"

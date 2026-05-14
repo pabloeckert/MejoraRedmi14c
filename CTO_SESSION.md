@@ -63,13 +63,19 @@ MejoraRedmi14c es un optimizador de rendimiento para dispositivos Redmi 14C / Hy
 
 ---
 
-### FASE 2 — CI/CD y Calidad de Código 🔲 PENDIENTE
+### FASE 2 — CI/CD y Calidad de Código ✅ COMPLETADA (2026-05-14)
 
 **Tareas:**
-- [ ] Agregar workflow de ShellCheck a `.github/workflows/shellcheck.yml`
-- [ ] Ejecutar ShellCheck localmente y corregir warnings críticos
-- [ ] Agregar badge de ShellCheck al README.md
-- [ ] Revisar y corregir warnings de quoting en scripts
+- [x] Agregar workflow de ShellCheck a `.github/workflows/shellcheck.yml`
+- [x] Ejecutar ShellCheck localmente: 1 error real encontrado y corregido
+- [x] Corregir SC2068: array `${EXTRA_ARGS[@]}` sin comillas en `run-optimize.sh`
+- [ ] Agregar badge de ShellCheck al README.md ← diferido a Fase 4
+
+**Error corregido:**
+- `run-optimize.sh` línea 131: `${EXTRA_ARGS[@]}` → `"${EXTRA_ARGS[@]}"` (SC2068)
+
+**Resultado ShellCheck (nivel error):** 0 errores después de la corrección.
+**Nota:** Los SC2034 en config.sh son falsos positivos (variables usadas al sourcear desde otros scripts).
 
 **Impacto:** Previene bugs futuros, garantiza calidad en PRs
 
@@ -134,15 +140,22 @@ MejoraRedmi14c es un optimizador de rendimiento para dispositivos Redmi 14C / Hy
 **Completado:**
 - Análisis completo del repositorio (Fase 0)
 - Bug fixes críticos (Fase 1):
-  - VERSION corregida en config.sh
-  - Logs de mega-optimizer.sh movidos a logs/
-  - Duplicación de colores eliminada en mega-optimizer.sh
-- Commits y push de Fase 0 y Fase 1
+  - VERSION corregida en config.sh: 5.0 → 5.1
+  - Logs de mega-optimizer.sh movidos a logs/ (consistencia)
+  - Redeclaraciones de colores eliminadas en 6 scripts (backup, benchmark, optimize-boot, optimizer, rapido, ruta-optima)
+- CI/CD y calidad (Fase 2):
+  - ShellCheck local ejecutado: 1 error real corregido (SC2068 en run-optimize.sh)
+  - Workflow `.github/workflows/shellcheck.yml` creado (corre en push/PR a main)
+- Commits y push de Fase 0+1 y Fase 2
 
 **Próxima sesión debe continuar con:**
-- FASE 2: CI/CD y Calidad de Código
-  - Crear `.github/workflows/shellcheck.yml`
-  - Ejecutar ShellCheck y corregir warnings
+- FASE 3: Seguridad y Robustez
+  - Auditar uso de `safe_put()` vs `adb shell settings put` directo
+  - Revisar bloatware-db.sh para paquetes críticos
+  - Revisar app.js para manejo de errores WebUSB
+- FASE 4: Documentación
+  - Reescribir README.md con markdown correcto
+  - Crear CONTRIBUTING.md
 
 ---
 
