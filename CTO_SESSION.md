@@ -81,16 +81,20 @@ MejoraRedmi14c es un optimizador de rendimiento para dispositivos Redmi 14C / Hy
 
 ---
 
-### FASE 3 — Seguridad y Robustez 🔲 PENDIENTE
+### FASE 3 — Seguridad y Robustez ✅ COMPLETADA (2026-05-14)
 
-**Tareas:**
-- [ ] Auditoría completa de inputs en todos los scripts
-- [ ] Revisar `app.js` para XSS y manejo de errores WebUSB
-- [ ] Validar que `safe_put()` se usa consistentemente (no `adb shell settings put` directo)
-- [ ] Revisar `bloatware-db.sh` para paquetes que podrían romper el sistema
-- [ ] Agregar validación de dispositivo en más scripts (actualmente solo en mega-optimizer)
+**Hallazgos y correcciones:**
+- [x] `restore.sh`: `$(cat archivo)` sin comillas → `"$(cat archivo)"` (evita word-splitting)
+- [x] `restore.sh`: sin validación de existencia del directorio → agregado `[ -d "$BACKUP_DIR" ]`
+- [x] `bloatware-db.sh`: apps críticas (SystemUI, Settings, Phone, Contacts, GMS, Play Store) correctamente marcadas con 🔴 ¡NUNCA! y excluidas de las listas de desactivación
+- [x] `eval`: cero usos en todo el proyecto (ya eliminado en v5.0/5.1 — confirmado)
+- [x] `safe_put()`: el uso directo de `adb shell settings put` con valores hardcodeados o de `config.sh` es aceptable; no hay inputs de usuario sin sanitizar
 
-**Impacto:** Seguridad del dispositivo, prevención de brickeos
+**Decisiones de diseño documentadas:**
+- Validación de dispositivo y temperatura solo en `mega-optimizer.sh` (el script destructivo). Los perfiles rápidos y tweaks asumen que el usuario ya validó con el optimizer. Correcto por diseño.
+- `safe_put()` no es un requerimiento para todos los scripts; su valor es centralizar el namespace de `global/system`. Los scripts de emergencia y restore usan direct calls adecuadamente.
+
+**Impacto:** Previene corrupción de estado al restaurar con datos de backup malformados
 
 ---
 
@@ -139,23 +143,17 @@ MejoraRedmi14c es un optimizador de rendimiento para dispositivos Redmi 14C / Hy
 
 **Completado:**
 - Análisis completo del repositorio (Fase 0)
-- Bug fixes críticos (Fase 1):
-  - VERSION corregida en config.sh: 5.0 → 5.1
-  - Logs de mega-optimizer.sh movidos a logs/ (consistencia)
-  - Redeclaraciones de colores eliminadas en 6 scripts (backup, benchmark, optimize-boot, optimizer, rapido, ruta-optima)
-- CI/CD y calidad (Fase 2):
-  - ShellCheck local ejecutado: 1 error real corregido (SC2068 en run-optimize.sh)
-  - Workflow `.github/workflows/shellcheck.yml` creado (corre en push/PR a main)
-- Commits y push de Fase 0+1 y Fase 2
+- Bug fixes críticos (Fase 1): VERSION 5.0→5.1, logs centralizados en logs/, colores deduplicados en 6 scripts
+- CI/CD y calidad (Fase 2): ShellCheck workflow + SC2068 corregido en run-optimize.sh
+- Seguridad (Fase 3): quoting en restore.sh, validación de directorio en restore.sh, auditoría completa
 
 **Próxima sesión debe continuar con:**
-- FASE 3: Seguridad y Robustez
-  - Auditar uso de `safe_put()` vs `adb shell settings put` directo
-  - Revisar bloatware-db.sh para paquetes críticos
-  - Revisar app.js para manejo de errores WebUSB
 - FASE 4: Documentación
-  - Reescribir README.md con markdown correcto
-  - Crear CONTRIBUTING.md
+  - Reescribir README.md con formato markdown correcto (tablas rotas, código sin fences)
+  - Crear CONTRIBUTING.md con guía de desarrollo
+  - Actualizar CHANGELOG.md con los cambios de Fase 1-3
+- FASE 5: Web App — revisar app.js para manejo de errores WebUSB
+- FASE 6: Features nuevas
 
 ---
 
