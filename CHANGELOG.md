@@ -1,60 +1,41 @@
-# Changelog
+# Changelog — MejoraRedmi14c
 
-## v5.1 (2026-05-06)
+Todas las actualizaciones y cambios notables de este proyecto se documentan en este archivo.
 
-### Arquitectura
-- Archivo de configuración compartido (`config.sh`) — elimina duplicación y contradicciones
-- Lista canónica de apps pesadas (`HEAVY_APPS`) compartida entre todos los scripts
-- Valores de swappiness, LMK, Dalvik, HWUI centralizados en un solo lugar
+## [v5.0] - 2026-05
+### Agregado
+- **Seguridad primero**: El thermal management ya NO se desactiva por defecto para evitar sobrecalentamientos. Se requiere el flag `--no-thermal`.
+- **Nuevo script `run-optimize.sh`**: Ejecución autónoma "Todo en Uno" con log detallado y reinicio automático.
+- **Nuevo script `turbo-apps.sh`**: Evolución del fix de cámara/WhatsApp, ahora con pre-calentamiento, compilación de share sheet y teclado.
+- **Nuevo script `optimize-boot.sh`**: Desactiva receivers innecesarios al inicio y optimiza servicios concurrentes.
+- **Nuevo script `measure-boot.sh`**: Permite medir el tiempo de encendido real.
 
-### Seguridad
-- Eliminado `eval` de `run_cmd()` — previene inyección de comandos
-- Check de temperatura robusto: aborta si no puede leer la temperatura
-- Flag `--no-thermal` requiere escribir `SI_ESTOY_SEGURO` para confirmar
-- Benchmark ya NO modifica el sistema (solo mide)
+### Cambiado
+- Verificaciones previas y advertencias antes de correr optimizaciones (compatibilidad de marca y lectura de temperatura <40°C).
+- Actualizada la App Web (`index.html` y `app.js`) a la lógica de la v5.0.
 
-### Consistencia
-- Todos los scripts versionados como v5.0 via `$VERSION`
-- `emergencia.sh` y `mega-restaurar.sh` consolidados en un solo script
-- Perfil batería ya no desactiva auto-time (no rompe el reloj)
-- Perfil gaming guarda backup de resolución en archivo (además del trap)
+## [v4.0] - 2026-04
+### Agregado
+- **`mega-optimizer.sh`**: Creado el Optimizador Masivo de 12 pasos.
+- **Sistema de Rescue Points**: `rescue.sh` implementado para guardar configuraciones del sistema, paquetes instalados y ajustes gráficos antes de hacer cambios.
+- **Modo Emergencia**: `emergencia.sh` agregado como botón de pánico para restaurar configuraciones y revivir apps.
+- **Verificador**: `mega-verificar.sh` permite validar si el dispositivo aplicó todas las configuraciones exitosamente.
 
-### Limpieza
-- Eliminado `mega-restaurar.sh` (duplicaba `emergencia.sh`)
-- Deploy a GitHub Pages solo incluye archivos web
-- Agregada licencia MIT
+## [v3.0] - 2026-03
+### Agregado
+- **Menú Interactivo (`optimizer.sh`)**: Interfaz CLI completa y amigable para guiar al usuario por las optimizaciones.
+- **Benchmark Completo (`benchmark.sh`)**: Mide rendimiento de CPU (10k iteraciones), RAM, red y estado de batería. Permite comparar un "Antes" y "Después".
+- **`diagnostico.sh`** y **`mantenimiento.sh`**: Scripts dedicados a la lectura de métricas y a la limpieza mensual segura.
+- Lanzamiento de la **App Web** experimental basada en la API de WebUSB.
 
-## v5.0 (2026-05-06)
+## [v2.0] - 2026-02
+### Agregado
+- Modularidad del proyecto con scripts específicos (`tweaks-smooth.sh`, `tweaks-red.sh`, `tweaks-memoria.sh`).
+- Perfiles de uso separados: `perfil-bateria.sh`, `perfil-rendimiento.sh`, `perfil-equilibrado.sh`, `perfil-gaming.sh`.
+- Primer fix enfocado a apps con `fix-cam-whatsapp.sh`.
 
-### Seguridad
-- Thermal management: ya NO se desactiva por default. Solo se desactiva con flag `--no-thermal` y warning explícito
-- Validación de modelo de dispositivo antes de ejecutar optimizaciones
-- Check de temperatura: aborta si el dispositivo está a >40°C
-
-### UX Writer
-- Versión unificada en todos los archivos (v5.0)
-- Link roto a TUTORIAL.md arreglado
-- Nombres de scripts más descriptivos con aliases
-
-### UX Designer
-- Progress bar con pasos numerados en mega-optimizer
-- Preview de perfiles antes de aplicar
-- Loading state en la app web
-
-### Backend
-- Variables correctamente entrecomilladas
-- Fallback para `bc` con `awk`
-- Log rotation (mantiene últimos 5 logs)
-- Reconnect automático en operaciones largas
-- try/catch global en app.js
-
-### QA
-- Modo `--dry-run` en mega-optimizer
-- Validación de precondiciones (modelo, temperatura, conexión)
-- Verificación post-aplicación
-
-### DevOps/SRE
-- Post-apply health check
-- Rollback automático si falla un paso
-- Log de qué perfil se aplicó y cuándo
-- Thermal safety check integrado
+## [v1.0] - 2026-01
+### Agregado
+- Lanzamiento inicial del repositorio.
+- Scripts básicos de limpieza con `bloatware-db.sh`.
+- Soporte inicial para Redmi 14C.
