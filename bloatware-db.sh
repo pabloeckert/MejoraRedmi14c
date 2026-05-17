@@ -55,6 +55,15 @@ XIAOMI_YELLOWPAGE="com.miui.yellowpage|Apps|🟢|Páginas Amarillas"
 XIAOMI_AIAST="com.xiaomi.aiasst.vision|Apps|🟢|Subtítulos con IA"
 XIAOMI_GETAPPS="com.xiaomi.mispicks|Apps|🟢|GetApps (tienda Xiaomi)"
 XIAOMI_PLAYAUTO="android.autoinstalls.config.Xiaomi.model|Apps|🟢|PlayAutoInstalls"
+XIAOMI_GUARD="com.miui.guardprovider|Seguridad|🟡|Escaneo de seguridad (consume recursos)"
+XIAOMI_EXTRAPHOTO="com.miui.extraphoto|Apps|🟢|Funciones extra de fotos"
+XIAOMI_MAINTENANCE="com.miui.maintenancemode|Sistema|🟢|Modo mantenimiento"
+XIAOMI_MIFRONT="com.mi.mf.front|Sistema|🟢|Servicio de frente de Xiaomi"
+XIAOMI_SMARTREPLY="com.miui.smartreply|Apps|🟢|Respuesta inteligente MIUI"
+XIAOMI_SADS="com.miui.systemAdSolution|Anuncios|🟢|System Ad Solution"
+XIAOMI_AB="com.xiaomi.ab|Sistema|🟢|Xiaomi AB (tracking)"
+XIAOMI_JOYOSE="com.xiaomi.joyose|Sistema|🟡|Joyose (gestión de rendimiento/limite)"
+XIAOMI_TDS="com.miui.touchassistant|Apps|🟢|Quick Ball / Asistente táctil"
 
 # ─── GOOGLE — BLOATWARE ───
 
@@ -199,6 +208,16 @@ RENDIMIENTO_BLOAT=(
     "com.netflix.partner.activation"
     # Carrier
     "com.android.carrierdefaultinstaller"
+    # HyperOS extras
+    "com.miui.guardprovider"
+    "com.miui.extraphoto"
+    "com.miui.maintenancemode"
+    "com.mi.mf.front"
+    "com.miui.smartreply"
+    "com.miui.systemAdSolution"
+    "com.xiaomi.ab"
+    "com.xiaomi.joyose"
+    "com.miui.touchassistant"
 )
 
 EQUILIBRADO_BLOAT=(

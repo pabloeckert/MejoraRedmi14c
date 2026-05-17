@@ -41,43 +41,11 @@ CYAN='\033[0;36m'
 BOLD='\033[1m'
 NC='\033[0m'
 
-TIMESTAMP=$(date +%Y%m%d_%H%M%S)
-LOG_FILE="$SCRIPT_DIR/mega-optimizer_${TIMESTAMP}.log"
-
-# Rotar logs: mantener últimos 5
-ls -t "$SCRIPT_DIR"/mega-optimizer_*.log 2>/dev/null | tail -n +6 | xargs rm -f 2>/dev/null
+# ─── Inicialización de Logs ───
+init_log "mega-optimizer"
 
 CHANGES=0
 THERMAL_STATUS="mantenido"
-
-log() {
-    if [ "${1:-}" = "-e" ]; then
-        shift
-        echo -e "$*" | tee -a "$LOG_FILE"
-    else
-        echo "$*" | tee -a "$LOG_FILE"
-    fi
-}
-
-step() {
-    log ""
-    log -e "${CYAN}════════════════════════════════════════════${NC}"
-    log -e "${BOLD}  $1${NC}"
-    log -e "${CYAN}════════════════════════════════════════════${NC}"
-}
-
-ok() {
-    log -e "  ${GREEN}✅ $1${NC}"
-    CHANGES=$((CHANGES + 1))
-}
-
-warn() {
-    log -e "  ${YELLOW}⚠️  $1${NC}"
-}
-
-fail() {
-    log -e "  ${RED}❌ $1${NC}"
-}
 
 TOTAL_STEPS=12
 CURRENT_STEP=0
@@ -88,13 +56,13 @@ progress() {
     local filled=$((CURRENT_STEP * 20 / TOTAL_STEPS))
     local empty=$((20 - filled))
     local bar=$(printf '█%.0s' $(seq 1 $filled 2>/dev/null))$(printf '░%.0s' $(seq 1 $empty 2>/dev/null))
-    log ""
-    log -e "  ${CYAN}[${bar}] ${pct}% — Paso ${CURRENT_STEP}/${TOTAL_STEPS}${NC}"
+    log_raw ""
+    log_raw "  ${CYAN}[${bar}] ${pct}% — Paso ${CURRENT_STEP}/${TOTAL_STEPS}${NC}"
 }
 
 run_cmd() {
     if [ "$DRY_RUN" -eq 1 ]; then
-        log "  🔍 [DRY-RUN] $*"
+        log_raw "  🔍 [DRY-RUN] $*"
         return 0
     fi
     "$@"
@@ -102,11 +70,20 @@ run_cmd() {
 
 run_cmd_quiet() {
     if [ "$DRY_RUN" -eq 1 ]; then
-        log "  🔍 [DRY-RUN] $*"
+        log_raw "  🔍 [DRY-RUN] $*"
         return 0
     fi
     "$@" >/dev/null 2>&1
 }
+
+# Wrapper para mantener compatibilidad con nombres cortos si es necesario, 
+# pero preferimos usar log_ok, etc. directos.
+# Para este script, mapeamos los nombres viejos a los nuevos.
+log() { log_raw "$*"; }
+step() { log_step "$1"; }
+ok() { log_ok "$1"; CHANGES=$((CHANGES + 1)); }
+warn() { log_warn "$1"; }
+fail() { log_fail "$1"; }
 
 # ═══════════════════════════════════════════════
 #  VERIFICACIÓN INICIAL

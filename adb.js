@@ -81,7 +81,8 @@ class AdbWebUsbTransport {
     this.endpointOut = null;
     this._readLoop = false;
     this._pendingReads = [];
-    this._buffer = new Uint8Array(0);
+    this._messageQueue = [];
+    this.onDisconnect = null;
   }
 
   async connect() {
@@ -116,54 +117,57 @@ class AdbWebUsbTransport {
 
   async _startReadLoop() {
     this._readLoop = true;
-    const read = async () => {
-      while (this._readLoop) {
-        try {
-          const result = await this.device.transferIn(this.endpointIn.endpointNumber, 24);
-          if (result.data.byteLength === 24) {
-            const v = new DataView(result.data.buffer);
-            const cmd = v.getUint32(0, true);
-            const arg0 = v.getUint32(4, true);
-            const arg1 = v.getUint32(8, true);
-            const dataLen = v.getUint32(12, true);
+    while (this._readLoop) {
+      try {
+        const result = await this.device.transferIn(this.endpointIn.endpointNumber, 24);
+        if (result.status === 'stall') {
+          await this.device.clearHalt('in', this.endpointIn.endpointNumber);
+          continue;
+        }
 
-            let data = new Uint8Array(0);
-            if (dataLen > 0) {
-              let received = 0;
-              const chunks = [];
-              while (received < dataLen) {
-                const toRead = Math.min(dataLen - received, MAX_PAYLOAD);
-                const dataResult = await this.device.transferIn(this.endpointIn.endpointNumber, toRead);
-                if (dataResult.data.byteLength > 0) {
-                  chunks.push(new Uint8Array(dataResult.data.buffer));
-                  received += dataResult.data.byteLength;
-                }
-              }
-              data = new Uint8Array(dataLen);
-              let offset = 0;
-              for (const chunk of chunks) {
-                data.set(chunk, offset);
-                offset += chunk.length;
+        if (result.data.byteLength === 24) {
+          const v = new DataView(result.data.buffer);
+          const cmd = v.getUint32(0, true);
+          const arg0 = v.getUint32(4, true);
+          const arg1 = v.getUint32(8, true);
+          const dataLen = v.getUint32(12, true);
+
+          let data = new Uint8Array(0);
+          if (dataLen > 0) {
+            let received = 0;
+            const chunks = [];
+            while (received < dataLen) {
+              const toRead = Math.min(dataLen - received, MAX_PAYLOAD);
+              const dataResult = await this.device.transferIn(this.endpointIn.endpointNumber, toRead);
+              if (dataResult.data.byteLength > 0) {
+                chunks.push(new Uint8Array(dataResult.data.buffer));
+                received += dataResult.data.byteLength;
               }
             }
-
-            const msg = new AdbMessage(cmd, arg0, arg1, data);
-            if (this._pendingReads.length > 0) {
-              const { resolve } = this._pendingReads.shift();
-              resolve(msg);
-            } else {
-              this._buffer = msg;
+            data = new Uint8Array(dataLen);
+            let offset = 0;
+            for (const chunk of chunks) {
+              data.set(chunk, offset);
+              offset += chunk.length;
             }
           }
-        } catch (err) {
-          if (!this._readLoop) break;
-          this._readLoop = false;
-          if (this.onDisconnect) this.onDisconnect(err);
-          break;
+
+          const msg = new AdbMessage(cmd, arg0, arg1, data);
+          if (this._pendingReads.length > 0) {
+            const { resolve } = this._pendingReads.shift();
+            resolve(msg);
+          } else {
+            this._messageQueue.push(msg);
+          }
         }
+      } catch (err) {
+        if (!this._readLoop) break;
+        console.error('ADB Read Error:', err);
+        this._readLoop = false;
+        if (this.onDisconnect) this.onDisconnect(err);
+        break;
       }
-    };
-    read();
+    }
   }
 
   async send(msg) {
@@ -171,19 +175,38 @@ class AdbWebUsbTransport {
     let offset = 0;
     while (offset < buf.length) {
       const chunk = buf.slice(offset, offset + MAX_PAYLOAD);
-      await this.device.transferOut(this.endpointOut.endpointNumber, chunk);
+      const result = await this.device.transferOut(this.endpointOut.endpointNumber, chunk);
+      if (result.status === 'stall') {
+        await this.device.clearHalt('out', this.endpointOut.endpointNumber);
+        continue;
+      }
       offset += chunk.length;
     }
   }
 
-  async receive() {
-    if (this._buffer) {
-      const msg = this._buffer;
-      this._buffer = null;
-      return msg;
+  async receive(timeout = 10000) {
+    if (this._messageQueue.length > 0) {
+      return this._messageQueue.shift();
     }
     return new Promise((resolve, reject) => {
-      this._pendingReads.push({ resolve, reject });
+      const timer = setTimeout(() => {
+        const idx = this._pendingReads.findIndex(p => p.resolve === resolve);
+        if (idx !== -1) {
+          this._pendingReads.splice(idx, 1);
+          reject(new Error('ADB Receive Timeout'));
+        }
+      }, timeout);
+
+      this._pendingReads.push({
+        resolve: (msg) => {
+          clearTimeout(timer);
+          resolve(msg);
+        },
+        reject: (err) => {
+          clearTimeout(timer);
+          reject(err);
+        }
+      });
     });
   }
 

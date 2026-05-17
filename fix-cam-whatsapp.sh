@@ -19,6 +19,9 @@ set +e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/config.sh"
 
+# ─── Inicialización de Logs ───
+init_log "fix-cam-whatsapp"
+
 CHANGES=0
 
 # Compilar paquete de forma segura (no falla si no existe)
@@ -32,23 +35,15 @@ safe_compile() {
     return 0
 }
 
-ok() {
-    echo -e "  ${GREEN}✅ $1${NC}"
-    CHANGES=$((CHANGES + 1))
-}
+# Wrapper para compatibilidad
+ok() { log_ok "$1"; CHANGES=$((CHANGES + 1)); }
+warn() { log_warn "$1"; }
+fail() { log_fail "$1"; }
 
-warn() {
-    echo -e "  ${YELLOW}⚠️  $1${NC}"
-}
-
-fail() {
-    echo -e "  ${RED}❌ $1${NC}"
-}
-
-echo ""
-echo -e "${BOLD}📸💬 FIX CÁMARA + WHATSAPP${NC}"
-echo -e "${CYAN}════════════════════════════════════════════${NC}"
-echo ""
+log_raw ""
+log_raw "${BOLD}📸💬 FIX CÁMARA + WHATSAPP${NC}"
+log_raw "${CYAN}════════════════════════════════════════════${NC}"
+log_raw ""
 
 if ! adb get-state >/dev/null 2>&1; then
     fail "No se detectó ningún dispositivo."

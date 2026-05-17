@@ -15,16 +15,28 @@
 #  USO: ./run-optimize.sh [--dry-run] [--no-reboot] [--no-thermal] [--no-turbo]
 #
 #  LOGS: Se guardan en ./logs/
-# ═══════════════════════════════════════════════════════════════
+# ═══════════════════════════════════════════════
 
 set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/config.sh"
+
+# ─── Inicialización de Logs ───
+init_log "optimize-full"
+
+# Redefinir log() para usar el sistema centralizado
+log() {
+    log_raw "$*"
+}
+
+section() {
+    log_step "$1"
+}
+
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 LOG_DIR="$SCRIPT_DIR/logs"
 mkdir -p "$LOG_DIR"
-
-LOG_FILE="$LOG_DIR/optimize_${TIMESTAMP}.log"
 REPORT_FILE="$LOG_DIR/reporte_${TIMESTAMP}.txt"
 
 # ─── Parsear argumentos ───
@@ -42,26 +54,6 @@ for arg in "$@"; do
         --no-turbo)   NO_TURBO=1 ;;
     esac
 done
-
-# ─── Colores ───
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
-
-log() {
-    echo "$*" | tee -a "$LOG_FILE"
-}
-
-section() {
-    log ""
-    log -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
-    log -e "${BOLD}  $1${NC}"
-    log -e "${CYAN}═══════════════════════════════════════════════════════${NC}"
-    log ""
-}
 
 # ═══════════════════════════════════════════════
 #  VERIFICACIÓN INICIAL
@@ -116,7 +108,7 @@ log ""
 section "FASE 1/5: BENCHMARK ANTES"
 
 if [ -f "$SCRIPT_DIR/benchmark.sh" ]; then
-    bash "$SCRIPT_DIR/benchmark.sh" antes 2>&1 | tee -a "$LOG_FILE"
+    bash "$SCRIPT_DIR/benchmark.sh" antes 2>&1
 else
     log "  ⚠️  benchmark.sh no encontrado, saltando benchmark previo"
 fi
@@ -128,7 +120,7 @@ fi
 section "FASE 2/5: MEGA OPTIMIZER (12 pasos)"
 
 if [ -f "$SCRIPT_DIR/mega-optimizer.sh" ]; then
-    bash "$SCRIPT_DIR/mega-optimizer.sh" ${EXTRA_ARGS[@]} 2>&1 | tee -a "$LOG_FILE"
+    bash "$SCRIPT_DIR/mega-optimizer.sh" ${EXTRA_ARGS[@]} 2>&1
     MEGA_EXIT=$?
     log ""
     log "  Exit code mega-optimizer: $MEGA_EXIT"
@@ -146,13 +138,13 @@ if [ "$NO_TURBO" -eq 0 ]; then
     if [ -f "$SCRIPT_DIR/turbo-apps.sh" ]; then
         TURBO_ARGS=""
         [ -n "$DRY_RUN" ] && TURBO_ARGS="--dry-run"
-        bash "$SCRIPT_DIR/turbo-apps.sh" $TURBO_ARGS --log 2>&1 | tee -a "$LOG_FILE"
+        bash "$SCRIPT_DIR/turbo-apps.sh" $TURBO_ARGS --log 2>&1
         TURBO_EXIT=$?
         log ""
         log "  Exit code turbo-apps: $TURBO_EXIT"
     elif [ -f "$SCRIPT_DIR/fix-cam-whatsapp.sh" ]; then
         log "  ⚠️  turbo-apps.sh no encontrado, usando fix-cam-whatsapp.sh"
-        bash "$SCRIPT_DIR/fix-cam-whatsapp.sh" 2>&1 | tee -a "$LOG_FILE"
+        bash "$SCRIPT_DIR/fix-cam-whatsapp.sh" 2>&1
     else
         log "  ⚠️  Ni turbo-apps.sh ni fix-cam-whatsapp.sh encontrados"
     fi
@@ -169,7 +161,7 @@ section "FASE 4/5: VERIFICACIÓN POST-OPTIMIZACIÓN"
 VERIFY_OUTPUT=""
 if [ -f "$SCRIPT_DIR/mega-verificar.sh" ]; then
     VERIFY_OUTPUT=$(bash "$SCRIPT_DIR/mega-verificar.sh" 2>&1)
-    echo "$VERIFY_OUTPUT" | tee -a "$LOG_FILE"
+    echo "$VERIFY_OUTPUT"
 else
     log "  ⚠️  mega-verificar.sh no encontrado"
 fi
@@ -246,7 +238,7 @@ cat > "$REPORT_FILE" << REPORT
 
 ═══ LOGS ═══
 
-  Log completo: $LOG_FILE
+  Log completo: $CURRENT_LOG
   Este reporte: $REPORT_FILE
 
 ═══ REINICIO ═══
@@ -260,7 +252,7 @@ else
     echo "  Reinicio: EJECUTADO automáticamente" >> "$REPORT_FILE"
 fi
 
-cat "$REPORT_FILE" | tee -a "$LOG_FILE"
+cat "$REPORT_FILE"
 
 # ═══════════════════════════════════════════════
 #  REINICIO AUTOMÁTICO
@@ -297,7 +289,7 @@ else
             fi
             sleep 3
             WAIT=$((WAIT + 3))
-            echo -ne "  ⏳ Esperando dispositivo... (${WAIT}s)\r" | tee -a "$LOG_FILE"
+            echo -ne "  ⏳ Esperando dispositivo... (${WAIT}s)\r"
         done
 
         if [ $WAIT -ge $MAX_WAIT ]; then
@@ -312,7 +304,7 @@ log ""
 log -e "${BOLD}═══════════════════════════════════════════════════════${NC}"
 log -e "${GREEN}  ✅ OPTIMIZACIÓN COMPLETA FINALIZADA${NC}"
 log ""
-log "  📄 Log:    $LOG_FILE"
+log "  📄 Log:    $CURRENT_LOG"
 log "  📊 Reporte: $REPORT_FILE"
 log ""
 log "  💡 Probá la cámara y WhatsApp ahora — deberían ser mucho más rápidos."
