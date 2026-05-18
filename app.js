@@ -742,22 +742,29 @@ class PhoneOptimizerApp {
   }
 
   async updateMetrics() {
-    if (!this.connected) return;
+    if (!this.connected || this._updatingMetrics) return;
+    this._updatingMetrics = true;
     try {
       const batteryOut = await this.adb.shell('dumpsys battery');
       const levelMatch = batteryOut.match(/level:\s*(\d+)/);
       const tempMatch = batteryOut.match(/temperature:\s*(\d+)/);
       if (levelMatch) {
         const level = parseInt(levelMatch[1]);
-        document.getElementById('val-battery').textContent = `${level}%`;
-        document.getElementById('m-battery').textContent = `${level}%`;
-        document.getElementById('bar-battery').style.width = `${level}%`;
+        const el1 = document.getElementById('val-battery');
+        const el2 = document.getElementById('m-battery');
+        const el3 = document.getElementById('bar-battery');
+        if (el1) el1.textContent = `${level}%`;
+        if (el2) el2.textContent = `${level}%`;
+        if (el3) el3.style.width = `${level}%`;
       }
       if (tempMatch) {
         const temp = parseInt(tempMatch[1]) / 10;
-        document.getElementById('val-temp').textContent = `${temp}°C`;
-        document.getElementById('m-temp').textContent = `${temp}°C`;
-        document.getElementById('bar-temp').style.width = `${Math.min(temp / 50 * 100, 100)}%`;
+        const el1 = document.getElementById('val-temp');
+        const el2 = document.getElementById('m-temp');
+        const el3 = document.getElementById('bar-temp');
+        if (el1) el1.textContent = `${temp}°C`;
+        if (el2) el2.textContent = `${temp}°C`;
+        if (el3) el3.style.width = `${Math.min(temp / 50 * 100, 100)}%`;
       }
 
       const memOut = await this.adb.shell('cat /proc/meminfo');
@@ -769,23 +776,31 @@ class PhoneOptimizerApp {
         const usedPct = Math.round((1 - avail / total) * 100);
         const totalGB = (total / 1024 / 1024).toFixed(1);
         const usedGB = ((total - avail) / 1024 / 1024).toFixed(1);
-        document.getElementById('val-ram').textContent = `${usedPct}%`;
-        document.getElementById('m-ram').textContent = `${usedGB}/${totalGB} GB (${usedPct}%)`;
-        document.getElementById('bar-ram').style.width = `${usedPct}%`;
+        const el1 = document.getElementById('val-ram');
+        const el2 = document.getElementById('m-ram');
+        const el3 = document.getElementById('bar-ram');
+        if (el1) el1.textContent = `${usedPct}%`;
+        if (el2) el2.textContent = `${usedGB}/${totalGB} GB (${usedPct}%)`;
+        if (el3) el3.style.width = `${usedPct}%`;
       }
 
       const cpuOut = await this.adb.shell('cat /proc/loadavg');
       const loadMatch = cpuOut.match(/^([\d.]+)/);
       if (loadMatch) {
-        const cores = parseInt(await this.adb.shell('nproc')) || 4;
+        const cores = 8; // Default for Helio G81
         const load = parseFloat(loadMatch[1]);
         const cpuPct = Math.min(Math.round(load / cores * 100), 100);
-        document.getElementById('val-cpu').textContent = `${cpuPct}%`;
-        document.getElementById('m-cpu').textContent = `${cpuPct}% (${load} load)`;
-        document.getElementById('bar-cpu').style.width = `${cpuPct}%`;
+        const el1 = document.getElementById('val-cpu');
+        const el2 = document.getElementById('m-cpu');
+        const el3 = document.getElementById('bar-cpu');
+        if (el1) el1.textContent = `${cpuPct}%`;
+        if (el2) el2.textContent = `${cpuPct}% (${load} load)`;
+        if (el3) el3.style.width = `${cpuPct}%`;
       }
     } catch (e) {
-      this.log('error', `Metrics update failed: ${e.message}`);
+      console.warn(`Metrics update failed: ${e.message}`);
+    } finally {
+      this._updatingMetrics = false;
     }
   }
 

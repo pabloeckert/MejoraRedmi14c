@@ -31,6 +31,10 @@ BLOAT_ANALYTICS=(
     "com.miui.hybrid"
     "com.miui.hybrid.accessory"
     "com.miui.audiomonitor"
+    "com.miui.guardprovider"
+    "com.miui.extraphoto"
+    "com.xiaomi.discover"
+    "com.miui.cleaner"
 )
 
 # ─── Apps Xiaomi que la mayoría no usa ───
@@ -197,6 +201,10 @@ declare -A PKG_NAMES=(
     ["com.miui.hybrid"]="Quick Apps"
     ["com.miui.hybrid.accessory"]="Quick Apps accessory"
     ["com.miui.audiomonitor"]="Audio Monitor"
+    ["com.miui.guardprovider"]="Security Guard"
+    ["com.miui.extraphoto"]="AI Extra Photo"
+    ["com.xiaomi.discover"]="Xiaomi Discover"
+    ["com.miui.cleaner"]="MIUI Cleaner"
     ["com.miui.compass"]="Brújula"
     ["com.miui.fm"]="Radio FM"
     ["com.miui.notes"]="Notas MIUI"

@@ -63,14 +63,14 @@ adb_exec_with_retry() {
 adb_pkg_exists() {
     local serial="$1"
     local pkg="$2"
-    adb -s "$serial" shell pm list packages 2>/dev/null | grep -qF "package:$pkg"
+    adb -s "$serial" shell pm list packages 2>/dev/null | grep -xE "package:$pkg" >/dev/null
 }
 
 # ─── Verificar si un paquete está desactivado ───
 adb_pkg_is_disabled() {
     local serial="$1"
     local pkg="$2"
-    adb -s "$serial" shell pm list packages -d 2>/dev/null | grep -qF "package:$pkg"
+    adb -s "$serial" shell pm list packages -d 2>/dev/null | grep -xE "package:$pkg" >/dev/null
 }
 
 # ─── getprop con retry y limpieza de output ───

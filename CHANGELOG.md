@@ -2,6 +2,14 @@
 
 Todas las actualizaciones y cambios notables de este proyecto se documentan en este archivo.
 
+## [v6.0.1] - 2026-05
+### Corregido
+- **`mega-verificar.sh`**: Corregidas inconsistencias en nombres de variables (`SWAPPINESS_PERFORMANCE`) y valores esperados de animación para alinearse con `config.sh`.
+- **`core/adb_utils.sh`**: Mejorada la precisión de `adb_pkg_exists` y `adb_pkg_is_disabled` usando coincidencias exactas (`grep -xE`) para evitar falsos positivos.
+- **`adb.js` (WebUSB)**: Mejorada la estabilidad del loop de lectura, manejo de stalls USB y robustez en la recepción de mensajes.
+- **`app.js`**: Implementado bloqueo de concurrencia en `updateMetrics` para evitar saturación de comandos ADB y mejorada la reactividad de la UI.
+- **`data/bloatware_db.sh`**: Expandida la base de datos con más paquetes detectados en HyperOS 3 (guardprovider, miservice, extraphoto, etc.).
+
 ## [v6.0] - 2026-05
 ### Arquitectura completamente renovada
 

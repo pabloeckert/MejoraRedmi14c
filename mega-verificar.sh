@@ -44,9 +44,9 @@ echo -e "${CYAN}  🎬 ANIMACIONES${NC}"
 WIN=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')
 TRANS=$(adb shell settings get global transition_animation_scale 2>/dev/null | tr -d '\r')
 ANIM=$(adb shell settings get global animator_duration_scale 2>/dev/null | tr -d '\r')
-check "Window animation" "0.1" "$WIN"
-check "Transition animation" "0.1" "$TRANS"
-check "Animator duration" "0.1" "$ANIM"
+check "Window animation" "$ANIM_POCO_MODE" "$WIN"
+check "Transition animation" "$ANIM_POCO_MODE" "$TRANS"
+check "Animator duration" "$ANIM_POCO_MODE" "$ANIM"
 
 # GPU
 echo ""
@@ -80,8 +80,8 @@ echo -e "${CYAN}  💾 MEMORIA${NC}"
 SWAP=$(adb shell settings get global sys_swappiness 2>/dev/null | tr -d '\r')
 PROC=$(adb shell settings get global activity_manager_constants 2>/dev/null | tr -d '\r')
 HEAP=$(adb shell settings get global dalvik_vm_heapsize 2>/dev/null | tr -d '\r')
-check "Swappiness" "$SWAPPINESS_RENDIMIENTO" "$SWAP"
-check "Max cached processes" "64" "$PROC"
+check "Swappiness" "$SWAPPINESS_PERFORMANCE" "$SWAP"
+check "Max cached processes" "$MAX_CACHED_PROCESSES" "$PROC"
 check "Dalvik heap" "$DALVIK_HEAP" "$HEAP"
 
 # RED

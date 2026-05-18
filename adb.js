@@ -139,9 +139,18 @@ class AdbWebUsbTransport {
             while (received < dataLen) {
               const toRead = Math.min(dataLen - received, MAX_PAYLOAD);
               const dataResult = await this.device.transferIn(this.endpointIn.endpointNumber, toRead);
+              
+              if (dataResult.status === 'stall') {
+                await this.device.clearHalt('in', this.endpointIn.endpointNumber);
+                continue;
+              }
+
               if (dataResult.data.byteLength > 0) {
                 chunks.push(new Uint8Array(dataResult.data.buffer));
                 received += dataResult.data.byteLength;
+              } else if (dataResult.status === 'ok' && dataResult.data.byteLength === 0) {
+                // Short read or empty data
+                break;
               }
             }
             data = new Uint8Array(dataLen);
@@ -163,6 +172,14 @@ class AdbWebUsbTransport {
       } catch (err) {
         if (!this._readLoop) break;
         console.error('ADB Read Error:', err);
+        
+        // Notify all pending reads of the failure
+        const pending = this._pendingReads;
+        this._pendingReads = [];
+        for (const { reject } of pending) {
+          reject(err);
+        }
+
         this._readLoop = false;
         if (this.onDisconnect) this.onDisconnect(err);
         break;
@@ -175,16 +192,21 @@ class AdbWebUsbTransport {
     let offset = 0;
     while (offset < buf.length) {
       const chunk = buf.slice(offset, offset + MAX_PAYLOAD);
-      const result = await this.device.transferOut(this.endpointOut.endpointNumber, chunk);
-      if (result.status === 'stall') {
-        await this.device.clearHalt('out', this.endpointOut.endpointNumber);
-        continue;
+      try {
+        const result = await this.device.transferOut(this.endpointOut.endpointNumber, chunk);
+        if (result.status === 'stall') {
+          await this.device.clearHalt('out', this.endpointOut.endpointNumber);
+          continue;
+        }
+        offset += chunk.length;
+      } catch (err) {
+        console.error('ADB Send Error:', err);
+        throw err;
       }
-      offset += chunk.length;
     }
   }
 
-  async receive(timeout = 10000) {
+  async receive(timeout = 15000) {
     if (this._messageQueue.length > 0) {
       return this._messageQueue.shift();
     }
@@ -193,7 +215,7 @@ class AdbWebUsbTransport {
         const idx = this._pendingReads.findIndex(p => p.resolve === resolve);
         if (idx !== -1) {
           this._pendingReads.splice(idx, 1);
-          reject(new Error('ADB Receive Timeout'));
+          reject(new Error(`ADB Receive Timeout (${timeout}ms)`));
         }
       }, timeout);
 
