@@ -12,7 +12,7 @@ Toolkit de optimización Android para **Redmi 14C (HyperOS 3 / Android 16 / Heli
 ## Uso — Una sola línea
 
 ```bash
-chmod +x run.sh && ./run.sh
+chmod +x src/cli/run.sh && ./src/cli/run.sh
 ```
 
 El script detecta automáticamente:
@@ -24,11 +24,11 @@ El script detecta automáticamente:
 
 | Flag | Modo | Duración aprox. |
 |---|---|---|
-| `./run.sh` | Auto-detección | variable |
-| `./run.sh --full` / `-f` | Optimización completa | 15-30 min |
-| `./run.sh --maintenance` / `-s` | Mantenimiento semanal | < 5 min |
-| `./run.sh --monitor` / `-m` | Monitoreo en tiempo real | continuo |
-| `./run.sh --emergency` / `-e` | Restaurar todo a fábrica | 2-3 min |
+| `./src/cli/run.sh` | Auto-detección | variable |
+| `./src/cli/run.sh --full` / `-f` | Optimización completa | 15-30 min |
+| `./src/cli/run.sh --maintenance` / `-s` | Mantenimiento semanal | < 5 min |
+| `./src/cli/run.sh --monitor` / `-m` | Monitoreo en tiempo real | continuo |
+| `./src/cli/run.sh --emergency` / `-e` | Restaurar todo a fábrica | 2-3 min |
 
 ## Qué hace el Poco Mode
 
@@ -44,7 +44,7 @@ El Poco Mode equipara el rendimiento del Redmi 14C al 85% de un Poco X7 Pro medi
 
 ## Soporte para 2 dispositivos
 
-Si conectás los dos Redmi 14C a la vez, el script muestra un menú de selección con el modelo y un apodo automático ("Redmi-1", "Redmi-2"). Cada dispositivo tiene su propio historial en `data/devices.db`.
+Si conectás los dos Redmi 14C a la vez, el script muestra un menú de selección con el modelo y un apodo automático ("Redmi-1", "Redmi-2"). Cada dispositivo tiene su propio historial en `tools/data/devices.db`.
 
 ## Ciclo de 7 días
 
@@ -54,22 +54,22 @@ El script detecta automáticamente si han pasado 7+ días desde el último run y
 
 - `com.xiaomi.joyose` **NUNCA se toca** — es el gestor térmico del Helio G81 Ultra. Desactivarlo causa sobrecalentamiento.
 - Temperatura bloqueante: si el teléfono supera 42°C, el script aborta.
-- Backup automático completo antes de cada optimización (`backups/`).
-- Restauración completa: `./run.sh --emergency`
+- Backup automático completo antes de cada optimización (`tools/backups/`).
+- Restauración completa: `./src/cli/run.sh --emergency`
 
 ## Herramientas adicionales (scripts legados, siguen funcionando)
 
 | Script | Función |
 |---|---|
-| `benchmark.sh` | Mide CPU, RAM y red — comparar antes/después |
-| `diagnostico.sh` | Lee métricas del sistema |
-| `optimize-boot.sh` | Optimiza receivers de arranque |
-| `measure-boot.sh` | Mide tiempo real de encendido |
-| `mega-verificar.sh` | Verifica si los tweaks se aplicaron |
+| `src/cli/benchmark.sh` | Mide CPU, RAM y red — comparar antes/después |
+| `src/cli/diagnostico.sh` | Lee métricas del sistema |
+| `src/cli/optimize-boot.sh` | Optimiza receivers de arranque |
+| `src/cli/measure-boot.sh` | Mide tiempo real de encendido |
+| `src/cli/mega-verificar.sh` | Verifica si los tweaks se aplicaron |
 
 ## Web App alternativa
 
-Si preferís no usar la terminal, abrí `index.html` en Chrome/Edge/Opera:
+Si preferís no usar la terminal, abrí `src/web/index.html` en Chrome/Edge/Opera:
 
 ```bash
 adb kill-server

@@ -31,8 +31,8 @@ sudo apt install android-sdk-platform-tools
 ```bash
 git clone https://github.com/pabloeckert/MejoraRedmi14c.git
 cd MejoraRedmi14c
-chmod +x *.sh
-./optimizer.sh
+chmod +x src/cli/*.sh
+./src/cli/run.sh
 ```
 
 ## Paso 4: Seguir el menú
@@ -43,12 +43,12 @@ El script te guía paso a paso. Recomendamos:
 
 ## ¿Algo salió mal?
 ```bash
-./emergencia.sh
+./src/cli/run.sh --emergency
 ```
 Esto restaura TODO a como estaba antes.
 
 ## Probá primero con --dry-run
 ```bash
-./mega-optimizer.sh --dry-run
+./src/cli/run.sh --dry-run
 ```
 Esto muestra lo que haría SIN cambiar nada.

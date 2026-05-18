@@ -10,10 +10,11 @@ readonly PROJECT_NAME="PhoneOptimizer Pro"
 readonly BUILD_DATE="2026-05"
 
 # Directorios base — calculados relativos al script
-SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DATA_DIR="$SCRIPT_ROOT/data"
-LOGS_DIR="$SCRIPT_ROOT/logs"
-BACKUPS_DIR="$SCRIPT_ROOT/backups"
+SCRIPT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+CLI_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DATA_DIR="$SCRIPT_ROOT/tools/data"
+LOGS_DIR="$SCRIPT_ROOT/tools/logs"
+BACKUPS_DIR="$SCRIPT_ROOT/tools/backups"
 DB_FILE="$DATA_DIR/devices.db"
 
 mkdir -p "$DATA_DIR" "$LOGS_DIR" "$BACKUPS_DIR"
