@@ -6,7 +6,11 @@
       "Bash(git push *)",
       "Bash(adb version *)",
       "Bash(adb devices *)",
-      "Bash(chmod +x run.sh core/*.sh engines/*.sh modes/*.sh data/bloatware_db.sh)"
+      "Bash(chmod +x run.sh core/*.sh engines/*.sh modes/*.sh data/bloatware_db.sh)",
+      "Bash(adb kill-server *)",
+      "Bash(adb start-server *)",
+      "Bash(adb reconnect *)",
+      "Bash(bash *)"
     ]
   }
 }
