@@ -3,6 +3,8 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'src/web/**'
   workflow_dispatch:
 
 permissions:
@@ -30,7 +32,7 @@ jobs:
       - name: Prepare web files
         run: |
           mkdir -p _site
-          cp index.html app.js adb.js styles.css favicon.svg _site/
+          cp src/web/index.html src/web/app.js src/web/adb.js src/web/styles.css src/web/favicon.svg _site/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
