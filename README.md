@@ -51,6 +51,8 @@ Si no sabes por dónde empezar, aquí tienes los caminos más comunes. Para toda
    
 Para explicaciones más detalladas y cómo configurar ADB, lee nuestro [TUTORIAL.md](TUTORIAL.md) o revisa el [FAQ.md](FAQ.md).
 
+Para contribuir o entender la arquitectura del proyecto (estructura de scripts, convenciones, módulos), consultá [CLAUDE.md](CLAUDE.md).
+
 ## Web App Alternativa
 
 Si no quieres usar la terminal, abre `index.html` en Chrome, Edge u Opera:
