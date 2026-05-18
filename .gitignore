@@ -1,3 +1,4 @@
+data/devices.db
 node_modules/
 dist/
 dist-release/

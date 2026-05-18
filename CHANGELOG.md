@@ -1,6 +1,44 @@
-# Changelog — MejoraRedmi14c
+# Changelog — PhoneOptimizer Pro
 
 Todas las actualizaciones y cambios notables de este proyecto se documentan en este archivo.
+
+## [v6.0] - 2026-05
+### Arquitectura completamente renovada
+
+**Nueva estructura modular:**
+- `run.sh` — punto de entrada único con auto-detección de modo
+- `core/config.sh` — configuración maestra v6.0 (HyperOS 3 / Android 16)
+- `core/database.sh` — historial SQLite por dispositivo (optimization_runs, app_state, metrics_history)
+- `core/display.sh` — dashboard terminal en tiempo real con tput (3 paneles + log scrolleable)
+- `core/device_profile.sh` — detección y validación de dispositivo por serial
+- `core/adb_utils.sh` — funciones ADB robustas con retry automático + snapshot completo
+- `data/bloatware_db.sh` — base de datos expandida para HyperOS 3 / Android 16 (80+ paquetes)
+- `engines/bloatware.sh` — motor de desactivación con detección de regresiones OTA
+- `engines/performance.sh` — Poco Mode: animaciones, GPU Vulkan, resolución, dexopt
+- `engines/memory.sh` — optimización de RAM con Memory Extension HyperOS 3
+- `engines/camera_fix.sh` — fix completo cámara + WhatsApp con pre-calentamiento
+- `engines/network.sh` — DNS, TCP, WiFi optimizados
+- `engines/thermal.sh` — gestión térmica inteligente (com.xiaomi.joyose protegido)
+- `modes/full_optimize.sh` — pipeline completo 9 fases
+- `modes/maintenance.sh` — mantenimiento semanal < 5 min
+- `modes/monitor.sh` — monitoreo en tiempo real con métricas guardadas en DB
+- `modes/emergency.sh` — restauración total a fábrica
+
+**Nuevas funcionalidades:**
+- Soporte para 2 dispositivos simultáneos con reconocimiento por serial
+- Auto-selección de modo: primera vez → full, 7 días → maintenance, sino → menú
+- Detección y corrección automática de regresiones OTA (bloatware que vuelve tras actualizar)
+- Score de optimización 0-100 con comparación antes/después
+- Memory Extension HyperOS 3 (RAM 4GB → 8GB virtual)
+- Resolución gaming 612x1360 @ 260dpi (+15% FPS)
+
+**Correcciones de seguridad:**
+- `com.xiaomi.joyose` protegido en CRITICAL_SYSTEM_APPS — no se desactiva nunca
+- Temperatura bloqueante aumentada a 42°C (antes 40°C)
+- media_scanner_enabled siempre se reactiva al final de camera_fix
+
+**Scripts legados mantenidos** (siguen funcionando):
+`benchmark.sh`, `diagnostico.sh`, `optimize-boot.sh`, `measure-boot.sh`, `mega-verificar.sh`
 
 ## [v5.0] - 2026-05
 ### Agregado

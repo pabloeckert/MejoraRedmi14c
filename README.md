@@ -1,64 +1,83 @@
-# Optimizador Android por ADB — Redmi 14C / HyperOS
+# PhoneOptimizer Pro v6.0 — Redmi 14C / HyperOS 3
 
-Este proyecto es un toolkit avanzado para la optimización de dispositivos **Xiaomi / Redmi / POCO**, enfocado específicamente en el Redmi 14C. Puedes usar los scripts locales de shell (Recomendado) o la App Web a través de WebUSB.
+Toolkit de optimización Android para **Redmi 14C (HyperOS 3 / Android 16 / Helio G81 Ultra)**. Un solo comando para transformar el teléfono en modo Poco.
 
-## ⚠️ Seguridad Primero
+## Requisitos
 
-Este proyecto prioriza la salud de tu dispositivo:
-- **Thermal management**: NO se desactiva por defecto. Evitamos sobrecalentamientos peligrosos (solo se fuerza bajo tu propio riesgo usando `--no-thermal`).
-- **Validación de modelo**: Identifica tu teléfono antes de realizar cambios.
-- **Check de temperatura**: Si el dispositivo supera los 40°C, las rutinas agresivas se cancelan.
-- **Dry-run**: Usa `./mega-optimizer.sh --dry-run` para simular cambios sin aplicar ninguno.
-- **Rescue Points**: Antes de cada cambio masivo, se genera un punto de restauración automático.
+- ADB instalado (`android-tools-adb` / `android-platform-tools`)
+- SQLite3 instalado (`sqlite3`)
+- bash 4+ (en macOS: `brew install bash`)
+- Cable USB datos + Depuración USB activada en el teléfono
 
-## 🚀 Guía Rápida
+## Uso — Una sola línea
 
-Si no sabes por dónde empezar, aquí tienes los caminos más comunes. Para todas las opciones necesitas tener tu PC conectada al teléfono y la Depuración USB encendida.
+```bash
+chmod +x run.sh && ./run.sh
+```
 
-| Tu necesidad | Qué ejecutar en la terminal |
+El script detecta automáticamente:
+- **Primera vez** → Optimización completa (Poco Mode)
+- **Cada 7 días** → Mantenimiento semanal (regresiones OTA + cache)
+- **Siempre** → Muestra menú si no corresponde ninguna de las anteriores
+
+## Modos disponibles
+
+| Flag | Modo | Duración aprox. |
+|---|---|---|
+| `./run.sh` | Auto-detección | variable |
+| `./run.sh --full` / `-f` | Optimización completa | 15-30 min |
+| `./run.sh --maintenance` / `-s` | Mantenimiento semanal | < 5 min |
+| `./run.sh --monitor` / `-m` | Monitoreo en tiempo real | continuo |
+| `./run.sh --emergency` / `-e` | Restaurar todo a fábrica | 2-3 min |
+
+## Qué hace el Poco Mode
+
+El Poco Mode equipara el rendimiento del Redmi 14C al 85% de un Poco X7 Pro mediante:
+
+- **~80+ apps de bloatware desactivadas** (telemetría, ads, apps Xiaomi/Google/Facebook no usadas)
+- **GPU forzada** con Vulkan + MSAA + sin draw defer
+- **Animaciones 0.3x** (instantáneas, mínimo para HyperOS 3)
+- **Resolución 612x1360 @ 260dpi** (+15% FPS sin diferencia visual notable)
+- **Cámara y WhatsApp compilados en speed mode** + pre-calentados en memoria
+- **Memory Extension HyperOS 3** activada (4GB → 8GB virtual)
+- **Swappiness 20**, LMK agresivo, HWUI cache XL
+
+## Soporte para 2 dispositivos
+
+Si conectás los dos Redmi 14C a la vez, el script muestra un menú de selección con el modelo y un apodo automático ("Redmi-1", "Redmi-2"). Cada dispositivo tiene su propio historial en `data/devices.db`.
+
+## Ciclo de 7 días
+
+El script detecta automáticamente si han pasado 7+ días desde el último run y lanza el mantenimiento semanal. El mantenimiento corrige regresiones OTA (apps que HyperOS reactiva tras actualizar) y limpia cache.
+
+## Seguridad
+
+- `com.xiaomi.joyose` **NUNCA se toca** — es el gestor térmico del Helio G81 Ultra. Desactivarlo causa sobrecalentamiento.
+- Temperatura bloqueante: si el teléfono supera 42°C, el script aborta.
+- Backup automático completo antes de cada optimización (`backups/`).
+- Restauración completa: `./run.sh --emergency`
+
+## Herramientas adicionales (scripts legados, siguen funcionando)
+
+| Script | Función |
 |---|---|
-| **Quiero optimizarlo al MÁXIMO sin pensar** | `./run-optimize.sh` (Hace TODO y reinicia) |
-| **Quiero ser guiado paso a paso** | `./optimizer.sh` (Abre el menú interactivo) |
-| **Quiero arreglar WhatsApp lento y la cámara**| `./turbo-apps.sh` |
-| **Quiero limpiar la basura de Xiaomi (Bloatware)** | `./mega-optimizer.sh` |
-| **Mi teléfono falló / Quiero volver a fábrica** | `./emergencia.sh` |
+| `benchmark.sh` | Mide CPU, RAM y red — comparar antes/después |
+| `diagnostico.sh` | Lee métricas del sistema |
+| `optimize-boot.sh` | Optimiza receivers de arranque |
+| `measure-boot.sh` | Mide tiempo real de encendido |
+| `mega-verificar.sh` | Verifica si los tweaks se aplicaron |
 
-## 📊 Tabla Comparativa de Scripts
+## Web App alternativa
 
-| Script | Qué hace | Cuándo usarlo | Riesgo |
-|---|---|---|:---:|
-| `optimizer.sh` | Menú interactivo amigable. | Siempre que quieras navegar visualmente las opciones. | Bajo |
-| `run-optimize.sh` | Optimización autónoma, log, y reinicio. | Cuando quieras aplicar el máximo rendimiento de una vez. | Medio |
-| `mega-optimizer.sh` | Aplica 12 optimizaciones brutales. | Para limpiar RAM, basura, e inyectar FPS a juegos y UI. | Medio |
-| `turbo-apps.sh` | Compila y carga en memoria WA/Cámara. | Si WhatsApp tarda en abrir o la cámara va a tirones. | Bajo |
-| `optimize-boot.sh` | Optimiza receivers de arranque. | Si tu teléfono tarda mucho en encender. | Bajo |
-| `benchmark.sh` | Mide CPU, RAM y red del dispositivo. | Antes y después de aplicar tweaks, para notar la diferencia. | Nulo |
-| `mantenimiento.sh` | Limpia cache y cierra procesos pesados. | Una vez al mes, para mantener el celular fluido. | Bajo |
-| `emergencia.sh` | Revierte todo desde el Rescue Point. | Si un script te provocó fallos, o querés vender el teléfono. | Nulo |
-
-## Uso Básico
-
-1. Clona el repo:
-   ```bash
-   git clone https://github.com/pabloeckert/MejoraRedmi14c.git
-   cd MejoraRedmi14c
-   chmod +x *.sh
-   ```
-2. Ejecuta el menú principal:
-   ```bash
-   ./optimizer.sh
-   ```
-   
-Para explicaciones más detalladas y cómo configurar ADB, lee nuestro [TUTORIAL.md](TUTORIAL.md) o revisa el [FAQ.md](FAQ.md).
-
-Para contribuir o entender la arquitectura del proyecto (estructura de scripts, convenciones, módulos), consultá [CLAUDE.md](CLAUDE.md).
-
-## Web App Alternativa
-
-Si no quieres usar la terminal, abre `index.html` en Chrome, Edge u Opera:
+Si preferís no usar la terminal, abrí `index.html` en Chrome/Edge/Opera:
 
 ```bash
 adb kill-server
 python3 -m http.server 8000
-# Abrir http://localhost:8000
+# → http://localhost:8000
 ```
+
+---
+
+Para entender la arquitectura del código, leé [CLAUDE.md](CLAUDE.md).
+Para el tutorial de configuración de ADB, leé [TUTORIAL.md](TUTORIAL.md).
