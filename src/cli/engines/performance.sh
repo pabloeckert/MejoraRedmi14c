@@ -13,23 +13,32 @@ performance_apply_poco_mode() {
     log_step "PERFORMANCE — Poco Mode"
 
     # ── Bloque 1: Animaciones (0.3x — mínimo HyperOS 3) ──
+    # Settings.System — funciona en Android 16 sin root (global requiere WRITE_SECURE_SETTINGS)
     log_info "Animaciones 0.3x..."
-    adb_setting_put window_animation_scale     "$ANIM_POCO_MODE"
-    adb_setting_put transition_animation_scale "$ANIM_POCO_MODE"
-    adb_setting_put animator_duration_scale    "$ANIM_POCO_MODE"
+    adb_setting_put_system window_animation_scale     "$ANIM_POCO_MODE"
+    adb_setting_put_system transition_animation_scale "$ANIM_POCO_MODE"
+    adb_setting_put_system animator_duration_scale    "$ANIM_POCO_MODE"
     log_ok "Animaciones: ${ANIM_POCO_MODE}x"
     [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "Animaciones ${ANIM_POCO_MODE}x" "ok"
 
     # ── Bloque 2: GPU máxima potencia ──
+    # force_gpu_rendering y debug.hwui.* son Settings.Global — bloqueados en Android 16 sin root.
+    # Se intentan de todas formas; si fallan se loguea warning en vez de éxito falso.
     log_info "GPU + Vulkan..."
-    adb_setting_put force_gpu_rendering              1
-    adb_setting_put force_msaa                       1
-    adb_shell settings put global debug.hwui.renderer skiavk
-    adb_shell settings put global debug.hwui.disable_draw_defer true
-    adb_shell settings put global debug.hwui.disable_draw_reorder true
-    adb_shell settings put global debug.enable_gpu_debug_layers 0
-    log_ok "GPU: forzada + Vulkan + MSAA"
-    [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "GPU Vulkan activado" "ok"
+    local _gpu_out
+    _gpu_out=$(adb -s "$DEVICE_SERIAL" shell settings put global force_gpu_rendering 1 2>&1 | tr -d '\r')
+    if echo "$_gpu_out" | grep -qi "exception\|denied"; then
+        log_warn "GPU: bloqueado (Android 16 requiere WRITE_SECURE_SETTINGS para global)"
+        [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "GPU: sin permisos" "warn"
+    else
+        adb -s "$DEVICE_SERIAL" shell settings put global force_msaa 1 >/dev/null 2>&1
+        adb -s "$DEVICE_SERIAL" shell settings put global debug.hwui.renderer skiavk >/dev/null 2>&1
+        adb -s "$DEVICE_SERIAL" shell settings put global debug.hwui.disable_draw_defer true >/dev/null 2>&1
+        adb -s "$DEVICE_SERIAL" shell settings put global debug.hwui.disable_draw_reorder true >/dev/null 2>&1
+        adb -s "$DEVICE_SERIAL" shell settings put global debug.enable_gpu_debug_layers 0 >/dev/null 2>&1
+        log_ok "GPU: forzada + Vulkan + MSAA"
+        [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "GPU Vulkan activado" "ok"
+    fi
 
     # ── Bloque 3: Scroll y touch responsivo ──
     log_info "Touch y scroll..."
@@ -46,8 +55,13 @@ performance_apply_poco_mode() {
 
     # ── Bloque 5: Performance mode ──
     log_info "Performance mode..."
-    adb_shell cmd power set-fixed-performance-mode-enabled true
-    log_ok "Fixed performance mode activado"
+    local _pm_out
+    _pm_out=$(adb -s "$DEVICE_SERIAL" shell cmd power set-fixed-performance-mode-enabled true 2>&1 | tr -d '\r')
+    if echo "$_pm_out" | grep -qi "unknown command\|exception\|error"; then
+        log_warn "Performance mode: no soportado en esta ROM (HyperOS 3)"
+    else
+        log_ok "Fixed performance mode activado"
+    fi
 
     # ── Bloque 6: Font scale ──
     adb_setting_put_system font_scale 0.9
@@ -73,14 +87,25 @@ performance_apply_poco_mode() {
     log_ok "BT scanning / NFC / WiFi scan: desactivados"
 
     # ── Bloque 11: Resolución optimizada para +FPS ──
+    # wm size/density requieren WRITE_SECURE_SETTINGS en Android 16 — bloqueado sin root.
     log_info "Resolución gaming..."
-    adb -s "$DEVICE_SERIAL" shell wm size "${GAMING_RES_W}x${GAMING_RES_H}" 2>/dev/null
-    adb -s "$DEVICE_SERIAL" shell wm density "$GAMING_DPI"                  2>/dev/null
-    log_ok "Resolución: ${GAMING_RES_W}x${GAMING_RES_H} @ ${GAMING_DPI}dpi (~+15% FPS)"
+    local _wm_out
+    _wm_out=$(adb -s "$DEVICE_SERIAL" shell wm size "${GAMING_RES_W}x${GAMING_RES_H}" 2>&1 | tr -d '\r')
+    if echo "$_wm_out" | grep -qi "exception\|denied"; then
+        log_warn "Resolución: bloqueado (Android 16 requiere WRITE_SECURE_SETTINGS)"
+    else
+        adb -s "$DEVICE_SERIAL" shell wm density "$GAMING_DPI" 2>/dev/null
+        log_ok "Resolución: ${GAMING_RES_W}x${GAMING_RES_H} @ ${GAMING_DPI}dpi (~+15% FPS)"
+    fi
 
     # ── Bloque 12: Dexopt apps del sistema ──
     log_step "DEXOPT — Apps del sistema (speed-profile)"
+    local dex_sys_pkgs
+    dex_sys_pkgs=$(adb -s "$DEVICE_SERIAL" shell pm list packages 2>/dev/null | sed 's/package://' | tr -d '\r')
     for app in "${SYSTEM_APPS_COMPILE[@]}"; do
+        if ! echo "$dex_sys_pkgs" | grep -qxF "$app"; then
+            continue
+        fi
         if safe_compile "$app" "speed-profile"; then
             (( compiled_sys++ ))
             [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "Compilado: $app" "ok"
@@ -113,14 +138,14 @@ performance_apply_poco_mode() {
 performance_calculate_score() {
     local score=0
 
-    # Animaciones (máx 20 pts)
-    local anim; anim=$(adb_setting_get window_animation_scale)
+    # Animaciones (máx 20 pts) — leer desde system (global bloqueado en Android 16)
+    local anim; anim=$(adb_setting_get_system window_animation_scale)
     if   [ "$anim" = "0.3" ]; then score=$(( score + 20 ))
     elif [ "$anim" = "0.5" ]; then score=$(( score + 12 ))
     elif [ "$anim" = "1"   ]; then score=$(( score + 0  ))
     fi
 
-    # GPU forzada (máx 15 pts)
+    # GPU forzada (máx 15 pts) — bloqueado en Android 16 sin root; siempre 0 en ese caso
     local gpu; gpu=$(adb_setting_get force_gpu_rendering)
     [ "$gpu" = "1" ] && score=$(( score + 15 ))
 
@@ -159,9 +184,9 @@ performance_calculate_score() {
 performance_restore_defaults() {
     log_step "Restaurando performance a defaults..."
 
-    adb_setting_put window_animation_scale     1
-    adb_setting_put transition_animation_scale 1
-    adb_setting_put animator_duration_scale    1
+    adb_setting_put_system window_animation_scale     1
+    adb_setting_put_system transition_animation_scale 1
+    adb_setting_put_system animator_duration_scale    1
 
     adb_shell settings delete global force_gpu_rendering
     adb_shell settings delete global force_msaa

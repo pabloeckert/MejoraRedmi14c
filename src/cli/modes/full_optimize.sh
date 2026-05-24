@@ -49,7 +49,11 @@ mode_full_optimize() {
     # ── FASE 2: Bloatware ──
     log_section "FASE 2 — Bloatware (Poco Mode)"
     [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_update_progress 2 9 "Bloatware"
-    apps_disabled=$(bloatware_run "PROFILE_POCO_MODE" "$run_id")
+    local _bloat_raw
+    _bloat_raw=$(bloatware_run "PROFILE_POCO_MODE" "$run_id")
+    log_raw "$_bloat_raw"
+    apps_disabled=$(printf '%s' "$_bloat_raw" | grep -E '^[0-9]+$' | tail -1)
+    apps_disabled="${apps_disabled:-0}"
 
     # ── FASE 3: Performance tweaks ──
     log_section "FASE 3 — Performance + Red + Thermal"

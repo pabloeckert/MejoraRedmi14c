@@ -169,6 +169,10 @@ adb_setting_get() {
     adb_shell settings get global "$1"
 }
 
+adb_setting_get_system() {
+    adb_shell settings get system "$1"
+}
+
 adb_setting_delete() {
     adb_shell settings delete global "$1"
 }
@@ -189,10 +193,16 @@ safe_disable_pkg() {
         return 1
     fi
     local out
+    # Intento 1: disable-user (apps de usuario instaladas desde Play Store)
     out=$(adb -s "$DEVICE_SERIAL" shell pm disable-user --user 0 "$pkg" 2>&1 | tr -d '\r')
     if echo "$out" | grep -qi "disabled\|new state: disabled"; then
         return 0
     fi
+    # Intento 2: uninstall -k para paquetes del sistema que Android 16 / HyperOS 3
+    # bloquea con SecurityException: Cannot disable system packages.
+    # Reversible con: pm install-existing --user 0 <pkg>
+    out=$(adb -s "$DEVICE_SERIAL" shell pm uninstall -k --user 0 "$pkg" 2>&1 | tr -d '\r')
+    echo "$out" | grep -qi "success" && return 0
     return 1
 }
 

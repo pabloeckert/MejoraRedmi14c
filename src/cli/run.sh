@@ -113,6 +113,7 @@ for arg in "$@"; do
         --maintenance|-s) MODE="maintenance" ;;
         --full|-f)      MODE="full"      ;;
         --profile|-p)   MODE="profile"   ;;
+        --scan|-c)      MODE="scan"      ;;
     esac
 done
 
@@ -174,6 +175,10 @@ case "$MODE" in
     profile)
         source "$SCRIPT_DIR/modes/profile_optimize.sh"
         mode_profile_optimize
+        ;;
+    scan)
+        source "$SCRIPT_DIR/modes/scan.sh"
+        mode_scan
         ;;
 esac
 

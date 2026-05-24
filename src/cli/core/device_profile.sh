@@ -49,14 +49,14 @@ device_read_info() {
     storage_kb=$(adb -s "$serial" shell df /data 2>/dev/null | tail -1 | awk '{print $2}' | tr -d 'KMG')
     DEVICE_STORAGE_GB=$(( ${storage_kb:-0} / 1048576 ))
 
-    # Batería
+    # Batería — head -1 evita multiples matches de grep -o en algunas ROMs
     local batt_raw
-    batt_raw=$(adb -s "$serial" shell dumpsys battery 2>/dev/null | grep "level:" | grep -o '[0-9]*')
+    batt_raw=$(adb -s "$serial" shell dumpsys battery 2>/dev/null | grep "level:" | grep -o '[0-9]*' | head -1 | tr -d '\r')
     DEVICE_BATTERY_PCT="${batt_raw:-0}"
 
-    # Temperatura (en décimas de grado → °C)
+    # Temperatura (en décimas de grado → °C) — ídem, head -1
     local temp_raw
-    temp_raw=$(adb -s "$serial" shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*')
+    temp_raw=$(adb -s "$serial" shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*' | head -1 | tr -d '\r')
     DEVICE_TEMP_C=$(( ${temp_raw:-0} / 10 ))
 
     # Serial enmascarado para logs (últimos 4 caracteres)

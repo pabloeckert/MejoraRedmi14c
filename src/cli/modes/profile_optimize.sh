@@ -55,6 +55,9 @@ mode_profile_optimize() {
     local apps_disabled
     apps_disabled=$(bloatware_run "PROFILE_RUNTIME" "$run_id")
     log_ok "Apps desactivadas: $apps_disabled"
+    # bloatware_run mezcla log ANSI + número en stdout; extraer solo el entero para DB
+    apps_disabled=$(printf '%s' "$apps_disabled" | grep -E '^[0-9]+$' | tail -1)
+    apps_disabled="${apps_disabled:-0}"
 
     # ── Telemetría Xiaomi — siempre, sin opción de proteger ──
     log_section "FASE 2b — Telemetría Xiaomi"
