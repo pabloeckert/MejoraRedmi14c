@@ -112,6 +112,7 @@ for arg in "$@"; do
         --monitor|-m)   MODE="monitor"   ;;
         --maintenance|-s) MODE="maintenance" ;;
         --full|-f)      MODE="full"      ;;
+        --profile|-p)   MODE="profile"   ;;
     esac
 done
 
@@ -169,6 +170,10 @@ case "$MODE" in
     emergency)
         source "$SCRIPT_DIR/modes/emergency.sh"
         mode_emergency
+        ;;
+    profile)
+        source "$SCRIPT_DIR/modes/profile_optimize.sh"
+        mode_profile_optimize
         ;;
 esac
 

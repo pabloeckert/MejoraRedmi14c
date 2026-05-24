@@ -1,0 +1,13 @@
+{
+  "id": "experimental",
+  "name": "Experimental",
+  "description": "Ajustes avanzados. Usar con cuidado.",
+  "icon": "🧪",
+  "flag": "--full --experimental",
+  "details": [
+    "Cambio de resolución a 612x1360",
+    "DPI personalizado (260)",
+    "Compilación Speed Mode de apps críticas",
+    "Ajustes de kernel adicionales"
+  ]
+}

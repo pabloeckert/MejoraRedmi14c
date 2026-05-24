@@ -1,0 +1,13 @@
+{
+  "id": "default",
+  "name": "Equilibrado",
+  "description": "Optimización segura y equilibrada para el día a día.",
+  "icon": "📱",
+  "flag": "--full",
+  "details": [
+    "Eliminación de bloatware estándar",
+    "Optimización de animaciones a 0.5x",
+    "Mejoras de red básicas",
+    "Gestión de RAM equilibrada"
+  ]
+}

@@ -1,0 +1,82 @@
+╔══════════════════════════════════════════════════════════════╗
+║  DRY-RUN — Debloat personalizado                            ║
+╚══════════════════════════════════════════════════════════════╝
+
+  Perfil:      Valentina
+  Serial:      TEST-VALENTINA-001
+  WhatsApp:    4h/día
+  Banca:       SÍ — Galicia (SafetyNet activo)
+  Apps keep:   3 protegidas por el usuario
+  Bus.critical: Gmail, Chrome, Maps, Calendar protegidas [banca]
+
+  [DESACTIVAR]  29 apps
+  ────────────────────────────────────────────────────────────
+  pm disable-user --user 0 com.amazon.mShop.android.shopping
+                            └─ Amazon
+  pm disable-user --user 0 com.microsoft.bing
+                            └─ Bing
+  pm disable-user --user 0 com.microsoft.office.excel
+                            └─ Excel
+  pm disable-user --user 0 com.facebook.katana
+                            └─ Facebook
+  pm disable-user --user 0 com.facebook.lite
+                            └─ Facebook Lite
+  pm disable-user --user 0 com.google.android.talk
+                            └─ Google Chat
+  pm disable-user --user 0 com.google.android.apps.chromecast.app
+                            └─ Google Home
+  pm disable-user --user 0 com.google.android.apps.tachyon
+                            └─ Google Meet
+  pm disable-user --user 0 com.google.android.apps.subscriptions.red
+                            └─ Google One
+  pm disable-user --user 0 com.google.android.videos
+                            └─ Google Videos
+  pm disable-user --user 0 com.linkedin.android
+                            └─ LinkedIn
+  pm disable-user --user 0 com.facebook.orca
+                            └─ Messenger
+  pm disable-user --user 0 com.netflix.mediaclient
+                            └─ Netflix
+  pm disable-user --user 0 com.microsoft.skydrive
+                            └─ OneDrive
+  pm disable-user --user 0 com.microsoft.office.outlook
+                            └─ Outlook
+  pm disable-user --user 0 com.pinterest
+                            └─ Pinterest
+  pm disable-user --user 0 com.microsoft.office.powerpoint
+                            └─ PowerPoint
+  pm disable-user --user 0 com.reddit.frontpage
+                            └─ Reddit
+  pm disable-user --user 0 com.facebook.services
+                            └─ Servicios Facebook
+  pm disable-user --user 0 com.facebook.system
+                            └─ Sistema Facebook
+  pm disable-user --user 0 com.snapchat.android
+                            └─ Snapchat
+  pm disable-user --user 0 com.microsoft.teams
+                            └─ Teams
+  pm disable-user --user 0 com.zhiliaoapp.musically
+                            └─ TikTok
+  pm disable-user --user 0 com.ss.android.ugc.trill
+                            └─ TikTok (regional)
+  pm disable-user --user 0 tv.twitch.android.app
+                            └─ Twitch
+  pm disable-user --user 0 com.microsoft.office.word
+                            └─ Word
+  pm disable-user --user 0 com.twitter.android
+                            └─ X (Twitter)
+  pm disable-user --user 0 com.google.android.youtube
+                            └─ YouTube
+  pm disable-user --user 0 com.google.android.apps.youtube.music
+                            └─ YouTube Music
+
+  [PROTEGIDAS]  5 apps — no se tocan
+  ────────────────────────────────────────────────────────────
+  # Chrome                            [crítica de negocio (automática)]
+  # Gmail                             [crítica de negocio (automática)]
+  # Google Maps                       [crítica de negocio (automática)]
+  # Instagram                         [protegida por el usuario]
+  # Spotify                           [protegida por el usuario]
+
+  Modo real: pm disable-user --user 0 <pkg>  (reversible)
+  Revertir:  pm enable <pkg>  o  pm install-existing --user 0 <pkg>

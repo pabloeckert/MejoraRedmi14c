@@ -1,0 +1,13 @@
+{
+  "id": "battery",
+  "name": "Battery+",
+  "description": "Ahorro inteligente sin perder usabilidad.",
+  "icon": "🔋",
+  "flag": "--maintenance",
+  "details": [
+    "Limpieza profunda de cache",
+    "Desactivación de procesos en segundo plano",
+    "Optimización de receivers de arranque",
+    "Reducción de telemetría"
+  ]
+}

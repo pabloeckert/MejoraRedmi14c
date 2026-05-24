@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.backends.legacy:SetupBackend"
+
+[project]
+name = "redmi-forge"
+version = "0.1.0"
+description = "Optimizador inteligente para Redmi 14C — Windows 11"
+requires-python = ">=3.11"
+dependencies = [
+    "PySide6>=6.7.0",
+]
+
+[project.scripts]
+redmi-forge = "main:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["forge*"]

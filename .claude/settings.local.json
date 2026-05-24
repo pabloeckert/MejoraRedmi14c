@@ -10,7 +10,23 @@
       "Bash(adb kill-server *)",
       "Bash(adb start-server *)",
       "Bash(adb reconnect *)",
-      "Bash(bash *)"
+      "Bash(bash *)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Github\\\\MejoraRedmi14c\" -Force)",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(cargo --version)",
+      "Bash(rustc --version)",
+      "PowerShell(npm *.)",
+      "PowerShell(npm install *)",
+      "PowerShell(Test-Path *)",
+      "PowerShell(winget *)",
+      "PowerShell(cargo *)",
+      "Bash(dir \"C:\\\\Github\\\\MejoraRedmi14c\\\\\")",
+      "PowerShell(python -c \"import ast; ast.parse\\(open\\('C:/Github/MejoraRedmi14c/main.py'\\).read\\(\\)\\); print\\('main.py OK'\\)\")",
+      "Bash(python -c ' *)",
+      "Bash(grep -rn \"PROFILE_POCO_MODE\\\\s*=\\\\s*\\(\" src/cli/)",
+      "Bash(grep -rn \"^PROFILE_POCO_MODE\" src/cli/)",
+      "Bash(python -m forge.dev.seed)",
+      "Bash(python -c \"import sys; print\\(sys.stdin.buffer.read\\(\\).decode\\('utf-8', errors='replace'\\)\\)\")"
     ]
   }
 }

@@ -1,0 +1,13 @@
+{
+  "id": "gaming",
+  "name": "Gaming",
+  "description": "Máxima respuesta y fluidez para juegos exigentes.",
+  "icon": "🚀",
+  "flag": "--full --performance",
+  "details": [
+    "GPU forzada con Vulkan y MSAA",
+    "Animaciones instantáneas (0.3x)",
+    "Swappiness agresivo (20)",
+    "Prioridad de CPU para apps pesadas"
+  ]
+}
