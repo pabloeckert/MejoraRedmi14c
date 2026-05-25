@@ -10,17 +10,18 @@ from forge.ui.screens.plan      import PlanScreen
 from forge.ui.screens.execution import ExecutionScreen
 from forge.ui.screens.history   import HistoryScreen
 from forge.ui.screens.settings  import SettingsScreen
+from forge.ui.screens.audit     import AuditScreen
 from forge.core.device_watcher  import DeviceWatcher
 from forge.db.database          import upsert_device, get_display_name
-from forge.ui.screens.profile   import ProfileScreen
 
 NAV = [
-    ("Inicio",    "⌂",  HomeScreen),
-    ("Perfil",    "◉",  ProfileScreen),
-    ("Plan",      "▤",  PlanScreen),
-    ("Ejecución", "▶",  ExecutionScreen),
-    ("Histórico", "◈",  HistoryScreen),
-    ("Config",    "⚙",  SettingsScreen),
+    ("Inicio",     "⌂",  HomeScreen),
+    ("Perfil",     "◉",  ProfileScreen),
+    ("Plan",       "▤",  PlanScreen),
+    ("Ejecución",  "▶",  ExecutionScreen),
+    ("Histórico",  "◈",  HistoryScreen),
+    ("Auditoría",  "⊛",  AuditScreen),
+    ("Config",     "⚙",  SettingsScreen),
 ]
 
 # índices de pantalla
@@ -29,7 +30,8 @@ IDX_PROFILE   = 1
 IDX_PLAN      = 2
 IDX_EXECUTION = 3
 IDX_HISTORY   = 4
-IDX_SETTINGS  = 5
+IDX_AUDIT     = 5
+IDX_SETTINGS  = 6
 
 
 class MainWindow(QMainWindow):
@@ -144,13 +146,16 @@ class MainWindow(QMainWindow):
 
         home:    HomeScreen    = self._screens[IDX_HOME]
         history: HistoryScreen = self._screens[IDX_HISTORY]
+        audit:   AuditScreen   = self._screens[IDX_AUDIT]
 
         self._watcher.device_connected.connect(home.on_device_connected)
         self._watcher.device_connected.connect(history.on_device_connected)
+        self._watcher.device_connected.connect(audit.on_device_connected)
         self._watcher.device_connected.connect(self._on_device_connected)
 
         self._watcher.device_disconnected.connect(home.on_device_disconnected)
         self._watcher.device_disconnected.connect(history.on_device_disconnected)
+        self._watcher.device_disconnected.connect(audit.on_device_disconnected)
         self._watcher.device_disconnected.connect(self._on_device_disconnected)
 
         self._watcher.adb_unavailable.connect(self._on_adb_error)
