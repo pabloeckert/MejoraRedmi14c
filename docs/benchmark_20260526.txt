@@ -1,0 +1,235 @@
+════════════════════════════════════════════
+  BENCHMARK COMPLETO — MejoraRedmi14c v
+  Modo: ANTES
+  Fecha: 2026-05-26T09:26:40-03:00
+════════════════════════════════════════════
+[1/10] INFORMACIÓN DEL DISPOSITIVO
+  Fabricante:   Xiaomi
+  Modelo:       2409BRN2CL
+  Android:      16 (SDK 36)
+  HyperOS:      OS3.0
+  Build:        BP2A.250605.031.A3
+  Security:     2026-05-01
+  CPU ABI:      arm64-v8a
+  SoC:          mt6768
+  Board:        pond
+  Serial:       NB5X****
+  Tiempo encendido: 33h 18m
+
+[2/10] CPU — BENCHMARK
+  Cores:        8
+  Load avg:     14.15 (1m) / 14.19 (5m) / 14.36 (15m)
+  CPU uso:      ~176%
+  CPU bench:    335ms (10k iteraciones)
+  ✅ CPU rendimiento: EXCELENTE
+
+  --- Top 10 procesos por CPU ---
+17.2
+13.7
+ 3.4
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+ 0.0
+  17.2
+  13.7
+   3.4
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+   0.0
+
+[3/10] RAM — BENCHMARK
+  RAM Total:    3.56 GB
+  RAM Usada:    2.48 GB (69%)
+  RAM Disponible: 1.08 GB
+  RAM Libre:    0.15 GB
+  RAM Cached:   1.17 GB
+  ⚠️  RAM: Uso moderado (69%)
+  Swap:         1079836kB / 4194300kB (25%)
+
+  --- Top 10 apps por uso de RAM ---
+    217,930K: com.android.systemui (pid 2370)
+    168,425K: com.google.android.gm (pid 26580)
+    147,806K: com.miui.home (pid 2389 / activities)
+    131,158K: com.whatsapp (pid 23122)
+    129,059K: com.google.android.googlequicksearchbox:googleapp (pid 6422)
+    118,844K: com.google.android.gms (pid 24996)
+    110,374K: com.google.android.gms.persistent (pid 22984)
+     94,419K: surfaceflinger (pid 982)
+     87,703K: com.google.android.inputmethod.latin (pid 10704)
+     77,892K: com.android.camera (pid 26986)
+      217,930K: com.android.systemui (pid 2370)
+      168,425K: com.google.android.gm (pid 26580)
+      147,806K: com.miui.home (pid 2389 / activities)
+      131,158K: com.whatsapp (pid 23122)
+      129,059K: com.google.android.googlequicksearchbox:googleapp (pid 6422)
+      118,844K: com.google.android.gms (pid 24996)
+      110,374K: com.google.android.gms.persistent (pid 22984)
+       94,419K: surfaceflinger (pid 982)
+       87,703K: com.google.android.inputmethod.latin (pid 10704)
+       77,892K: com.android.camera (pid 26986)
+
+[4/10] ALMACENAMIENTO
+
+[5/10] BATERÍA Y TEMPERATURA
+  Nivel:        25
+3%
+  Temperatura:  25.0°C
+  Voltaje:      0
+3848mV
+  ✅ Salud batería: BUENA
+  ✅ Temperatura: FRÍA (25.0°C)
+  Estado:       Descargando
+
+[6/10] APPS INSTALADAS Y DESACTIVADAS
+  Total:        333 apps
+  Sistema:      275
+  De terceros:  58
+  Desactivadas: 37
+  ✅ Muchas apps desactivadas (37)
+
+  --- Apps de terceros instaladas ---
+air.PrexArgentina
+ar.com.bancoprovincia.CuentaDNI
+ar.com.claro.android
+cn.wps.moffice_eng
+cn.wps.xiaomi.abroad.lite
+com.amazon.appmanager
+com.amazon.mShop.android.shopping
+com.amazon.mp3
+com.android.deskclock
+com.android.soundrecorder
+com.anthropic.claude
+com.astropaycard.android
+com.belo.android
+com.block.juggle
+com.block.puzzle.game.hippo.mi
+com.booking
+com.cpuid.cpu_z
+com.deepseek.chat
+com.dolarapp
+com.ecffri.arrows
+com.google.android.apps.bard
+com.google.android.apps.labs.language.tailwind
+com.google.android.apps.nbu.files
+com.google.android.contactkeys
+com.instagram.android
+com.jewelsblast.ivygames.Adventure.free
+com.king.candycrushsaga
+com.king.candycrushsodasaga
+com.linkedin.android
+com.logame.eliminateintruder3d
+com.mercadolibre
+com.mi.global.bbs
+com.mi.global.shop
+com.microsoft.bing
+com.microsoft.copilot
+com.mintgames.triplecrush.tile.fun
+com.mintgames.wordtrip
+com.miui.calculator
+com.miui.compass
+com.miui.notes
+com.miui.screenrecorder
+com.miui.weather2
+com.nebula.mahjongtile
+com.netflix.mediaclient
+com.nf.snake
+com.oakever.arrows
+com.oakever.jigsawcard
+com.oakever.tiletrip
+com.ordinaryjoy.woodblast
+com.sukhavati.gotoplaying.bubble.BubbleShooter.mint
+com.tripledot.solitaire
+com.vitastudio.mahjong
+com.whatsapp
+com.xiaomi.calendar
+com.xiaomi.midrop
+com.xiaomi.scanner
+com.zhiliaoapp.musically
+funvent.tilepark
+
+  --- Apps con más wakelocks ---
+
+[7/10] SERVICIOS Y PROCESOS EN SEGUNDO PLANO
+  Procesos activos: 761
+  Servicios activos: 125
+
+  --- Apps con servicios en segundo plano ---
+  * ServiceRecord{a9c5d30 u0 com.mediatek.location.lppe.main/.LPPeServiceWrapper c:com.mediatek.location.lppe.main}
+  * ServiceRecord{f14cb45 u0 com.instagram.android/com.facebook.rti.push.service.FbnsService c:com.instagram.android}
+  * ServiceRecord{8617061 u0 com.instagram.android/com.facebook.video.heroplayer.service.HeroKeepAliveService c:com.instagram.android}
+  * ServiceRecord{eebcdb u0 com.xiaomi.xmsf/com.xiaomi.push.service.XMPushService c:com.xiaomi.xmsfkeeper}
+  * ServiceRecord{d97f96e u0 android/.hardware.location.GeofenceHardwareService c:android}
+  * ServiceRecord{199c504 u0 com.xiaomi.misettings/androidx.room.MultiInstanceInvalidationService c:com.xiaomi.misettings}
+  * ServiceRecord{827d21a u0 com.xiaomi.bluetooth/.mma.MiuiMMAService c:com.xiaomi.bluetooth}
+  * ServiceRecord{bb56f41 u0 com.xiaomi.xmsfkeeper/.KeeperService c:com.xiaomi.xmsfkeeper}
+  * ServiceRecord{c32ecf3 u0 com.instagram.android/com.facebook.rti.pushv2.inapp.InappFbnsService c:com.instagram.android}
+  * ServiceRecord{93a670b u0 com.mediatek.capctrl.service/.MtkCapCtrlService c:com.mediatek.capctrl.service}
+  * ServiceRecord{faf23ae u0 com.instagram.android/com.instagram.jobscheduler.bgfetch.scheduler.IgBgFetchTaskLifeService c:com.instagram.android}
+  * ServiceRecord{423f8a8 u0 com.lbe.security.miui/com.lbe.security.service.SecurityService c:com.lbe.security.miui}
+  * ServiceRecord{ed10053 u0 com.whatsapp/.messageservice.messaging.MessageService c:com.whatsapp}
+  * ServiceRecord{15f91c9 u0 com.mediatek.telephony/.MtkTelephonyAssistService c:com.mediatek.telephony}
+  {a9c5d30 u0 com.mediatek.location.lppe.main/.LPPeServiceWrapper c:com.mediatek.location.lppe.main}
+  {f14cb45 u0 com.instagram.android/com.facebook.rti.push.service.FbnsService c:com.instagram.android}
+  {8617061 u0 com.instagram.android/com.facebook.video.heroplayer.service.HeroKeepAliveService c:com.instagram.android}
+  {eebcdb u0 com.xiaomi.xmsf/com.xiaomi.push.service.XMPushService c:com.xiaomi.xmsfkeeper}
+  {d97f96e u0 android/.hardware.location.GeofenceHardwareService c:android}
+  {199c504 u0 com.xiaomi.misettings/androidx.room.MultiInstanceInvalidationService c:com.xiaomi.misettings}
+  {827d21a u0 com.xiaomi.bluetooth/.mma.MiuiMMAService c:com.xiaomi.bluetooth}
+  {bb56f41 u0 com.xiaomi.xmsfkeeper/.KeeperService c:com.xiaomi.xmsfkeeper}
+  {c32ecf3 u0 com.instagram.android/com.facebook.rti.pushv2.inapp.InappFbnsService c:com.instagram.android}
+  {93a670b u0 com.mediatek.capctrl.service/.MtkCapCtrlService c:com.mediatek.capctrl.service}
+  {faf23ae u0 com.instagram.android/com.instagram.jobscheduler.bgfetch.scheduler.IgBgFetchTaskLifeService c:com.instagram.android}
+  {423f8a8 u0 com.lbe.security.miui/com.lbe.security.service.SecurityService c:com.lbe.security.miui}
+  {ed10053 u0 com.whatsapp/.messageservice.messaging.MessageService c:com.whatsapp}
+  {15f91c9 u0 com.mediatek.telephony/.MtkTelephonyAssistService c:com.mediatek.telephony}
+  Broadcast receivers: 4317
+
+[8/10] RED Y CONECTIVIDAD
+  WiFi:         ACTIVO
+  ⚠️  WiFi scanning: Activo (consume batería)
+  Data roaming: Desactivado
+  DNS: Por defecto
+
+[9/10] CONFIGURACIÓN ACTUAL
+  Animaciones:  window=1.0, transition=1.0, animator=null
+  GPU:          force=null, msaa=null, renderer=null
+  Resolución:   720x1640
+  DPI:          320
+  Swappiness:   null
+  SELinux:      Enforcing
+
+[10/10] DIAGNÓSTICO — ¿QUÉ RALENTIZA EL TELÉFONO?
+  ✅ Bloatware controlado: 37 apps desactivadas
+  ✅ RAM OK (69%)
+  ✅ Temperatura OK (25.0°C)
+  ✅ Almacenamiento OK (%)
+  🔴 WiFi SCANNING ACTIVO: Consume batería en segundo plano
+    → Solución: Ejecutá un perfil de optimización para desactivarlo
+  ✅ Animaciones optimizadas (1.0x)
+  ⚠️  GPU RENDERING NO FORZADO: Algunas apps usan CPU para renderizar
+    → Solución: Ejecutá un perfil de optimización para forzar GPU
+  ✅ Cache tamaño OK (?MB)
+  🔴 MUCHOS PROCESOS (761): Consume RAM y CPU
+    → Solución: Cerrá apps manualmente o ejecutá un perfil de optimización
+  ✅ Uptime OK (33h 18m)
+
+════════════════════════════════════════════
+  RESUMEN
+════════════════════════════════════════════
+  CPU: ~176% (bench: 335ms)
+  RAM: 2.48/3.56GB (69%)
+  Almacenamiento: /GB (%)
+  Batería: 25
+3% (25.0°C)
+  Apps: 333 total, 37 desactivadas
+  Procesos: 761
+  Problemas: 3
+════════════════════════════════════════════
