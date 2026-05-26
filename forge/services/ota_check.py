@@ -51,9 +51,8 @@ def _notify_pc() -> None:
 
 # ─── Notificación ADB (dispositivo) ──────────────────────────────────────────
 
-_MSG_ADB_TITLE = "HyperOS Update"
-_MSG_ADB_BODY  = "Nueva version disponible. Actualiza para proteger tus optimizaciones."
-_ADB_TAG       = "redmi_forge_ota"
+_MSG_ADB = "Nueva version HyperOS disponible"
+_ADB_TAG = "redmi_forge_ota"
 
 
 def _adb_devices() -> list[str]:
@@ -77,18 +76,15 @@ def _notify_device(serial: str) -> bool:
     """
     Muestra una notificación visible en el dispositivo vía ADB.
     Usa cmd notification post (Android 8+, sin root).
-    Retorna True si el comando tuvo exit code 0.
+
+    Las comillas internas son necesarias: ADB pasa los argumentos al shell
+    del dispositivo separados por espacios — sin comillas internas, el título
+    queda truncado a la primera palabra.
     """
     try:
+        cmd = f'cmd notification post {_ADB_TAG} "{_MSG_ADB}"'
         res = subprocess.run(
-            [
-                "adb", "-s", serial, "shell",
-                "cmd", "notification", "post",
-                "-S", "bigtext",
-                _ADB_TAG,
-                _MSG_ADB_TITLE,
-                _MSG_ADB_BODY,
-            ],
+            ["adb", "-s", serial, "shell", cmd],
             capture_output=True, text=True, timeout=15,
         )
         return res.returncode == 0
