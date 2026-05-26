@@ -1,0 +1,144 @@
+#Requires -Version 5.1
+<#
+.SYNOPSIS
+    Redmi Forge — setup en una PC nueva con un solo comando.
+    Instala dependencias Python, verifica ADB y Git Bash, y registra
+    el OTA watcher en el Programador de tareas de Windows.
+
+.USAGE
+    En PowerShell (como usuario normal, sin admin):
+        Set-ExecutionPolicy -Scope CurrentUser Bypass -Force
+        .\setup.ps1
+#>
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+$ROOT   = $PSScriptRoot
+$REPO   = Split-Path $ROOT -Leaf
+
+function Write-Step  { param($n, $msg) Write-Host "`n[$n] $msg" -ForegroundColor Cyan }
+function Write-OK    { param($msg)      Write-Host "  OK  $msg" -ForegroundColor Green }
+function Write-Warn  { param($msg)      Write-Host "  WARN $msg" -ForegroundColor Yellow }
+function Write-Fail  { param($msg)      Write-Host "  FAIL $msg" -ForegroundColor Red; exit 1 }
+
+Write-Host "`n=== Redmi Forge — Setup ===" -ForegroundColor White
+
+# ─── 1. Python ────────────────────────────────────────────────────────────────
+Write-Step 1 "Verificando Python 3.11+"
+
+$py = $null
+foreach ($cmd in @("python", "python3", "py")) {
+    try {
+        $ver = & $cmd --version 2>&1
+        if ($ver -match "Python (\d+)\.(\d+)") {
+            $major = [int]$Matches[1]; $minor = [int]$Matches[2]
+            if ($major -ge 3 -and $minor -ge 11) { $py = $cmd; break }
+        }
+    } catch { }
+}
+
+if (-not $py) {
+    Write-Fail "Python 3.11+ no encontrado. Instalalo desde https://python.org/downloads"
+}
+
+$pyPath = (Get-Command $py).Source
+Write-OK "Python: $pyPath ($ver)"
+
+# ─── 2. Dependencias Python ───────────────────────────────────────────────────
+Write-Step 2 "Instalando dependencias Python"
+
+$req = Join-Path $ROOT "requirements.txt"
+if (-not (Test-Path $req)) { Write-Fail "requirements.txt no encontrado en $ROOT" }
+
+& $py -m pip install --quiet --upgrade pip
+& $py -m pip install --quiet -r $req
+
+if ($LASTEXITCODE -ne 0) { Write-Fail "pip install falló. Revisá la salida de error." }
+Write-OK "PySide6 + anthropic instalados"
+
+# ─── 3. ADB ──────────────────────────────────────────────────────────────────
+Write-Step 3 "Verificando ADB"
+
+$vendorAdb = Join-Path $ROOT "vendor\adb\adb.exe"
+$adbOk     = $false
+
+if (Test-Path $vendorAdb) {
+    Write-OK "ADB encontrado en vendor/adb/adb.exe"
+    $adbOk = $true
+} elseif (Get-Command "adb" -ErrorAction SilentlyContinue) {
+    Write-OK "ADB encontrado en PATH: $((Get-Command adb).Source)"
+    $adbOk = $true
+} else {
+    Write-Warn "ADB no encontrado. Opciones:"
+    Write-Host "    a) Instalá android-platform-tools: winget install Google.PlatformTools" -ForegroundColor Yellow
+    Write-Host "    b) Copiá adb.exe a: $vendorAdb" -ForegroundColor Yellow
+}
+
+# ─── 4. Git Bash ─────────────────────────────────────────────────────────────
+Write-Step 4 "Verificando Git Bash (necesario para src/cli/run.sh)"
+
+$gitBash = @(
+    "C:\Program Files\Git\bin\bash.exe",
+    "C:\Program Files (x86)\Git\bin\bash.exe"
+) | Where-Object { Test-Path $_ } | Select-Object -First 1
+
+if ($gitBash) {
+    Write-OK "Git Bash: $gitBash"
+} elseif (Get-Command "wsl" -ErrorAction SilentlyContinue) {
+    Write-OK "WSL disponible como alternativa a Git Bash"
+} else {
+    Write-Warn "Git Bash no encontrado. Instalalo desde https://git-scm.com"
+    Write-Host "    (necesario para ejecutar la optimización CLI)" -ForegroundColor Yellow
+}
+
+# ─── 5. OTA Watcher en Task Scheduler ────────────────────────────────────────
+Write-Step 5 "Registrando OTA watcher en Programador de tareas"
+
+$taskName   = "RedmiForge-OTAWatcher"
+$scriptPath = Join-Path $ROOT "forge\services\ota_check.py"
+
+# pythonw.exe = Python sin ventana de consola
+$pythonw = $pyPath -replace "python\.exe$", "pythonw.exe"
+if (-not (Test-Path $pythonw)) { $pythonw = $pyPath }
+
+$existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
+if ($existing) {
+    Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
+    Write-Host "  Tarea anterior eliminada (se recrea con config actual)" -ForegroundColor Gray
+}
+
+$action  = New-ScheduledTaskAction `
+    -Execute $pythonw `
+    -Argument "`"$scriptPath`"" `
+    -WorkingDirectory $ROOT
+
+$trigger = New-ScheduledTaskTrigger -Daily -DaysInterval 14 -At "09:00AM"
+
+$settings = New-ScheduledTaskSettingsSet `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 5) `
+    -StartWhenAvailable `
+    -DontStopOnIdleEnd
+
+Register-ScheduledTask `
+    -TaskName    $taskName `
+    -Action      $action `
+    -Trigger     $trigger `
+    -Settings    $settings `
+    -Description "Redmi Forge: verifica actualizaciones de HyperOS cada 14 dias" `
+    -RunLevel    Limited | Out-Null
+
+Write-OK "Tarea '$taskName' registrada (corre cada 14 dias a las 09:00)"
+
+# ─── Resumen ──────────────────────────────────────────────────────────────────
+Write-Host @"
+
+=== Setup completado ===
+
+  Arrancar UI:       python main.py
+  CLI (optimizar):   cd src/cli && bash run.sh --full
+  CLI (mantenimiento): cd src/cli && bash run.sh --maintenance
+  OTA watcher:       corre automatico cada 14 dias (Task Scheduler)
+                     o manualmente: python forge\services\ota_check.py
+
+"@ -ForegroundColor White

@@ -205,13 +205,18 @@ def scan_device(serial: str) -> ScanResult:
 _RUNTIME_PROFILE = _ROOT / "src" / "cli" / "data" / "profile_runtime.sh"
 
 
-def run_cli_script(mode_flag: str, serial: str) -> Generator[str, None, int]:
+def run_cli_script(
+    mode_flag: str,
+    serial: str,
+    *,
+    proc_ref: list | None = None,
+) -> Generator[str, None, int]:
     """
     Generator que ejecuta src/cli/run.sh y hace yield de cada línea de output.
     Al terminar devuelve el exit code vía StopIteration.value.
 
-    Si mode_flag == "--full" y el dispositivo tiene un perfil guardado,
-    genera automáticamente profile_runtime.sh y usa --profile en su lugar.
+    proc_ref: lista opcional de un elemento; si se pasa, se rellena con el
+    objeto Popen activo para que el caller pueda llamar proc_ref[0].terminate().
     """
     actual_flag = mode_flag
     if mode_flag == "--full":
@@ -236,6 +241,8 @@ def run_cli_script(mode_flag: str, serial: str) -> Generator[str, None, int]:
         bufsize=1,
         env=env,
     ) as proc:
+        if proc_ref is not None:
+            proc_ref.append(proc)
         for line in proc.stdout:
             yield line.rstrip()
     return proc.returncode

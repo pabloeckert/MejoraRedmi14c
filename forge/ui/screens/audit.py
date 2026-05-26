@@ -25,8 +25,8 @@ class ScanWorker(QThread):
     finished = Signal(list)
     error = Signal(str)
 
-    def __init__(self, serial: str):
-        super().__init__()
+    def __init__(self, serial: str, parent=None):
+        super().__init__(parent)
         self._serial = serial
 
     def run(self):
@@ -41,8 +41,8 @@ class HaikuWorker(QThread):
     finished = Signal()
     error = Signal(str)
 
-    def __init__(self, apps: list, api_key: str):
-        super().__init__()
+    def __init__(self, apps: list, api_key: str, parent=None):
+        super().__init__(parent)
         self._apps = apps
         self._api_key = api_key
 
@@ -64,8 +64,8 @@ class ExecuteWorker(QThread):
     progress = Signal(str, bool)   # pkg, success
     finished = Signal(int, int)    # ok_count, fail_count
 
-    def __init__(self, serial: str, apps: list):
-        super().__init__()
+    def __init__(self, serial: str, apps: list, parent=None):
+        super().__init__(parent)
         self._serial = serial
         self._apps = apps
 
@@ -229,6 +229,10 @@ class AuditScreen(QWidget):
             self._set_state("idle")
 
     def on_device_disconnected(self, serial: str):
+        for worker in (self._scan_worker, self._haiku_worker, self._exec_worker):
+            if worker and worker.isRunning():
+                worker.quit()
+                worker.wait(3000)
         self._serial = None
         self._apps = []
         self._app_rows = {}
@@ -328,7 +332,7 @@ class AuditScreen(QWidget):
         self._clear_list()
         self._apps = []
         self._app_rows = {}
-        self._scan_worker = ScanWorker(self._serial)
+        self._scan_worker = ScanWorker(self._serial, parent=self)
         self._scan_worker.finished.connect(self._on_scan_done)
         self._scan_worker.error.connect(self._on_scan_error)
         self._scan_worker.start()
@@ -430,7 +434,7 @@ class AuditScreen(QWidget):
             return
 
         self._set_state("consulting")
-        self._haiku_worker = HaikuWorker(unknown, api_key)
+        self._haiku_worker = HaikuWorker(unknown, api_key, parent=self)
         self._haiku_worker.chunk_done.connect(self._on_haiku_chunk)
         self._haiku_worker.finished.connect(self._on_haiku_finished)
         self._haiku_worker.error.connect(self._on_haiku_error)
@@ -479,7 +483,7 @@ class AuditScreen(QWidget):
         self._set_state("executing")
         self._status_lbl.setText(f"Desactivando {len(to_remove)} apps...")
 
-        self._exec_worker = ExecuteWorker(self._serial, to_remove)
+        self._exec_worker = ExecuteWorker(self._serial, to_remove, parent=self)
         self._exec_worker.progress.connect(self._on_exec_progress)
         self._exec_worker.finished.connect(self._on_exec_done)
         self._exec_worker.start()

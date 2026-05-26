@@ -53,15 +53,16 @@ class _ScriptWorker(QThread):
         super().__init__(parent)
         self._serial    = serial
         self._mode_flag = mode_flag
+        self._proc_ref: list = []
 
     def run(self):
         exit_code = 0
         try:
-            gen = run_cli_script(self._mode_flag, self._serial)
-            for line in gen:
-                self.line_received.emit(line)
+            gen = run_cli_script(self._mode_flag, self._serial, proc_ref=self._proc_ref)
             try:
-                next(gen)
+                while True:
+                    line = next(gen)
+                    self.line_received.emit(line)
             except StopIteration as e:
                 exit_code = e.value or 0
         except FileNotFoundError as e:
@@ -71,6 +72,11 @@ class _ScriptWorker(QThread):
             self.line_received.emit(f"ERROR inesperado: {e}")
             exit_code = 1
         self.finished.emit(exit_code)
+
+    def stop_process(self):
+        """Termina el proceso bash hijo de forma limpia antes de parar el thread."""
+        if self._proc_ref:
+            self._proc_ref[0].terminate()
 
 
 # ─── Fila del feed ────────────────────────────────────────────────────────────
@@ -187,24 +193,13 @@ class _CollapsibleLog(QWidget):
         super().__init__(parent)
         self._expanded    = False
         self._error_count = 0
+        self._btn_color   = COLORS["text_muted"]
 
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
 
         self._toggle_btn = QPushButton("▶  Ver detalles técnicos")
-        self._toggle_btn.setStyleSheet(f"""
-            QPushButton {{
-                text-align: left;
-                padding: 10px 4px;
-                border: none;
-                background: transparent;
-                color: {COLORS['text_muted']};
-                font-size: 13px;
-                font-weight: 500;
-            }}
-            QPushButton:hover {{ color: {COLORS['text']}; }}
-        """)
         self._toggle_btn.clicked.connect(self._toggle)
         root.addWidget(self._toggle_btn)
 
@@ -236,18 +231,27 @@ class _CollapsibleLog(QWidget):
         arrow = "▼" if self._expanded else "▶"
         if self._error_count == 0:
             label = f"{arrow}  Ver detalles técnicos"
-            color = COLORS["text_muted"]
+            self._btn_color = COLORS["text_muted"]
         elif self._error_count == 1:
             label = f"{arrow}  Ver detalles técnicos  ·  1 error"
-            color = COLORS["red"]
+            self._btn_color = COLORS["red"]
         else:
             label = f"{arrow}  Ver detalles técnicos  ·  {self._error_count} errores"
-            color = COLORS["red"]
+            self._btn_color = COLORS["red"]
 
         self._toggle_btn.setText(label)
-        self._toggle_btn.setStyleSheet(self._toggle_btn.styleSheet().replace(
-            "color: " + COLORS["text_muted"] + ";", f"color: {color};", 1
-        ))
+        self._toggle_btn.setStyleSheet(f"""
+            QPushButton {{
+                text-align: left;
+                padding: 10px 4px;
+                border: none;
+                background: transparent;
+                color: {self._btn_color};
+                font-size: 13px;
+                font-weight: 500;
+            }}
+            QPushButton:hover {{ color: {COLORS['text']}; }}
+        """)
 
     def _toggle(self):
         self._expanded = not self._expanded
@@ -433,7 +437,10 @@ class ExecutionScreen(QWidget):
         if dlg.clickedButton() is not detener:
             return
         if self._worker and self._worker.isRunning():
-            self._worker.terminate()
+            self._worker.stop_process()   # termina bash hijo
+            self._worker.wait(5000)       # espera que el thread limpie
+            if self._worker.isRunning():  # solo si no terminó solo
+                self._worker.terminate()
         self._timer.stop()
         self._stop_btn.setEnabled(False)
         self._phase_lbl.setText("Optimización detenida")

@@ -12,6 +12,7 @@ from forge.ui.screens.history   import HistoryScreen
 from forge.ui.screens.settings  import SettingsScreen
 from forge.ui.screens.audit     import AuditScreen
 from forge.core.device_watcher  import DeviceWatcher
+from forge.core.ota_watcher     import OTAWorker, TweakScanWorker, TweakStatus
 from forge.db.database          import upsert_device, get_display_name
 
 NAV = [
@@ -161,6 +162,12 @@ class MainWindow(QMainWindow):
         self._watcher.adb_unavailable.connect(self._on_adb_error)
         self._watcher.start()
 
+        self._ota_worker = OTAWorker(self)
+        self._ota_worker.ota_available.connect(self._on_ota_available)
+        self._ota_worker.start()
+
+        self._tweak_scan: TweakScanWorker | None = None
+
     # ─── Handlers ────────────────────────────────────────────────────────────
 
     def _nav_to(self, idx: int):
@@ -185,6 +192,38 @@ class MainWindow(QMainWindow):
             profile: ProfileScreen = self._screens[IDX_PROFILE]
             profile.start(device.serial)
             self._nav_to(IDX_PROFILE)
+
+        ota_state = self._ota_worker.state()
+        if ota_state.ota_detected and not ota_state.post_ota_scan_done:
+            self._set_status("Escaneando tweaks reseteados por la actualización...", "status_warning")
+            self._launch_tweak_scan(device.serial)
+
+    def _on_ota_available(self, build: str):
+        self._set_status(
+            "Hay una actualización de HyperOS disponible. "
+            "Conectá el dispositivo para proteger tus optimizaciones.",
+            "status_warning",
+        )
+
+    def _launch_tweak_scan(self, serial: str):
+        self._tweak_scan = TweakScanWorker(serial, self)
+        self._tweak_scan.scan_done.connect(self._on_tweaks_scanned)
+        self._tweak_scan.start()
+
+    def _on_tweaks_scanned(self, tweaks: list):
+        reset = [t for t in tweaks if not t.ok and not t.readonly]
+        pkg_tweak = next((t for t in tweaks if "Packages" in t.name), None)
+        try:
+            disabled_now = int(pkg_tweak.current_value) if pkg_tweak else 0
+        except (ValueError, TypeError):
+            disabled_now = 0
+        self._ota_worker.mark_scan_done(disabled_baseline=disabled_now)
+
+        if reset:
+            names = " · ".join(t.name for t in reset)
+            self._set_status(f"⚠ Tweaks reseteados: {names} — reaplicar desde Inicio", "status_warning")
+        else:
+            self._set_status("✓ Todos los tweaks activos después del OTA", "status_connected")
 
     def _on_device_disconnected(self, serial: str):
         self._set_status("Esperando dispositivo...", "status_idle")
@@ -225,4 +264,6 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         self._watcher.stop()
         self._watcher.wait(3000)
+        self._ota_worker.stop()
+        self._ota_worker.wait(3000)
         super().closeEvent(event)

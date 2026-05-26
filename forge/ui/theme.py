@@ -185,6 +185,13 @@ QLabel#status_error {{
     padding: 0 16px;
 }}
 
+QLabel#status_warning {{
+    font-size: {FONT_SIZES["xs"]}px;
+    color: {COLORS["yellow"]};
+    padding: 0 16px;
+    font-weight: 600;
+}}
+
 /* ─── Terminal output ─── */
 QTextEdit#terminal {{
     background-color: {COLORS["terminal_bg"]};
