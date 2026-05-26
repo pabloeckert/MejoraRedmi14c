@@ -95,12 +95,17 @@ if ($gitBash) {
 # ─── 5. OTA Watcher en Task Scheduler ────────────────────────────────────────
 Write-Step 5 "Registrando OTA watcher en Programador de tareas"
 
-$taskName   = "RedmiForge-OTAWatcher"
+$taskName   = "RedmiForge-OTA"
 $scriptPath = Join-Path $ROOT "forge\services\ota_check.py"
 
 # pythonw.exe = Python sin ventana de consola
 $pythonw = $pyPath -replace "python\.exe$", "pythonw.exe"
 if (-not (Test-Path $pythonw)) { $pythonw = $pyPath }
+
+Write-Host "" -ForegroundColor Gray
+Write-Host "  Comando equivalente manual:" -ForegroundColor Gray
+Write-Host "  schtasks /create /tn `"RedmiForge-OTA`" /tr `"`"$pythonw`" `"$scriptPath`"`" /sc hourly /mo 1 /st 09:00 /f" -ForegroundColor DarkGray
+Write-Host "" -ForegroundColor Gray
 
 $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
 if ($existing) {
@@ -108,15 +113,18 @@ if ($existing) {
     Write-Host "  Tarea anterior eliminada (se recrea con config actual)" -ForegroundColor Gray
 }
 
-$action  = New-ScheduledTaskAction `
-    -Execute $pythonw `
-    -Argument "`"$scriptPath`"" `
+$action = New-ScheduledTaskAction `
+    -Execute          $pythonw `
+    -Argument         "`"$scriptPath`"" `
     -WorkingDirectory $ROOT
 
-$trigger = New-ScheduledTaskTrigger -Daily -DaysInterval 14 -At "09:00AM"
+$trigger = New-ScheduledTaskTrigger `
+    -Once `
+    -At (Get-Date) `
+    -RepetitionInterval (New-TimeSpan -Hours 1)
 
 $settings = New-ScheduledTaskSettingsSet `
-    -ExecutionTimeLimit (New-TimeSpan -Minutes 5) `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 3) `
     -StartWhenAvailable `
     -DontStopOnIdleEnd
 
@@ -125,10 +133,10 @@ Register-ScheduledTask `
     -Action      $action `
     -Trigger     $trigger `
     -Settings    $settings `
-    -Description "Redmi Forge: verifica actualizaciones de HyperOS cada 14 dias" `
+    -Description "Redmi Forge: chequeo OTA cada 14 dias + notificacion ADB si device conectado" `
     -RunLevel    Limited | Out-Null
 
-Write-OK "Tarea '$taskName' registrada (corre cada 14 dias a las 09:00)"
+Write-OK "Tarea '$taskName' registrada — corre cada hora, chequeo OTA real cada 14 dias"
 
 # ─── Resumen ──────────────────────────────────────────────────────────────────
 Write-Host @"

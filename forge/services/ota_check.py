@@ -1,69 +1,129 @@
 """
 OTA check autónomo — sin Qt, sin UI.
 
-Corre via Windows Task Scheduler cada 14 días:
-  pythonw.exe forge/services/ota_check.py
+Registrado en Windows Task Scheduler (cada 1 hora).
+El chequeo real contra los servidores se hace cada 14 días; el resto de las
+ejecuciones solo intentan drenar la cola de notificación ADB si hay un
+dispositivo conectado.
 
-Si detecta una build nueva de HyperOS:
-  - Persiste el flag en ota_state.json
-  - Muestra una notificación nativa de Windows (bandeja del sistema)
+Flujo:
+  1. Si pasaron >= 14 días → consulta RSS/HTML por build nueva
+     - Build nueva → notificación PC (plyer) + flag pending_adb_notify
+     - Sin update   → solo actualiza last_check_iso
+  2. Siempre → si pending_adb_notify y hay device conectado → notifica ADB y limpia flag
 
-La próxima vez que se abra la UI, lee el flag y muestra el banner.
+Registro Task Scheduler (ejecutar una vez, como admin no requerido):
+  schtasks /create /tn "RedmiForge-OTA" ^
+    /tr "\"<pythonw>\" \"<repo>\\forge\\services\\ota_check.py\"" ^
+    /sc hourly /mo 1 /st 09:00 /f
 """
+from __future__ import annotations
+
 import subprocess
 import sys
+from datetime import datetime
 from pathlib import Path
 
-# Añadir raíz del proyecto al path para importar forge.*
 _ROOT = Path(__file__).parents[2]
 sys.path.insert(0, str(_ROOT))
 
 from forge.core.ota_watcher import OTAState, should_check, check_for_update
 
+# ─── Notificación PC (plyer → Windows toast) ──────────────────────────────────
 
-def _notify(title: str, message: str) -> None:
-    """Notificación nativa de Windows via PowerShell + System.Windows.Forms."""
-    ps = f"""
-Add-Type -AssemblyName System.Windows.Forms
-$n = New-Object System.Windows.Forms.NotifyIcon
-$n.Icon = [System.Drawing.SystemIcons]::Information
-$n.BalloonTipTitle = "{title}"
-$n.BalloonTipText  = "{message}"
-$n.Visible = $true
-$n.ShowBalloonTip(8000)
-Start-Sleep -Seconds 9
-$n.Dispose()
-"""
-    subprocess.Popen(
-        ["powershell", "-WindowStyle", "Hidden", "-NonInteractive", "-Command", ps],
-        creationflags=0x08000000,  # CREATE_NO_WINDOW
-    )
+_MSG_PC = (
+    "Nueva versión de HyperOS disponible. "
+    "Conectá el dispositivo para proteger tus optimizaciones."
+)
 
+def _notify_pc() -> None:
+    try:
+        from plyer import notification
+        notification.notify(
+            title="Redmi Forge",
+            message=_MSG_PC,
+            app_name="Redmi Forge",
+            timeout=10,
+        )
+    except Exception:
+        pass  # nunca crashear el servicio por un error de notificación
+
+
+# ─── Notificación ADB (dispositivo) ──────────────────────────────────────────
+
+_MSG_ADB_TITLE = "HyperOS Update"
+_MSG_ADB_BODY  = "Nueva version disponible. Actualiza para proteger tus optimizaciones."
+_ADB_TAG       = "redmi_forge_ota"
+
+
+def _adb_devices() -> list[str]:
+    """Retorna serials de dispositivos ADB autorizados conectados."""
+    try:
+        res = subprocess.run(
+            ["adb", "devices"],
+            capture_output=True, text=True, timeout=10,
+        )
+        serials = []
+        for line in res.stdout.splitlines()[1:]:
+            parts = line.split()
+            if len(parts) == 2 and parts[1] == "device":
+                serials.append(parts[0])
+        return serials
+    except Exception:
+        return []
+
+
+def _notify_device(serial: str) -> bool:
+    """
+    Muestra una notificación visible en el dispositivo vía ADB.
+    Usa cmd notification post (Android 8+, sin root).
+    Retorna True si el comando tuvo exit code 0.
+    """
+    try:
+        res = subprocess.run(
+            [
+                "adb", "-s", serial, "shell",
+                "cmd", "notification", "post",
+                "-S", "bigtext",
+                _ADB_TAG,
+                _MSG_ADB_TITLE,
+                _MSG_ADB_BODY,
+            ],
+            capture_output=True, text=True, timeout=15,
+        )
+        return res.returncode == 0
+    except Exception:
+        return False
+
+
+# ─── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
     state = OTAState.load()
 
-    if not should_check(state):
-        return 0
+    # 1. OTA check — solo si pasaron >= 14 días
+    if should_check(state):
+        new_build = check_for_update(state.known_build)
+        state.last_check_iso = datetime.now().isoformat()
 
-    new_build = check_for_update(state.known_build)
+        if new_build:
+            state.ota_detected      = True
+            state.ota_build         = new_build
+            state.ota_detected_at   = datetime.now().isoformat()
+            state.post_ota_scan_done = False
+            state.pending_adb_notify = True
+            state.save()
+            _notify_pc()
+        else:
+            state.save()
 
-    from datetime import datetime
-    state.last_check_iso = datetime.now().isoformat()
-
-    if new_build:
-        state.ota_detected    = True
-        state.ota_build       = new_build
-        state.ota_detected_at = datetime.now().isoformat()
-        state.post_ota_scan_done = False
-        state.save()
-        _notify(
-            "Redmi Forge — HyperOS Update",
-            "Hay una actualización de HyperOS disponible. "
-            "Conectá el dispositivo para proteger tus optimizaciones.",
-        )
-    else:
-        state.save()
+    # 2. Drenar cola ADB — en cada ejecución, si hay algo pendiente
+    if state.pending_adb_notify:
+        serials = _adb_devices()
+        if serials:
+            if _notify_device(serials[0]):
+                state.pending_adb_notify = False
+                state.save()
 
     return 0
 

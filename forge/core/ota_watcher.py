@@ -54,7 +54,8 @@ class OTAState:
     ota_build: Optional[str] = None
     ota_detected_at: Optional[str] = None
     post_ota_scan_done: bool = False
-    disabled_pkg_baseline: Optional[int] = None  # count de packages deshabilitados tras optimización
+    disabled_pkg_baseline: Optional[int] = None
+    pending_adb_notify: bool = False  # True si hay update detectado pero el device no estaba conectado
 
     @classmethod
     def load(cls) -> "OTAState":
