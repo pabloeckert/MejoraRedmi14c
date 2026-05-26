@@ -1,4 +1,6 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
+[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+$OutputEncoding              = [System.Text.UTF8Encoding]::new($false)
 <#
 .SYNOPSIS
     Redmi Forge — setup en una PC nueva con un solo comando.
