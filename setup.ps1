@@ -39,7 +39,23 @@ foreach ($cmd in @("python", "python3", "py")) {
 }
 
 if (-not $py) {
-    Write-Fail "Python 3.11+ no encontrado. Instalalo desde https://python.org/downloads"
+    Write-Warn "Python 3.11+ no encontrado. Intentando instalar via winget..."
+    winget install --id Python.Python.3.11 --scope user --silent --accept-source-agreements --accept-package-agreements
+    if ($LASTEXITCODE -ne 0) {
+        Write-Fail "No se pudo instalar Python. Descargalo desde https://python.org/downloads y volvé a correr este script."
+    }
+    # Recargar PATH de la sesión actual
+    $env:PATH = [System.Environment]::GetEnvironmentVariable("PATH","User") + ";" + [System.Environment]::GetEnvironmentVariable("PATH","Machine")
+    foreach ($cmd in @("python", "python3", "py")) {
+        try {
+            $ver = & $cmd --version 2>&1
+            if ($ver -match "Python (\d+)\.(\d+)") {
+                $major = [int]$Matches[1]; $minor = [int]$Matches[2]
+                if ($major -ge 3 -and $minor -ge 11) { $py = $cmd; break }
+            }
+        } catch { }
+    }
+    if (-not $py) { Write-Fail "Python instalado pero no disponible en PATH. Cerrá y volvé a abrir la terminal." }
 }
 
 $pyPath = (Get-Command $py).Source
