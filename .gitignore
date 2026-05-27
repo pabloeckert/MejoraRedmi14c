@@ -30,3 +30,12 @@ test-resultados.txt
 
 # GitHub Pages build output
 _site/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Archivos temporales de escaneo ADB (generados en runtime)
+sindy_pkgs.txt
+*_pkgs_raw.txt
