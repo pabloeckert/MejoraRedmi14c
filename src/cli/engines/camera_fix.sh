@@ -23,12 +23,8 @@ camera_fix_apply() {
     local cam_pkgs=(
         "com.android.camera"
         "com.miui.gallery"
-        "com.miui.gallery.editor"
         "com.android.providers.media"
-        "com.android.providers.media.module"
         "com.android.providers.downloads"
-        "com.google.android.media.home"
-        "com.android.media.swcodec"
     )
     for pkg in "${cam_pkgs[@]}"; do
         if safe_compile "$pkg" "speed"; then
