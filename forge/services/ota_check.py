@@ -6,11 +6,11 @@ El chequeo real contra los servidores se hace cada 14 días; el resto de las
 ejecuciones solo intentan drenar la cola de notificación ADB si hay un
 dispositivo conectado.
 
-Flujo:
+Flujo (por cada dispositivo monitoreado):
   1. Si pasaron >= 14 días → consulta RSS/HTML por build nueva
      - Build nueva → notificación PC (plyer) + flag pending_adb_notify
      - Sin update   → solo actualiza last_check_iso
-  2. Siempre → si pending_adb_notify y hay device conectado → notifica ADB y limpia flag
+  2. Siempre → si pending_adb_notify y el serial está conectado → notifica ADB y limpia flag
 
 Registro Task Scheduler (ejecutar una vez, como admin no requerido):
   schtasks /create /tn "RedmiForge-OTA" ^
@@ -27,26 +27,47 @@ from pathlib import Path
 _ROOT = Path(__file__).parents[2]
 sys.path.insert(0, str(_ROOT))
 
-from forge.core.ota_watcher import OTAState, should_check, check_for_update
+from forge.core.ota_watcher import OTAState, _STATE_DIR, should_check, check_for_update
+
+# ─── Dispositivos monitoreados ────────────────────────────────────────────────
+# Agregar un entry por cada dispositivo. state_file es relativo a _STATE_DIR.
+
+_DEVICES = [
+    {
+        "serial":     "NB5XWCLZSGB6J74D",
+        "name":       "Pablo",
+        "codename":   "lake",
+        "variant":    "WGTMIXM",
+        "known_build": "OS3.0.20.0.WGTMIXM",
+        "state_file": "ota_state_pablo.json",
+    },
+    {
+        "serial":     "VOSWQCOVJVQWT8LR",
+        "name":       "Sindy",
+        "codename":   "pond",
+        "variant":    "WGTMIXM",
+        "known_build": "OS3.0.20.0.WGTMIXM",
+        "state_file": "ota_state_sindy.json",
+    },
+]
 
 # ─── Notificación PC (plyer → Windows toast) ──────────────────────────────────
 
-_MSG_PC = (
-    "Nueva versión de HyperOS disponible. "
-    "Conectá el dispositivo para proteger tus optimizaciones."
-)
-
-def _notify_pc() -> None:
+def _notify_pc(name: str) -> None:
+    msg = (
+        f"Nueva versión de HyperOS disponible para {name}. "
+        "Conectá el dispositivo para proteger las optimizaciones."
+    )
     try:
         from plyer import notification
         notification.notify(
             title="Redmi Forge",
-            message=_MSG_PC,
+            message=msg,
             app_name="Redmi Forge",
             timeout=10,
         )
     except Exception:
-        pass  # nunca crashear el servicio por un error de notificación
+        pass
 
 
 # ─── Notificación ADB (dispositivo) ──────────────────────────────────────────
@@ -55,32 +76,24 @@ _MSG_ADB = "Nueva version HyperOS disponible"
 _ADB_TAG = "redmi_forge_ota"
 
 
-def _adb_devices() -> list[str]:
-    """Retorna serials de dispositivos ADB autorizados conectados."""
+def _adb_connected() -> set[str]:
+    """Retorna el conjunto de serials ADB autorizados conectados."""
     try:
         res = subprocess.run(
             ["adb", "devices"],
             capture_output=True, text=True, timeout=10,
         )
-        serials = []
+        serials = set()
         for line in res.stdout.splitlines()[1:]:
             parts = line.split()
             if len(parts) == 2 and parts[1] == "device":
-                serials.append(parts[0])
+                serials.add(parts[0])
         return serials
     except Exception:
-        return []
+        return set()
 
 
 def _notify_device(serial: str) -> bool:
-    """
-    Muestra una notificación visible en el dispositivo vía ADB.
-    Usa cmd notification post (Android 8+, sin root).
-
-    Las comillas internas son necesarias: ADB pasa los argumentos al shell
-    del dispositivo separados por espacios — sin comillas internas, el título
-    queda truncado a la primera palabra.
-    """
     try:
         cmd = f'cmd notification post {_ADB_TAG} "{_MSG_ADB}"'
         res = subprocess.run(
@@ -95,31 +108,39 @@ def _notify_device(serial: str) -> bool:
 # ─── Main ─────────────────────────────────────────────────────────────────────
 
 def main() -> int:
-    state = OTAState.load()
+    connected = _adb_connected()
 
-    # 1. OTA check — solo si pasaron >= 14 días
-    if should_check(state):
-        new_build = check_for_update(state.known_build)
-        state.last_check_iso = datetime.now().isoformat()
+    for dev in _DEVICES:
+        state_path = _STATE_DIR / dev["state_file"]
+        state = OTAState.load(state_path)
+        if state.known_build == state.__class__.__dataclass_fields__["known_build"].default:
+            state.known_build = dev["known_build"]
 
-        if new_build:
-            state.ota_detected      = True
-            state.ota_build         = new_build
-            state.ota_detected_at   = datetime.now().isoformat()
-            state.post_ota_scan_done = False
-            state.pending_adb_notify = True
-            state.save()
-            _notify_pc()
-        else:
-            state.save()
+        # 1. OTA check — solo si pasaron >= 14 días
+        if should_check(state):
+            new_build = check_for_update(
+                state.known_build,
+                codename=dev["codename"],
+                variant=dev["variant"],
+            )
+            state.last_check_iso = datetime.now().isoformat()
 
-    # 2. Drenar cola ADB — en cada ejecución, si hay algo pendiente
-    if state.pending_adb_notify:
-        serials = _adb_devices()
-        if serials:
-            if _notify_device(serials[0]):
+            if new_build:
+                state.ota_detected       = True
+                state.ota_build          = new_build
+                state.ota_detected_at    = datetime.now().isoformat()
+                state.post_ota_scan_done = False
+                state.pending_adb_notify = True
+                state.save(state_path)
+                _notify_pc(dev["name"])
+            else:
+                state.save(state_path)
+
+        # 2. Drenar cola ADB — si el dispositivo está conectado
+        if state.pending_adb_notify and dev["serial"] in connected:
+            if _notify_device(dev["serial"]):
                 state.pending_adb_notify = False
-                state.save()
+                state.save(state_path)
 
     return 0
 

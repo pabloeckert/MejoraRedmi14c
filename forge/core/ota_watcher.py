@@ -41,7 +41,8 @@ _XMFIRMWARE_URL = "https://xmfirmwareupdater.com/hyperos/lake/"
 
 _BUILD_RE = re.compile(r"OS(\d+\.\d+\.\d+\.\d+)\." + VARIANT)
 
-_STATE_PATH = Path.home() / "AppData" / "Local" / "RedmiForge" / "ota_state.json"
+_STATE_DIR  = Path.home() / "AppData" / "Local" / "RedmiForge"
+_STATE_PATH = _STATE_DIR / "ota_state.json"
 
 # ─── Estado persistido ────────────────────────────────────────────────────────
 
@@ -58,18 +59,20 @@ class OTAState:
     pending_adb_notify: bool = False  # True si hay update detectado pero el device no estaba conectado
 
     @classmethod
-    def load(cls) -> "OTAState":
+    def load(cls, state_path: Optional[Path] = None) -> "OTAState":
+        path = state_path or _STATE_PATH
         try:
-            if _STATE_PATH.exists():
-                data = json.loads(_STATE_PATH.read_text(encoding="utf-8"))
+            if path.exists():
+                data = json.loads(path.read_text(encoding="utf-8"))
                 return cls(**{k: v for k, v in data.items() if k in cls.__dataclass_fields__})
         except Exception:
             pass
         return cls()
 
-    def save(self) -> None:
-        _STATE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        _STATE_PATH.write_text(
+    def save(self, state_path: Optional[Path] = None) -> None:
+        path = state_path or _STATE_PATH
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(
             json.dumps(asdict(self), indent=2, ensure_ascii=False),
             encoding="utf-8",
         )
@@ -96,43 +99,43 @@ def _is_newer(candidate: str, current: str) -> bool:
 # ─── Fetching de fuentes ──────────────────────────────────────────────────────
 
 
-def _fetch_github_rss() -> Optional[str]:
-    """Parsea el RSS del tracker de GitHub y retorna la build WGTMIXM más reciente."""
+def _fetch_github_rss(codename: str = CODENAME, variant: str = VARIANT) -> Optional[str]:
+    """Parsea el RSS del tracker de GitHub y retorna la build más reciente para el codename/variant."""
+    build_re = re.compile(r"OS(\d+\.\d+\.\d+\.\d+)\." + variant)
+    url = (
+        "https://raw.githubusercontent.com/XiaomiFirmwareUpdater/"
+        f"miui-updates-tracker/master/rss/{codename}.xml"
+    )
     try:
-        req = urllib.request.Request(
-            _RSS_GITHUB,
-            headers={"User-Agent": "RedmiForge/1.0"},
-        )
+        req = urllib.request.Request(url, headers={"User-Agent": "RedmiForge/1.0"})
         with urllib.request.urlopen(req, timeout=_HTTP_TIMEOUT) as resp:
             raw = resp.read()
         root = ET.fromstring(raw)
         builds: list[str] = []
         for item in root.iter("item"):
             title = item.findtext("title") or ""
-            m = _BUILD_RE.search(title)
+            m = build_re.search(title)
             if m:
                 builds.append(m.group(0))
         if not builds:
             return None
-        # la más nueva según versión numérica
         return max(builds, key=lambda b: _parse_version(b) or (0,))
     except Exception:
         return None
 
 
-def _fetch_xmfirmware() -> Optional[str]:
-    """Scraping HTML de xmfirmwareupdater.com para builds WGTMIXM."""
+def _fetch_xmfirmware(codename: str = CODENAME, variant: str = VARIANT) -> Optional[str]:
+    """Scraping HTML de xmfirmwareupdater.com para builds del codename/variant."""
+    build_re = re.compile(r"OS(\d+\.\d+\.\d+\.\d+)\." + variant)
+    url = f"https://xmfirmwareupdater.com/hyperos/{codename}/"
     try:
-        req = urllib.request.Request(
-            _XMFIRMWARE_URL,
-            headers={"User-Agent": "RedmiForge/1.0"},
-        )
+        req = urllib.request.Request(url, headers={"User-Agent": "RedmiForge/1.0"})
         with urllib.request.urlopen(req, timeout=_HTTP_TIMEOUT) as resp:
             html = resp.read().decode("utf-8", errors="replace")
-        builds = _BUILD_RE.findall(html)
+        builds = build_re.findall(html)
         if not builds:
             return None
-        full_builds = [f"OS{v}.{VARIANT}" for v in builds]
+        full_builds = [f"OS{v}.{variant}" for v in builds]
         return max(full_builds, key=lambda b: _parse_version(b) or (0,))
     except Exception:
         return None
@@ -151,12 +154,16 @@ def should_check(state: OTAState) -> bool:
         return True
 
 
-def check_for_update(known_build: str) -> Optional[str]:
+def check_for_update(
+    known_build: str,
+    codename: str = CODENAME,
+    variant: str = VARIANT,
+) -> Optional[str]:
     """
     Consulta ambas fuentes y retorna la build más nueva si supera known_build.
     Retorna None si no hay update o si no se pudo contactar ninguna fuente.
     """
-    candidate = _fetch_github_rss() or _fetch_xmfirmware()
+    candidate = _fetch_github_rss(codename, variant) or _fetch_xmfirmware(codename, variant)
     if candidate and _is_newer(candidate, known_build):
         return candidate
     return None
