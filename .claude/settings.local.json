@@ -61,7 +61,22 @@
       "Bash(tee \"C:/Users/Pablo/AppData/Local/Temp/sindy_pkgs_raw.txt\")",
       "Bash(echo \"EXIT_WA4B:$?\")",
       "Bash(echo \"EXIT_CAM:$?\")",
-      "Bash(echo \"EXIT_DEXOPT:$?\")"
+      "Bash(echo \"EXIT_DEXOPT:$?\")",
+      "Bash(settings get *)",
+      "Bash(echo \"font_scale:        $\\(adb -s NB5XWCLZSGB6J74D shell settings get system font_scale\\)\")",
+      "Bash(echo \"display_size_forced: $\\(adb -s NB5XWCLZSGB6J74D shell settings get system display_size_forced\\)\")",
+      "Bash(echo \"inversion:         $\\(adb -s NB5XWCLZSGB6J74D shell settings get secure accessibility_display_inversion_enabled\\)\")",
+      "Bash(echo \"color_correction:  $\\(adb -s NB5XWCLZSGB6J74D shell settings get secure color_correction_mode\\)\")",
+      "Bash(echo \"brightness_mode:   $\\(adb -s NB5XWCLZSGB6J74D shell settings get system screen_brightness_mode\\)\")",
+      "Bash(echo \"font_scale:          $\\(adb -s NB5XWCLZSGB6J74D shell settings get system font_scale\\)\")",
+      "Bash(echo \"brightness_mode:     $\\(adb -s NB5XWCLZSGB6J74D shell settings get system screen_brightness_mode\\)\")",
+      "Bash(echo \"pointer_speed:       $\\(adb -s NB5XWCLZSGB6J74D shell settings get system pointer_speed\\)\")",
+      "Bash(echo \"inversion:           $\\(adb -s NB5XWCLZSGB6J74D shell settings get secure accessibility_display_inversion_enabled\\)\")",
+      "Bash(echo \"color_correction:    $\\(adb -s NB5XWCLZSGB6J74D shell settings get secure color_correction_mode\\)\")",
+      "Bash(./run.sh --scan)",
+      "Bash(xxd)",
+      "Bash(adb -s \"NB5XWCLZSGB6J74D\" exec-out screencap -p)",
+      "Read(//c/Users/Pablo/AppData/Local/Temp/**)"
     ]
   }
 }

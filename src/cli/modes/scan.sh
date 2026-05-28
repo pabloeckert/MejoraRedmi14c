@@ -74,7 +74,12 @@ mode_scan() {
 
     _scan_tweak "Animaciones"      "${anim:-no conf.}"   "0.3"
     _scan_tweak "Refresh rate Hz"  "${refresh:-no conf.}" "90"
-    _scan_tweak "Blur desact."     "${blur:-0}"           "1"
+    # Blur: bloqueado en Android 16 sin root (WRITE_SECURE_SETTINGS requerido)
+    if [ "${blur:-null}" = "1" ]; then
+        log_ok  "$(printf '%-22s' "Blur desact.") 1  [ya aplicado]"
+    else
+        log_info "$(printf '%-22s' "Blur desact.") bloqueado en Android 16 (requiere root)"
+    fi
     # GPU y resolución: bloqueados en Android 16 sin root — mostrar estado real
     if [ "${gpu:-null}" = "1" ]; then
         log_ok  "$(printf '%-22s' "GPU forzada") 1  [ya aplicado]"
