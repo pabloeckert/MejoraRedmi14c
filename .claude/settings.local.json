@@ -76,7 +76,8 @@
       "Bash(./run.sh --scan)",
       "Bash(xxd)",
       "Bash(adb -s \"NB5XWCLZSGB6J74D\" exec-out screencap -p)",
-      "Read(//c/Users/Pablo/AppData/Local/Temp/**)"
+      "Read(//c/Users/Pablo/AppData/Local/Temp/**)",
+      "PowerShell(schtasks *)"
     ]
   }
 }

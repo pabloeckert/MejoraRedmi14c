@@ -1,10 +1,8 @@
 """
 OTA check autónomo — sin Qt, sin UI.
 
-Registrado en Windows Task Scheduler (cada 1 hora).
-El chequeo real contra los servidores se hace cada 14 días; el resto de las
-ejecuciones solo intentan drenar la cola de notificación ADB si hay un
-dispositivo conectado.
+Registrado en Windows Task Scheduler (cada 15 días a las 09:00, sin ventana).
+La tarea usa pythonw.exe y está marcada como Hidden en el Programador.
 
 Flujo (por cada dispositivo monitoreado):
   1. Si pasaron >= 14 días → consulta RSS/HTML por build nueva
@@ -12,10 +10,9 @@ Flujo (por cada dispositivo monitoreado):
      - Sin update   → solo actualiza last_check_iso
   2. Siempre → si pending_adb_notify y el serial está conectado → notifica ADB y limpia flag
 
-Registro Task Scheduler (ejecutar una vez, como admin no requerido):
-  schtasks /create /tn "RedmiForge-OTA" ^
-    /tr "\"<pythonw>\" \"<repo>\\forge\\services\\ota_check.py\"" ^
-    /sc hourly /mo 1 /st 09:00 /f
+Registro Task Scheduler (setup.ps1 lo hace automáticamente):
+  New-ScheduledTaskTrigger -Daily -DaysInterval 15 -At "09:00"
+  pythonw.exe + Settings.Hidden = $true
 """
 from __future__ import annotations
 

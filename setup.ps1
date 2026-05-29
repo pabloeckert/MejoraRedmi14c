@@ -120,11 +120,6 @@ $scriptPath = Join-Path $ROOT "forge\services\ota_check.py"
 $pythonw = $pyPath -replace "python\.exe$", "pythonw.exe"
 if (-not (Test-Path $pythonw)) { $pythonw = $pyPath }
 
-Write-Host "" -ForegroundColor Gray
-Write-Host "  Comando equivalente manual:" -ForegroundColor Gray
-Write-Host "  schtasks /create /tn `"RedmiForge-OTA`" /tr `"`"$pythonw`" `"$scriptPath`"`" /sc hourly /mo 1 /st 09:00 /f" -ForegroundColor DarkGray
-Write-Host "" -ForegroundColor Gray
-
 $existing = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
 if ($existing) {
     Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
@@ -137,9 +132,9 @@ $action = New-ScheduledTaskAction `
     -WorkingDirectory $ROOT
 
 $trigger = New-ScheduledTaskTrigger `
-    -Once `
-    -At (Get-Date) `
-    -RepetitionInterval (New-TimeSpan -Hours 1)
+    -Daily `
+    -DaysInterval 15 `
+    -At "09:00"
 
 $settings = New-ScheduledTaskSettingsSet `
     -ExecutionTimeLimit (New-TimeSpan -Minutes 3) `
@@ -151,10 +146,15 @@ Register-ScheduledTask `
     -Action      $action `
     -Trigger     $trigger `
     -Settings    $settings `
-    -Description "Redmi Forge: chequeo OTA cada 14 dias + notificacion ADB si device conectado" `
+    -Description "Redmi Forge: chequeo OTA cada 15 dias + notificacion ADB si device conectado" `
     -RunLevel    Limited | Out-Null
 
-Write-OK "Tarea '$taskName' registrada — corre cada hora, chequeo OTA real cada 14 dias"
+# Marcar como tarea oculta (sin ventana visible en el Programador de tareas)
+$registeredTask = Get-ScheduledTask -TaskName $taskName
+$registeredTask.Settings.Hidden = $true
+Set-ScheduledTask -InputObject $registeredTask | Out-Null
+
+Write-OK "Tarea '$taskName' registrada — corre cada 15 dias a las 09:00, sin ventana"
 
 # ─── Resumen ──────────────────────────────────────────────────────────────────
 Write-Host @"
