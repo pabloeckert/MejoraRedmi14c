@@ -76,6 +76,21 @@ cd src/web && python3 -m http.server 8000   # → http://localhost:8000 (WebUSB)
 
 - **BUG 1** `src/cli/tools/optimize-boot.sh:115` — lista directa que desactiva `com.xiaomi.joyose`. El guardrail en `safe_disable_pkg()` de `core/config.sh` lo previene solo si se usa esa función; la lista hardcodeada en ese archivo es peligrosa.
 
+## Limitaciones Android 16 — parche BP2A.250605.031.A3 (confirmadas 01/06/2026)
+
+Android 16 con el parche de seguridad de junio 2025 bloqueó múltiples mecanismos que antes funcionaban vía ADB sin root. El CLI en `safe_disable_pkg()` ya tiene el fallback correcto:
+
+| Comando | Estado | Alternativa válida |
+|---------|--------|--------------------|
+| `settings put global <key>` | ❌ Bloqueado (requiere WRITE_SECURE_SETTINGS) | `settings put system <key>` para animaciones/display |
+| `pm disable-user --user 0 <system_pkg>` | ❌ Bloqueado para apps del sistema | `pm uninstall -k --user 0` (ver abajo) |
+| `pm uninstall -k --user 0 <system_pkg>` | ⚠️ Parcial — funciona solo para overlays/apps sin dependencias del kernel | `cmd appops set <pkg> RUN_ANY_IN_BACKGROUND deny` |
+| `pm hide --user 0 <pkg>` | ❌ Bloqueado (requiere MANAGE_USERS) | — |
+| `cmd appops set <pkg> INTERNET deny` | ❌ INTERNET no es un appop válido | `cmd netpolicy set uid-policy <uid> reject` (requiere investigar) |
+| `cmd appops set <pkg> RUN_ANY_IN_BACKGROUND deny` | ✅ Funciona para TODO tipo de package | **Usar siempre como fallback** |
+
+**Consecuencia práctica:** Para paquetes del sistema de Xiaomi (`com.miui.*`, `com.android.*`), el único mecanismo efectivo sin root es `RUN_ANY_IN_BACKGROUND deny`. Impide que inicien servicios en background; si el usuario nunca abre la app, no corre. Es efectivo para telemetría (`com.miui.analytics`) y publicidad (`com.miui.msa.global`).
+
 ---
 
 ## Hallazgos definitivos — vectores descartados

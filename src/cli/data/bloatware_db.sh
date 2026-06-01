@@ -19,7 +19,8 @@
 
 PROFILE_POCO_MODE=(
     # Facebook / Meta
-    "com.facebook.katana"           # Facebook
+    "com.facebook.katana"           # Facebook (nombre viejo)
+    "com.facebook.stella"           # Facebook (nombre nuevo, 2024+)
     "com.facebook.orca"             # Messenger
     "com.facebook.lite"             # Facebook Lite
     "com.facebook.services"         # Servicios Facebook (telemetría)
@@ -99,6 +100,7 @@ pkg_name() {
     local pkg="$1"
     case "$pkg" in
         com.facebook.katana)              echo "Facebook" ;;
+        com.facebook.stella)              echo "Facebook (nuevo paquete)" ;;
         com.facebook.orca)                echo "Messenger" ;;
         com.facebook.lite)                echo "Facebook Lite" ;;
         com.facebook.services)            echo "Servicios Facebook" ;;

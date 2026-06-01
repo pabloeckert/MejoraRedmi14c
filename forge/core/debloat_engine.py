@@ -25,6 +25,7 @@ from forge.db.database import get_device
 _POCO_MODE: list[str] = [
     # Facebook / Meta
     "com.facebook.katana",
+    "com.facebook.stella",   # nuevo nombre de katana (2024+)
     "com.facebook.orca",
     "com.facebook.lite",
     "com.facebook.services",

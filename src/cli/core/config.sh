@@ -86,6 +86,7 @@ SYSTEM_APPS_COMPILE=(
 # ─── Apps pesadas para force-stop (lista canónica 2026) ───
 HEAVY_APPS=(
     "com.facebook.katana"
+    "com.facebook.stella"
     "com.instagram.android"
     "com.zhiliaoapp.musically"
     "com.google.android.youtube"
