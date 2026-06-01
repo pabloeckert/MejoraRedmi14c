@@ -33,7 +33,7 @@ _DEVICES = [
     {
         "serial":     "NB5XWCLZSGB6J74D",
         "name":       "Pablo",
-        "codename":   "lake",
+        "codename":   "pond",
         "variant":    "WGTMIXM",
         "known_build": "OS3.0.20.0.WGTMIXM",
         "state_file": "ota_state_pablo.json",

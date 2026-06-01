@@ -27,7 +27,7 @@ from PySide6.QtCore import QThread, Signal
 
 # ─── Constantes ───────────────────────────────────────────────────────────────
 
-CODENAME            = "lake"
+CODENAME            = "pond"
 VARIANT             = "WGTMIXM"
 FALLBACK_BUILD      = "OS3.0.20.0.WGTMIXM"
 CHECK_INTERVAL_DAYS = 14
@@ -35,9 +35,9 @@ _HTTP_TIMEOUT       = 10  # segundos
 
 _RSS_GITHUB = (
     "https://raw.githubusercontent.com/XiaomiFirmwareUpdater/"
-    "miui-updates-tracker/master/rss/lake.xml"
+    "miui-updates-tracker/master/rss/pond.xml"
 )
-_XMFIRMWARE_URL = "https://xmfirmwareupdater.com/hyperos/lake/"
+_XMFIRMWARE_URL = "https://xmfirmwareupdater.com/hyperos/pond/"
 
 _BUILD_RE = re.compile(r"OS(\d+\.\d+\.\d+\.\d+)\." + VARIANT)
 

@@ -54,6 +54,8 @@ cd src/cli && ./run.sh --full     # optimización completa (Poco Mode)
 cd src/cli && ./run.sh --maintenance
 cd src/cli && ./run.sh --monitor
 cd src/cli && ./run.sh --emergency
+cd src/cli && ./run.sh --scan     # solo escanea, no modifica nada
+cd src/cli && ./restore.sh <carpeta_snapshot>  # restauración manual desde backup
 
 # ─── Diagnóstico y verificación ─────────────────────────────────────────
 bash src/cli/diagnostico.sh
@@ -64,9 +66,9 @@ bash src/cli/tools/benchmark.sh
 cd src/web && python3 -m http.server 8000   # → http://localhost:8000 (WebUSB)
 ```
 
-**Requisitos Redmi Forge:** Python 3.11+, PySide6 ≥ 6.7.0, anthropic ≥ 0.28.0, ADB en PATH o en `vendor/adb/adb.exe`.  
+**Requisitos Redmi Forge:** Python 3.11+, PySide6 ≥ 6.7.0, anthropic ≥ 0.28.0, plyer ≥ 2.1.0 (Windows toast para OTA), ADB en PATH o en `vendor/adb/adb.exe`.  
 **Requisitos CLI:** bash 4+ (WSL o Git Bash en Windows), ADB, sqlite3, dispositivo con USB debugging.  
-**ADB en Windows:** la app detecta automáticamente WSL → Git Bash en ese orden. Ver `forge/core/adb_bridge.py:find_shell()`.
+**Shell en Windows:** la app detecta automáticamente Git Bash → WSL en ese orden (Git Bash tiene preferencia; WSL con systemd roto causa fallos). Ver `forge/core/adb_bridge.py:find_shell()`.
 
 ---
 
@@ -126,7 +128,7 @@ Ante duda entre "hacer más" y "hacer menos y bien": menos y bien.
 
 ## Contexto técnico del dispositivo
 
-- **Modelo:** Redmi 14C (24117RK2CG) — serial NB5XWCLZSGB6J74D
+- **Modelo:** Redmi 14C (2409BRN2CL) — serial NB5XWCLZSGB6J74D — codename **pond** (global)
 - **SoC:** Helio G81 Ultra (MediaTek **MT6769J**) — 6× Cortex-A55 @ 1.7 GHz (cpu0–5) + 2× Cortex-A75 @ 2.0 GHz (cpu6–7)
 - **OS:** HyperOS V816 / Android 16
 - **Tweaks validados en v6.0 (NO tocar sin testear):**
@@ -134,6 +136,7 @@ Ante duda entre "hacer más" y "hacer menos y bien": menos y bien.
   - Animaciones `0.3x` (persiste — guardado en Settings DB)
   - Vulkan + MSAA forzado
   - ~~Resolución `612x1360 @ 260dpi`~~ — **MUERTO en Android 16**: `wm size` requiere `WRITE_SECURE_SETTINGS`, revocado sin root. No intentar.
+  - **Animaciones**: usar `settings put system` (NO `global`) — el namespace `global` requiere `WRITE_SECURE_SETTINGS` en Android 16 (parche BP2A.250605.031.A3+). El CLI ya hace esto correctamente vía `adb_setting_put_system`.
 - **Governor:** `sugov_ext` (propietario MediaTek, default HyperOS). Disponibles: `sugov_ext | conservative | powersave | performance | schedutil`. Sin root: no legible ni modificable directamente. Usar `cmd game mode performance <pkg>` para elevar governor por app.
 - **ZRAM:** `zram0` configurado en 4 GB (SwapTotal=4194300 kB). Algoritmo no legible sin root. No modificar.
 - **Lista de bloatware:** en `src/cli/data/bloatware_db.sh` → array `PROFILE_POCO_MODE` (canónico para el CLI). El espejo Python está en `forge/core/debloat_engine.py:_POCO_MODE`. Si modificás uno, modificás el otro.
@@ -160,8 +163,12 @@ Redmi Forge
 │
 ├── Core
 │   ├── forge/core/adb_bridge.py    — find_adb(), find_shell(), list_devices(),
-│   │                                  get_device_info(), run_cli_script() (generator)
+│   │                                  get_device_info(), scan_device() (lee RAM/pkgs/tweaks sin modificar),
+│   │                                  run_cli_script() (generator que yields líneas del CLI Bash)
 │   ├── forge/core/device_watcher.py — QThread: poll ADB cada 2s, emite signals
+│   ├── forge/core/game_mode.py     — enable()/disable()/status() para Game Mode; 3 mecanismos en cascada:
+│   │                                  game_api_performance → game_api_custom → fixed_performance global.
+│   │                                  CLI directo: python -m forge.core.game_mode <serial> enable|disable|status [pkg]
 │   ├── forge/core/debloat_engine.py — build_debloat_list(), dry_run_report(),
 │   │                                  write_runtime_profile() → escribe profile_runtime.sh
 │   ├── forge/core/apps_catalog.py  — DEBLOAT_CATALOG, HEAVY_APPS_SET, WIZARD_APPS,
@@ -205,9 +212,11 @@ Cuando el usuario ejecuta "Optimizar" con un perfil guardado:
 
 1. `debloat_engine.build_debloat_list(serial)` calcula qué packages remover según el perfil
 2. `debloat_engine.write_runtime_profile()` escribe `src/cli/data/profile_runtime.sh` con el array `PROFILE_RUNTIME`
-3. `adb_bridge.run_cli_script("--full", serial)` invoca `run.sh --profile` (no `--full`)
+3. `adb_bridge.run_cli_script("--full", serial)` detecta si `has_profile(serial)`: si SÍ, escribe el runtime profile y pasa `--profile` al script; si NO hay perfil, pasa `--full` sin modificar
 4. `run.sh` sourcea `modes/profile_optimize.sh`, que sourcea `profile_runtime.sh` y llama a `bloatware_run`
 5. El output se streaming vía generator al `ExecutionScreen`
+
+**OTA state persistence:** Los archivos de estado se guardan por dispositivo en `%LOCALAPPDATA%/RedmiForge/`: `ota_state_pablo.json` y `ota_state_sindy.json`. El módulo `ota_watcher.py` también expone `OTAWorker` y `TweakScanWorker` (QThread) para la UI; `ota_check.py` es la versión headless (sin Qt) para Task Scheduler.
 
 ---
 
@@ -327,4 +336,4 @@ Registrá cada fuente en `RESEARCH_LOG.md`:
 
 ---
 
-*CLAUDE.md v2.1 — 25/05/2026 — MejoraRedmi14C (S1-S3 completos + módulo auditoría, próximo S4)*
+*CLAUDE.md v2.2 — 01/06/2026 — MejoraRedmi14C (todos los sprints cerrados — producto terminado)*
