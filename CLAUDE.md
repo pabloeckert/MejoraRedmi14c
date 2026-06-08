@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Redmi Forge — CLAUDE.md para Claude Code
 
 > **Repo base:** https://github.com/pabloeckert/MejoraRedmi14c  
-> **Actualizado:** 26 de mayo de 2026
+> **Actualizado:** 08 de junio de 2026
 
 ---
 
@@ -20,7 +20,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `forge/ui/` | ⏸ Pausada | UI Python/PySide6 — funcional con bugs conocidos (ver abajo). Retomar cuando haya usuario final concreto. |
 | `main.py` | ⏸ Pausado | Entry point de la UI — funcional pero con UX incompleta en fases largas (DEXOPT) |
 | `src/web/` | ⏸ Pausada | Web App WebUSB — sin mantenimiento activo |
-| **Dispositivo activo** | NB5XWCLZSGB6J74D | 75 apps eliminadas, animaciones 0.3x, 90Hz, DEXOPT completo. Baseline: 1141MB RAM libre, 29°C reposo. Build: OS3.0.20.0.WGTMIXM (abr 2026) — la más reciente para MXM. |
+| **Dispositivo Pablo** | NB5XWCLZSGB6J74D | 75 apps eliminadas, animaciones 0.3x, 90Hz, DEXOPT completo. Baseline: 1141MB RAM libre, 29°C reposo. Build: OS3.0.20.0.WGTMIXM (abr 2026) — la más reciente para MXM. |
+| **Dispositivo Sindy** | VOSWQCOVJVQWT8LR | Monitoreado por OTA watcher (`ota_check.py`). Estado: desconocido — no optimizado con CLI. |
 | `app/` | ⛔ Obsoleto | Stub Electron — ignorar |
 
 **Producto terminado para uso personal:** `src/cli/run.sh` + `forge/services/ota_check.py` (Task Scheduler).  
@@ -61,12 +62,16 @@ cd src/cli && ./restore.sh <carpeta_snapshot>  # restauración manual desde back
 bash src/cli/diagnostico.sh
 bash src/cli/tools/mega-verificar.sh
 bash src/cli/tools/benchmark.sh
+bash src/cli/tools/measure-boot.sh        # mide tiempos de boot
+bash src/cli/tools/test-verificacion.sh   # pruebas de verificación del sistema
+bash src/cli/tools/ruta-optima.sh         # calcula ruta óptima de optimización
+bash src/cli/tools/log-apply.sh           # aplica un log de cambios previo
 
 # ─── Web App alternativa ─────────────────────────────────────────────────
 cd src/web && python3 -m http.server 8000   # → http://localhost:8000 (WebUSB)
 ```
 
-**Requisitos Redmi Forge:** Python 3.11+, PySide6 ≥ 6.7.0, anthropic ≥ 0.28.0, plyer ≥ 2.1.0 (Windows toast para OTA), ADB en PATH o en `vendor/adb/adb.exe`.  
+**Requisitos Redmi Forge:** Python 3.11+, PySide6 ≥ 6.7.0, anthropic ≥ 0.28.0, plyer ≥ 2.1.0 (Windows toast para OTA), ADB en PATH o en `vendor/adb/adb.exe`. **Siempre instalar via `pip install -r requirements.txt`** — `pyproject.toml` no declara `anthropic` como dependencia y omitirla rompe el AuditScreen.  
 **Requisitos CLI:** bash 4+ (WSL o Git Bash en Windows), ADB, sqlite3, dispositivo con USB debugging.  
 **Shell en Windows:** la app detecta automáticamente Git Bash → WSL en ese orden (Git Bash tiene preferencia; WSL con systemd roto causa fallos). Ver `forge/core/adb_bridge.py:find_shell()`.
 
@@ -351,4 +356,4 @@ Registrá cada fuente en `RESEARCH_LOG.md`:
 
 ---
 
-*CLAUDE.md v2.2 — 01/06/2026 — MejoraRedmi14C (todos los sprints cerrados — producto terminado)*
+*CLAUDE.md v2.3 — 08/06/2026 — MejoraRedmi14C (todos los sprints cerrados — producto terminado)*
