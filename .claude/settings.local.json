@@ -30,7 +30,8 @@
       "PowerShell(Test-Path *)",
       "PowerShell(Get-Process *)",
       "PowerShell(schtasks *)",
-      "PowerShell(Select-String *)"
+      "PowerShell(Select-String *)",
+      "Bash(C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe *)"
     ]
   }
 }
