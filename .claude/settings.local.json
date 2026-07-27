@@ -31,7 +31,10 @@
       "PowerShell(Get-Process *)",
       "PowerShell(schtasks *)",
       "PowerShell(Select-String *)",
-      "Bash(C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe *)"
+      "Bash(C:\\\\Program Files\\\\Git\\\\bin\\\\bash.exe *)",
+      "Bash(mkdir -p \"/c/BackupsRedmiForge/Sindy_WhatsAppBusiness_2026-07-06\")",
+      "Bash(wmic logicaldisk *)",
+      "Read(//c//**)"
     ]
   }
 }
