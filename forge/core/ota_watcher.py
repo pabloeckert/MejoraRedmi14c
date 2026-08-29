@@ -6,24 +6,21 @@ usando dos fuentes en cascada:
   1. RSS de XiaomiFirmwareUpdater/miui-updates-tracker (GitHub)
   2. xmfirmwareupdater.com/hyperos/lake/ (scraping HTML)
 
-Cuando detecta una build más nueva emite ota_available(build: str).
-Cuando el dispositivo se conecta después de un OTA detectado, TweakScanWorker
-verifica qué tweaks se resetearon y emite scan_done(list[TweakStatus]).
+Uso headless (sin Qt/UI): ota_check.py llama should_check() + check_for_update()
+para el chequeo periódico, y scan_tweaks()/reapply_tweaks() para verificar y
+reaplicar tweaks reseteados por un OTA.
 """
 from __future__ import annotations
 
 import json
 import re
 import subprocess
-import time
 import urllib.request
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field, asdict
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Optional
-
-from PySide6.QtCore import QThread, Signal
 
 # ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -281,83 +278,3 @@ def reapply_tweaks(serial: str, tweaks: list[TweakStatus]) -> list[TweakStatus]:
         fixed = next((t for t in rescanned if t.name == tweak.name), tweak)
         updated.append(fixed)
     return updated
-
-
-# ─── QThreads ─────────────────────────────────────────────────────────────────
-
-
-class OTAWorker(QThread):
-    """
-    Hilo que chequea actualizaciones de HyperOS cada 14 días.
-    No bloquea la UI — hace polling liviano cada 60 segundos para saber
-    si llegó la hora del chequeo real.
-    """
-
-    ota_available = Signal(str)   # nueva build detectada
-    check_done    = Signal(bool, str)  # (hay_update, build_o_vacio)
-
-    _POLL_S = 60  # cada cuántos segundos verifica si toca chequear
-
-    def __init__(self, parent=None):
-        super().__init__(parent)
-        self._running = True
-        self._state   = OTAState.load()
-
-    def run(self):
-        # Chequeo inmediato al arrancar si corresponde
-        if should_check(self._state):
-            self._do_check()
-
-        while self._running:
-            time.sleep(self._POLL_S)
-            if not self._running:
-                break
-            if should_check(self._state):
-                self._do_check()
-
-    def _do_check(self):
-        new_build = check_for_update(self._state.known_build)
-        self._state.last_check_iso = datetime.now().isoformat()
-
-        if new_build:
-            self._state.ota_detected    = True
-            self._state.ota_build       = new_build
-            self._state.ota_detected_at = datetime.now().isoformat()
-            self._state.post_ota_scan_done = False
-            self._state.save()
-            self.ota_available.emit(new_build)
-            self.check_done.emit(True, new_build)
-        else:
-            self._state.save()
-            self.check_done.emit(False, "")
-
-    def force_check(self):
-        """Fuerza un chequeo inmediato ignorando el intervalo."""
-        self._state.last_check_iso = None
-        self._state.save()
-
-    def mark_scan_done(self, disabled_baseline: int):
-        """Llamar tras un scan post-OTA exitoso para marcar el estado."""
-        self._state.post_ota_scan_done  = True
-        self._state.disabled_pkg_baseline = disabled_baseline
-        self._state.save()
-
-    def state(self) -> OTAState:
-        return self._state
-
-    def stop(self):
-        self._running = False
-
-
-class TweakScanWorker(QThread):
-    """Escanea en background qué tweaks se resetearon post-OTA."""
-
-    scan_done = Signal(list)  # list[TweakStatus]
-
-    def __init__(self, serial: str, parent=None):
-        super().__init__(parent)
-        self._serial = serial
-
-    def run(self):
-        tweaks = scan_tweaks(self._serial)
-        self.scan_done.emit(tweaks)

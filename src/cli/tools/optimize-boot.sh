@@ -112,7 +112,6 @@ BOOT_APPS=(
     "com.netflix.mediaclient"
     "com.opera.mini.native"
     "com.amazon.appmanager"
-    "com.xiaomi.joyose"
     "com.xiaomi.scanner"
     "com.xiaomi.mipicks"
     "com.xiaomi.glgm"
@@ -124,7 +123,23 @@ BOOT_APPS=(
 
 BOOT_DISABLED=0
 BOOT_ALREADY=0
+BOOT_SKIPPED=0
 for pkg in "${BOOT_APPS[@]}"; do
+    # Guardrail: nunca tocar un paquete crítico (joyose incluido), sea cual
+    # sea la lista de arriba. Usa is_critical_pkg() de config.sh si está
+    # disponible; si no, cae al chequeo hardcodeado de joyose como mínimo.
+    if declare -f is_critical_pkg >/dev/null 2>&1; then
+        if is_critical_pkg "$pkg"; then
+            warn "SALTADO (crítico): $pkg"
+            BOOT_SKIPPED=$((BOOT_SKIPPED + 1))
+            continue
+        fi
+    elif [ "$pkg" = "com.xiaomi.joyose" ]; then
+        warn "SALTADO (crítico): $pkg"
+        BOOT_SKIPPED=$((BOOT_SKIPPED + 1))
+        continue
+    fi
+
     # Verificar si ya está desactivado
     IS_DISABLED=$(adb shell pm list packages -d 2>/dev/null | grep -c "$pkg" || echo "0")
     if [ "$IS_DISABLED" -gt 0 ]; then
@@ -145,7 +160,7 @@ for pkg in "${BOOT_APPS[@]}"; do
     fi
 done
 
-log "  📊 Desactivadas: $BOOT_DISABLED | Ya estaban: $BOOT_ALREADY"
+log "  📊 Desactivadas: $BOOT_DISABLED | Ya estaban: $BOOT_ALREADY | Saltadas (críticas): $BOOT_SKIPPED"
 log ""
 
 # ═══════════════════════════════════════════════

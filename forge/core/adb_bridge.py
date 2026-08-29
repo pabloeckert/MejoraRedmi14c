@@ -1,20 +1,16 @@
 """
-Wrapper sobre ADB e invocador de src/cli/run.sh.
-
-Regla: nunca reescribir la lógica de los scripts Bash.
-Este módulo los invoca; no los reemplaza.
+Wrapper Python sobre ADB — localizar el binario, listar dispositivos y leer
+su estado (RAM, paquetes, tweaks) sin modificar nada. Usado por
+forge/core/app_scanner.py para la auditoría de apps desde terminal.
 """
-import os
 import shutil
 import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Generator
 
 # Rutas relativas a la raíz del proyecto
 _ROOT = Path(__file__).parents[2]
 _ADB_VENDOR = _ROOT / "vendor" / "adb" / "adb.exe"
-_CLI_RUN = _ROOT / "src" / "cli" / "run.sh"
 
 
 @dataclass
@@ -81,16 +77,6 @@ def shell_available() -> bool:
         return True
     except FileNotFoundError:
         return False
-
-
-def _to_posix_path(windows_path: Path, shell_exe: str) -> str:
-    """Convierte ruta Windows a formato compatible con el shell detectado."""
-    if "wsl" in shell_exe.lower():
-        drive = windows_path.drive[0].lower()          # "C" → "c"
-        rest = str(windows_path).replace("\\", "/")[2:]  # "\Github\..." → "/Github/..."
-        return f"/mnt/{drive}{rest}"
-    # Git Bash acepta rutas con / sin conversión de drive
-    return str(windows_path).replace("\\", "/")
 
 
 # ─── Operaciones ADB básicas ──────────────────────────────────────────────────
@@ -198,51 +184,3 @@ def scan_device(serial: str) -> ScanResult:
         installed_packages=installed,
         disabled_packages=disabled,
     )
-
-
-# ─── Invocar src/cli/run.sh ───────────────────────────────────────────────────
-
-_RUNTIME_PROFILE = _ROOT / "src" / "cli" / "data" / "profile_runtime.sh"
-
-
-def run_cli_script(
-    mode_flag: str,
-    serial: str,
-    *,
-    proc_ref: list | None = None,
-) -> Generator[str, None, int]:
-    """
-    Generator que ejecuta src/cli/run.sh y hace yield de cada línea de output.
-    Al terminar devuelve el exit code vía StopIteration.value.
-
-    proc_ref: lista opcional de un elemento; si se pasa, se rellena con el
-    objeto Popen activo para que el caller pueda llamar proc_ref[0].terminate().
-    """
-    actual_flag = mode_flag
-    if mode_flag == "--full":
-        from forge.core.debloat_engine import has_profile, write_runtime_profile
-        if has_profile(serial):
-            write_runtime_profile(serial, _RUNTIME_PROFILE)
-            actual_flag = "--profile"
-
-    shell_exe, prefix = find_shell()
-    script_path = _to_posix_path(_CLI_RUN, shell_exe)
-
-    cmd = [shell_exe] + prefix + [script_path, actual_flag]
-    env = {**os.environ, "ANDROID_SERIAL": serial}
-
-    with subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        bufsize=1,
-        env=env,
-    ) as proc:
-        if proc_ref is not None:
-            proc_ref.append(proc)
-        for line in proc.stdout:
-            yield line.rstrip()
-    return proc.returncode

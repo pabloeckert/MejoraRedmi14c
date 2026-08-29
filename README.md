@@ -1,6 +1,6 @@
 # PhoneOptimizer Pro v6.0 — Redmi 14C / HyperOS 3
 
-Toolkit de optimización Android para **Redmi 14C (HyperOS 3 / Android 16 / Helio G81 Ultra)**. Un solo comando para transformar el teléfono en modo Poco.
+Toolkit de limpieza y mantenimiento para **Redmi 14C (HyperOS 3 / Android 16 / Helio G81 Ultra)**. Todo se maneja desde la terminal — no hay interfaz gráfica ni web.
 
 ## Requisitos
 
@@ -8,11 +8,12 @@ Toolkit de optimización Android para **Redmi 14C (HyperOS 3 / Android 16 / Heli
 - SQLite3 instalado (`sqlite3`)
 - bash 4+ (en macOS: `brew install bash`)
 - Cable USB datos + Depuración USB activada en el teléfono
+- Python 3.11+ solo para los monitores headless (`forge/services/`) y la auditoría de apps (`forge/core/app_scanner.py`) — opcional, el CLI Bash funciona sin Python
 
 ## Uso — Una sola línea
 
 ```bash
-chmod +x run.sh && ./run.sh
+cd src/cli && chmod +x run.sh && ./run.sh
 ```
 
 El script detecta automáticamente:
@@ -26,58 +27,64 @@ El script detecta automáticamente:
 |---|---|---|
 | `./run.sh` | Auto-detección | variable |
 | `./run.sh --full` / `-f` | Optimización completa | 15-30 min |
+| `./run.sh --profile` / `-p` | Optimización con perfil personalizado (`data/profile_runtime.sh`) | 15-30 min |
 | `./run.sh --maintenance` / `-s` | Mantenimiento semanal | < 5 min |
 | `./run.sh --monitor` / `-m` | Monitoreo en tiempo real | continuo |
 | `./run.sh --emergency` / `-e` | Restaurar todo a fábrica | 2-3 min |
+| `./run.sh --scan` | Solo escanea, no modifica nada | rápido |
 
 ## Qué hace el Poco Mode
 
-El Poco Mode equipara el rendimiento del Redmi 14C al 85% de un Poco X7 Pro mediante:
-
-- **~80+ apps de bloatware desactivadas** (telemetría, ads, apps Xiaomi/Google/Facebook no usadas)
-- **GPU forzada** con Vulkan + MSAA + sin draw defer
-- **Animaciones 0.3x** (instantáneas, mínimo para HyperOS 3)
-- **Resolución 612x1360 @ 260dpi** (+15% FPS sin diferencia visual notable)
-- **Cámara y WhatsApp compilados en speed mode** + pre-calentados en memoria
-- **Memory Extension HyperOS 3** activada (4GB → 8GB virtual)
+- **Bloatware desactivado**: telemetría, ads, apps Xiaomi/Google/Facebook no usadas — vía `pm disable-user`, con fallback a `pm uninstall -k --user 0` para apps de sistema en Android 16 (ver limitaciones abajo)
+- **GPU forzada** con Vulkan + MSAA
+- **Animaciones 0.3x** (persisten, vía `settings put system` — `global` está bloqueado en Android 16 sin root)
 - **Swappiness 20**, LMK agresivo, HWUI cache XL
+
+## Auditoría y limpieza de apps desde terminal
+
+```bash
+python -m forge.core.app_scanner --scan <SERIAL>
+```
+
+Escanea los paquetes instalados, los categoriza contra un catálogo local (`forge/core/apps_catalog.py`, `packages_db.py`) y respeta los mismos guardrails que el CLI: nunca toca `com.xiaomi.joyose`, protege las apps de SafetyNet/banca (`SAFETYNET_PROTECTED`) y las críticas de negocio (`BUSINESS_CRITICAL`). Con `ANTHROPIC_API_KEY` en el entorno, clasifica automáticamente apps desconocidas vía Claude Haiku; sin la clave, el escaneo funciona igual pero sin descripciones para esas apps.
+
+## Monitores headless (Task Scheduler / cron)
+
+```bash
+python forge/services/ota_check.py           # chequeo de nueva build HyperOS cada 14-15 días
+python -m forge.services.maintenance_check    # storage / temperatura / backup local WhatsApp
+```
+
+Ninguno de los dos requiere UI ni ventana — pensados para correr en segundo plano (`setup.ps1` ya registra `ota_check.py` en el Programador de tareas de Windows; `maintenance_check.py` corre manual por ahora).
 
 ## Soporte para 2 dispositivos
 
-Si conectás los dos Redmi 14C a la vez, el script muestra un menú de selección con el modelo y un apodo automático ("Redmi-1", "Redmi-2"). Cada dispositivo tiene su propio historial en `data/devices.db`.
+Si conectás los dos Redmi 14C a la vez, el script muestra un menú de selección. Cada dispositivo tiene su propio historial en `src/cli/data/devices.db`.
 
 ## Ciclo de 7 días
 
-El script detecta automáticamente si han pasado 7+ días desde el último run y lanza el mantenimiento semanal. El mantenimiento corrige regresiones OTA (apps que HyperOS reactiva tras actualizar) y limpia cache.
+El script detecta automáticamente si han pasado 7+ días desde el último run y lanza el mantenimiento semanal, que corrige regresiones OTA (apps que HyperOS reactiva tras actualizar) y limpia cache.
 
 ## Seguridad
 
-- `com.xiaomi.joyose` **NUNCA se toca** — es el gestor térmico del Helio G81 Ultra. Desactivarlo causa sobrecalentamiento.
-- Temperatura bloqueante: si el teléfono supera 42°C, el script aborta.
-- Backup automático completo antes de cada optimización (`backups/`).
+- `com.xiaomi.joyose` **NUNCA se toca** — es el gestor térmico del Helio G81 Ultra. Desactivarlo causa sobrecalentamiento. Está protegido en `CRITICAL_SYSTEM_APPS` (`core/config.sh`) y todo el código de desactivación pasa por `safe_disable_pkg()`, que lo chequea antes de tocar cualquier paquete.
+- Temperatura bloqueante: si el teléfono supera 42°C, el script aborta (`thermal_gate_check`).
+- Backup automático completo antes de cada optimización (`src/cli/backups/`).
 - Restauración completa: `./run.sh --emergency`
 
-## Herramientas adicionales (scripts legados, siguen funcionando)
+## Herramientas adicionales (`src/cli/tools/`)
 
 | Script | Función |
 |---|---|
 | `benchmark.sh` | Mide CPU, RAM y red — comparar antes/después |
 | `diagnostico.sh` | Lee métricas del sistema |
-| `optimize-boot.sh` | Optimiza receivers de arranque |
+| `optimize-boot.sh` | Optimiza receivers de arranque (usar con `--dry-run` primero) |
 | `measure-boot.sh` | Mide tiempo real de encendido |
 | `mega-verificar.sh` | Verifica si los tweaks se aplicaron |
-
-## Web App alternativa
-
-Si preferís no usar la terminal, abrí `index.html` en Chrome/Edge/Opera:
-
-```bash
-adb kill-server
-python3 -m http.server 8000
-# → http://localhost:8000
-```
+| `ruta-optima.sh` | Calcula ruta óptima de optimización |
+| `log-apply.sh` | Aplica un log de cambios previo |
+| `test-verificacion.sh` | Pruebas de verificación del sistema |
 
 ---
 
 Para entender la arquitectura del código, leé [CLAUDE.md](CLAUDE.md).
-Para el tutorial de configuración de ADB, leé [TUTORIAL.md](TUTORIAL.md).

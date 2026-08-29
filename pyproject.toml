@@ -5,14 +5,12 @@ build-backend = "setuptools.backends.legacy:SetupBackend"
 [project]
 name = "redmi-forge"
 version = "0.1.0"
-description = "Optimizador inteligente para Redmi 14C — Windows 11"
+description = "Módulos Python headless (OTA watch, mantenimiento, auditoría de apps) para el toolkit CLI Redmi 14C — sin interfaz"
 requires-python = ">=3.11"
 dependencies = [
-    "PySide6>=6.7.0",
+    "anthropic>=0.28.0",
+    "plyer>=2.1.0",
 ]
-
-[project.scripts]
-redmi-forge = "main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]

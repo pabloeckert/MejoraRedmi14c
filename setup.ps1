@@ -4,8 +4,10 @@ $OutputEncoding              = [System.Text.UTF8Encoding]::new($false)
 <#
 .SYNOPSIS
     Redmi Forge — setup en una PC nueva con un solo comando.
-    Instala dependencias Python, verifica ADB y Git Bash, y registra
-    el OTA watcher en el Programador de tareas de Windows.
+    Instala dependencias Python (servicios headless, sin UI), verifica ADB
+    y Git Bash, y registra el OTA watcher en el Programador de tareas de
+    Windows. Todo el trabajo se hace desde la terminal (CLI Bash + módulos
+    Python invocados con `python -m`) — no hay interfaz gráfica.
 
 .USAGE
     En PowerShell (como usuario normal, sin admin):
@@ -73,7 +75,7 @@ if (-not (Test-Path $req)) { Write-Fail "requirements.txt no encontrado en $ROOT
 & $py -m pip install --quiet -r $req
 
 if ($LASTEXITCODE -ne 0) { Write-Fail "pip install falló. Revisá la salida de error." }
-Write-OK "PySide6 + anthropic instalados"
+Write-OK "anthropic + plyer instalados"
 
 # ─── 3. ADB ──────────────────────────────────────────────────────────────────
 Write-Step 3 "Verificando ADB"
@@ -159,12 +161,14 @@ Write-OK "Tarea '$taskName' registrada — corre cada 15 dias a las 09:00, sin v
 # ─── Resumen ──────────────────────────────────────────────────────────────────
 Write-Host @"
 
-=== Setup completado ===
+=== Setup completado (todo desde la terminal, sin interfaz) ===
 
-  Arrancar UI:       python main.py
-  CLI (optimizar):   cd src/cli && bash run.sh --full
+  CLI (optimizar):     cd src/cli && bash run.sh --full
   CLI (mantenimiento): cd src/cli && bash run.sh --maintenance
-  OTA watcher:       corre automatico cada 14 dias (Task Scheduler)
-                     o manualmente: python forge\services\ota_check.py
+  CLI (solo escanear): cd src/cli && bash run.sh --scan
+  Auditoria de apps:   python -m forge.core.app_scanner --scan <SERIAL>
+  OTA watcher:         corre automatico cada 15 dias (Task Scheduler)
+                       o manualmente: python forge\services\ota_check.py
+  Monitor mantenim.:   python -m forge.services.maintenance_check (manual, sin scheduler aun)
 
 "@ -ForegroundColor White

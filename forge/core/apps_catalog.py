@@ -1,15 +1,14 @@
 """
 Catálogo canónico de apps debloateables para Redmi 14C / HyperOS 3.
 
-Es la fuente de verdad única para:
-  - El wizard de perfil (paso 2): qué apps mostrar como "protegibles"
-  - El motor de debloat (Sprint 3): qué lista enviar al engine según perfil
-  - El log_parser: nombres legibles de packages en output de run.sh
+Fuente de verdad para forge/core/app_scanner.py (auditoría de apps desde
+terminal): nombres legibles, categorías, y las apps protegidas que nunca
+deben tocarse (SafetyNet / negocio).
 
 Estructura:
-  DEBLOAT_CATALOG  — pkg_name → AppEntry con nombre, categoría y si está en la lista base
-  HEAVY_APPS_SET   — set de packages que el engine toca hoy (espejo de config.sh HEAVY_APPS)
-  WIZARD_APPS      — lista ordenada de (pkg_name, human_name) para mostrar en el wizard paso 2
+  DEBLOAT_CATALOG    — pkg_name → AppEntry con nombre, categoría y si está en la lista base
+  SAFETYNET_PROTECTED — apps que rompen Play Integrity / banca si se desactivan
+  BUSINESS_CRITICAL   — mínimo indispensable para uso laboral, intocable
 
 Categorías:
   "social"    — redes sociales, mensajería
@@ -108,44 +107,10 @@ DEBLOAT_CATALOG: dict[str, AppEntry] = {
     "com.android.wallpaperbackup":       AppEntry("Backup de fondos",        "util", False),
 }
 
-# ─── Set canónico de HEAVY_APPS (espejo de config.sh) ────────────────────────
-# Esta es la lista que el engine v6.0 toca hoy. Si el usuario quiere mantener
-# alguna de estas, Sprint 3 la excluye dinámicamente del perfil de debloat.
 
-HEAVY_APPS_SET: set[str] = {
-    pkg for pkg, entry in DEBLOAT_CATALOG.items() if entry.in_engine
-}
-# = {"com.facebook.katana", "com.instagram.android", "com.zhiliaoapp.musically",
-#    "com.google.android.youtube", "com.snapchat.android", "com.twitter.android",
-#    "com.spotify.music", "com.google.android.apps.maps", "com.google.android.gm",
-#    "com.android.chrome", "org.telegram.messenger", "com.discord",
-#    "com.reddit.frontpage", "com.pinterest"}
-
-
-# ─── Lista del wizard (paso 2) ───────────────────────────────────────────────
-# Solo las apps que el USUARIO puede querer proteger — excluye telemetría Xiaomi
-# (esas se eliminan siempre, no son elección del usuario).
-# Ordenadas: primero las que el engine ya toca (más urgentes), luego el resto.
-
-WIZARD_APPS: list[tuple[str, str]] = sorted(
-    [
-        (pkg, entry.name)
-        for pkg, entry in DEBLOAT_CATALOG.items()
-        if entry.category in ("social", "google", "msft", "entret")
-    ],
-    key=lambda x: (not DEBLOAT_CATALOG[x[0]].in_engine, x[1].lower()),
-)
-# Resultado esperado: primero Chrome, Discord, Facebook, Gmail, Instagram,
-# Maps, Reddit, Snapchat, Spotify, Telegram, TikTok, Twitter, YouTube
-# (todos in_engine=True) → luego el resto alfabético.
-
-
-# ─── Nombre legible desde package name ───────────────────────────────────────
-
-# ─── Escudo SafetyNet — NUNCA tocar cuando banking=True ─────────────────────
+# ─── Escudo SafetyNet — NUNCA tocar en apps bancarias ────────────────────────
 # Estas apps son prerequisito de Play Integrity / SafetyNet. Desactivarlas
 # rompe la verificación de integridad que usan las apps bancarias argentinas.
-# Si profile.banking = True, se excluyen automáticamente del debloat.
 
 SAFETYNET_PROTECTED: frozenset[str] = frozenset({
     # Google core — base de SafetyNet / Play Integrity
@@ -172,13 +137,11 @@ SAFETYNET_PROTECTED: frozenset[str] = frozenset({
 })
 
 
-# ─── Apps críticas de negocio — NO configurables por el usuario ──────────────
-# Se protegen automáticamente si banking=True O si el perfil tiene apps de trabajo.
-# El wizard nunca las muestra como opcionales — son intocables.
-#
-# Razón: son el mínimo indispensable para que el teléfono funcione como herramienta
-# de trabajo o para acceder a servicios que requieren autenticación de segundo factor
-# (email con tokens 2FA, navegador para banca web, maps para trabajo de campo).
+# ─── Apps críticas de negocio — intocables ───────────────────────────────────
+# Mínimo indispensable para que el teléfono funcione como herramienta de
+# trabajo o para acceder a servicios que requieren autenticación de segundo
+# factor (email con tokens 2FA, navegador para banca web, maps para trabajo
+# de campo).
 
 BUSINESS_CRITICAL: frozenset[str] = frozenset({
     "com.google.android.gm",            # Gmail — email corporativo / tokens 2FA
@@ -186,26 +149,3 @@ BUSINESS_CRITICAL: frozenset[str] = frozenset({
     "com.google.android.apps.maps",     # Google Maps — navegación / trabajo de campo
     "com.google.android.calendar",      # Google Calendar — agenda laboral
 })
-
-# Apps cuya presencia en la lista del usuario señala contexto laboral.
-# Si cualquiera de estas está en apps_keep → activar protección de BUSINESS_CRITICAL.
-WORK_INDICATOR_APPS: frozenset[str] = frozenset({
-    "com.microsoft.office.outlook",     # Outlook — email corporativo
-    "com.microsoft.teams",              # Teams — comunicación de equipo
-    "com.microsoft.office.word",        # Word — documentos de trabajo
-    "com.microsoft.office.excel",       # Excel — planillas de trabajo
-    "com.google.android.apps.tachyon",  # Google Meet — videollamadas laborales
-    "com.google.android.talk",          # Google Chat — mensajería corporativa
-})
-
-
-def pkg_to_name(pkg: str) -> str:
-    """Devuelve nombre legible de un package, o deriva uno del nombre."""
-    if pkg in DEBLOAT_CATALOG:
-        return DEBLOAT_CATALOG[pkg].name
-    parts = pkg.split(".")
-    raw = parts[-1] if len(parts) >= 3 else pkg
-    import re
-    raw = re.sub(r"[_\-]", " ", raw)
-    raw = re.sub(r"([a-z])([A-Z])", r"\1 \2", raw)
-    return raw.strip().capitalize() or "aplicación"

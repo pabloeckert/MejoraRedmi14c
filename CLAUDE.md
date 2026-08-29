@@ -11,24 +11,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Estado actual del proyecto
 
+Repo depurado el 29/08/2026: se eliminó toda interfaz (UI PySide6, web app WebUSB, stub Electron, plan de migración a Tauri) y todo lo que solo la servía. Lo que queda es exclusivamente para trabajar la limpieza y el mantenimiento del teléfono **desde la terminal**.
+
 | Carpeta / archivo | Estado | Descripción |
 |-------------------|--------|-------------|
-| `src/cli/` | ✅ **Producción** | Toolkit Bash v6.0 — producto terminado para uso personal |
-| `forge/core/` | ✅ Funcional | Módulos Python de soporte: adb_bridge, ota_watcher, app_scanner, debloat_engine |
-| `forge/services/ota_check.py` | ✅ Producción | OTA watcher autónomo — corre via Task Scheduler sin UI |
+| `src/cli/` | ✅ **Producción** | Toolkit Bash v6.0 — el producto principal, todo por línea de comandos |
+| `forge/core/adb_bridge.py` | ✅ Funcional | Wrapper ADB puro (find_adb, list_devices, scan_device) — sin dependencias de UI |
+| `forge/core/app_scanner.py` | ✅ Funcional | Auditoría/limpieza de apps desde terminal: `python -m forge.core.app_scanner --scan <SERIAL>` |
+| `forge/core/apps_catalog.py`, `packages_db.py` | ✅ Funcional | Catálogos de soporte para `app_scanner.py` |
+| `forge/core/ota_watcher.py` | ✅ Funcional | Lógica pura de chequeo/reaplicación de tweaks OTA (sin Qt) — usada por `ota_check.py` |
+| `forge/services/ota_check.py` | ✅ Producción | OTA watcher autónomo — corre via Task Scheduler, sin UI |
 | `forge/services/maintenance_check.py` | ⚠️ Funcional, sin scheduler | Monitor headless de storage/temp/backup local WhatsApp — mismo patrón que `ota_check.py` pero **no** registrado aún en `setup.ps1`; correr manual: `python -m forge.services.maintenance_check` |
-| `setup.ps1` | ✅ Producción | Setup one-command para PC nueva |
-| `forge/ui/` | ⏸ Pausada | UI Python/PySide6 — funcional con bugs conocidos (ver abajo). Retomar cuando haya usuario final concreto. |
-| `main.py` | ⏸ Pausado | Entry point de la UI — funcional pero con UX incompleta en fases largas (DEXOPT) |
-| `src/web/` | ⏸ Pausada | Web App WebUSB — sin mantenimiento activo |
+| `setup.ps1` / `setup.bat` | ✅ Producción | Setup one-command para PC nueva — instala deps headless, ADB, Task Scheduler |
 | **Dispositivo Pablo** | NB5XWCLZSGB6J74D | 75 apps eliminadas, animaciones 0.3x, 90Hz, DEXOPT completo. Baseline: 1141MB RAM libre, 29°C reposo. Build: OS3.0.20.0.WGTMIXM (abr 2026) — la más reciente para MXM. |
 | **Dispositivo Sindy** | VOSWQCOVJVQWT8LR | Monitoreado por OTA watcher (`ota_check.py`). Estado: desconocido — no optimizado con CLI. |
-| `app/` | ⛔ Obsoleto | Stub Electron — ignorar |
 
-**Producto terminado para uso personal:** `src/cli/run.sh` + `forge/services/ota_check.py` (Task Scheduler).  
-**UI pausada hasta tener usuario final concreto.**
+**Eliminado en la purga del 29/08/2026** (ver commit correspondiente para detalle): `forge/ui/` (UI PySide6), `main.py`, `src/web/` (web app WebUSB), `app/` (stub Electron), `forge/db/` + `forge/dev/` (persistencia y seed solo usados por la UI), `forge/core/debloat_engine.py` (puente perfil-UI → Bash), `forge/core/device_watcher.py` (poller Qt), `forge/core/game_mode.py` (feature de rendimiento, fuera de alcance de limpieza/mantenimiento — ver hallazgo "Game Mode" abajo), `forge/core/log_parser.py` (parsing para la UI), `.github/workflows/deploy.yml` (publicaba la web app), `SCRIPTS_INVENTORY.md` (planificaba una migración a Tauri, obsoleto).
 
-No avancés al siguiente sprint sin confirmación explícita.
+No hay interfaz de ningún tipo en este repo. Todo el trabajo es por prompt/terminal: CLI Bash + módulos Python invocados con `python -m`.
 
 ---
 
@@ -38,14 +38,17 @@ No avancés al siguiente sprint sin confirmación explícita.
 # ─── Setup en PC nueva (una sola vez) ───────────────────────────────────
 # En PowerShell:
 Set-ExecutionPolicy -Scope CurrentUser Bypass -Force
-.\setup.ps1   # instala deps + ADB check + registra Task Scheduler
+.\setup.ps1   # instala deps headless + ADB check + registra Task Scheduler
 
-# ─── Redmi Forge (UI Python) — PAUSADA ──────────────────────────────────
-pip install -r requirements.txt   # instalar PySide6 (una sola vez)
-python main.py                    # arrancar la app (UI con bugs conocidos)
-
-# ─── Seed de datos de desarrollo (sin dispositivo real) ─────────────────
-python -m forge.dev.seed          # puebla la DB con un dispositivo ficticio
+# ─── CLI Bash (núcleo — no modificar) ───────────────────────────────────
+cd src/cli && ./run.sh            # auto-detección de dispositivo
+cd src/cli && ./run.sh --full     # optimización completa (Poco Mode)
+cd src/cli && ./run.sh --profile  # optimización con perfil personalizado (data/profile_runtime.sh)
+cd src/cli && ./run.sh --maintenance
+cd src/cli && ./run.sh --monitor
+cd src/cli && ./run.sh --emergency
+cd src/cli && ./run.sh --scan     # solo escanea, no modifica nada
+cd src/cli && ./restore.sh <carpeta_snapshot>  # restauración manual desde backup
 
 # ─── Auditoría manual de apps (con dispositivo conectado) ───────────────
 python -m forge.core.app_scanner --scan <SERIAL>   # escanea y muestra tabla de apps
@@ -53,15 +56,6 @@ python -m forge.core.app_scanner --scan <SERIAL>   # escanea y muestra tabla de 
 # ─── Monitores headless (mismo patrón, para Task Scheduler) ─────────────
 python forge/services/ota_check.py           # chequeo OTA — ya registrado en setup.ps1
 python -m forge.services.maintenance_check   # storage/temp/backup WhatsApp — correr manual, sin scheduler aún
-
-# ─── CLI Bash (núcleo — no modificar) ───────────────────────────────────
-cd src/cli && ./run.sh            # auto-detección de dispositivo
-cd src/cli && ./run.sh --full     # optimización completa (Poco Mode)
-cd src/cli && ./run.sh --maintenance
-cd src/cli && ./run.sh --monitor
-cd src/cli && ./run.sh --emergency
-cd src/cli && ./run.sh --scan     # solo escanea, no modifica nada
-cd src/cli && ./restore.sh <carpeta_snapshot>  # restauración manual desde backup
 
 # ─── Diagnóstico y verificación ─────────────────────────────────────────
 bash src/cli/diagnostico.sh
@@ -71,20 +65,18 @@ bash src/cli/tools/measure-boot.sh        # mide tiempos de boot
 bash src/cli/tools/test-verificacion.sh   # pruebas de verificación del sistema
 bash src/cli/tools/ruta-optima.sh         # calcula ruta óptima de optimización
 bash src/cli/tools/log-apply.sh           # aplica un log de cambios previo
-
-# ─── Web App alternativa ─────────────────────────────────────────────────
-cd src/web && python3 -m http.server 8000   # → http://localhost:8000 (WebUSB)
+bash src/cli/tools/optimize-boot.sh --dry-run   # SIEMPRE con --dry-run primero (ver nota BUG 1 resuelto)
 ```
 
-**Requisitos Redmi Forge:** Python 3.11+, PySide6 ≥ 6.7.0, anthropic ≥ 0.28.0, plyer ≥ 2.1.0 (Windows toast para OTA), ADB en PATH o en `vendor/adb/adb.exe`. **Siempre instalar via `pip install -r requirements.txt`** — `pyproject.toml` no declara `anthropic` como dependencia y omitirla rompe el AuditScreen.  
+**Requisitos módulos Python:** Python 3.11+, `anthropic ≥ 0.28.0` (clasificación de apps desconocidas en `app_scanner.py`, opcional — requiere `ANTHROPIC_API_KEY`), `plyer ≥ 2.1.0` (notificación Windows en `ota_check.py`), ADB en PATH o en `vendor/adb/adb.exe`. Instalar via `pip install -r requirements.txt`. **No hay PySide6 en el repo** — se sacó junto con la UI.  
 **Requisitos CLI:** bash 4+ (WSL o Git Bash en Windows), ADB, sqlite3, dispositivo con USB debugging.  
-**Shell en Windows:** la app detecta automáticamente Git Bash → WSL en ese orden (Git Bash tiene preferencia; WSL con systemd roto causa fallos). Ver `forge/core/adb_bridge.py:find_shell()`.
+**Shell en Windows:** `forge/core/adb_bridge.py:find_shell()` detecta Git Bash → WSL en ese orden (Git Bash tiene preferencia; WSL con systemd roto causa fallos).
 
 ---
 
-## Bugs críticos conocidos
+## Bugs críticos — resueltos
 
-- **BUG 1** `src/cli/tools/optimize-boot.sh:115` — lista directa que desactiva `com.xiaomi.joyose`. El guardrail en `safe_disable_pkg()` de `core/config.sh` lo previene solo si se usa esa función; la lista hardcodeada en ese archivo es peligrosa.
+- **BUG 1 (resuelto 29/08/2026)** `src/cli/tools/optimize-boot.sh` tenía `com.xiaomi.joyose` hardcodeado en `BOOT_APPS` y lo desactivaba con `pm disable-user` directo, sin pasar por `safe_disable_pkg()`/`is_critical_pkg()`. Se sacó `joyose` del array y se agregó un guardrail explícito en el loop (`is_critical_pkg` de `config.sh`, con fallback hardcodeado si `config.sh` no está sourceado) que salta cualquier paquete crítico antes de tocarlo. Corré siempre con `--dry-run` primero de todos modos.
 
 ## Limitaciones Android 16 — parche BP2A.250605.031.A3 (confirmadas 01/06/2026)
 
@@ -111,15 +103,15 @@ Android 16 con el parche de seguridad de junio 2025 bloqueó múltiples mecanism
 
 `am compact system`, `am kill` sobre procesos background y `cmd activity idle-maintenance` no producen mejora medible. El delta real fue < 40 MB en MemAvailable y no sostenido.
 
-**Causa raíz:** El LMK + ZRAM (4 GB configurado, 32% uso, swappiness=20) de HyperOS/Android 16 gestiona la presión de memoria mejor que cualquier intervención externa. Los procesos ya están comprimidos en ZRAM cuando `am kill` los alcanza; liberar sus páginas físicas no impacta MemAvailable de forma apreciable. **No implementar módulo de gestión de RAM en Redmi Forge.**
+**Causa raíz:** El LMK + ZRAM (4 GB configurado, 32% uso, swappiness=20) de HyperOS/Android 16 gestiona la presión de memoria mejor que cualquier intervención externa. Los procesos ya están comprimidos en ZRAM cuando `am kill` los alcanza; liberar sus páginas físicas no impacta MemAvailable de forma apreciable. **No implementar gestión de RAM.**
 
-### Game Mode sobre apps de mensajería — DESCARTADO
+### Game Mode sobre apps de mensajería — DESCARTADO (módulo eliminado)
 
-`enable('com.whatsapp')` activa `fixed_performance` **global** (no per-app) porque WhatsApp no declara tipo juego. Impacto sobre PSS de WhatsApp: < 1%. Sin diferencia en frames (WA no renderiza activamente en background). **No implementar UI de Game Mode para apps no-juego.**
+`enable('com.whatsapp')` activa `fixed_performance` **global** (no per-app) porque WhatsApp no declara tipo juego. Impacto sobre PSS de WhatsApp: < 1%. Sin diferencia en frames (WA no renderiza activamente en background). Además, Game Mode es una feature de rendimiento para juegos, no de limpieza/mantenimiento — fuera del alcance actual del repo. `forge/core/game_mode.py` se eliminó en la purga del 29/08/2026. **No reimplementar** salvo pedido explícito y acotado a juegos reales.
 
 ### Compilación AOT speed-profile — TECHO ALCANZADO
 
-`cmd package compile -m speed-profile -f com.whatsapp` ejecutado exitosamente. Cold start medido con `am start -W` (LaunchState: COLD): **1,161 ms hasta primer frame**. El baseline subjetivo de ~4s corresponde al tiempo hasta UI completamente interactiva (carga de DB, decriptado de mensajes, sync) — esa fase ocurre post-Activity y no es optimizable sin root ni modificación de la app. No existe otro mecanismo de compilación AOT disponible sin root. **No implementar módulo de recompilación en Redmi Forge** — ART ya aplica speed-profile automáticamente tras el primer uso en HyperOS.
+`cmd package compile -m speed-profile -f com.whatsapp` ejecutado exitosamente. Cold start medido con `am start -W` (LaunchState: COLD): **1,161 ms hasta primer frame**. El baseline subjetivo de ~4s corresponde al tiempo hasta UI completamente interactiva (carga de DB, decriptado de mensajes, sync) — esa fase ocurre post-Activity y no es optimizable sin root ni modificación de la app. No existe otro mecanismo de compilación AOT disponible sin root. **No implementar módulo de recompilación** — ART ya aplica speed-profile automáticamente tras el primer uso en HyperOS.
 
 ### Benchmark de I/O de almacenamiento — REFERENCIA
 
@@ -138,13 +130,14 @@ Escritura por encima del spec (page cache + write-back contribuyen). Lectura lig
 
 ```
 NUNCA tocar com.xiaomi.joyose — brick térmico garantizado
-NUNCA avanzar de sprint sin OK de Pablo
 NUNCA cloud/analytics/telemetría externa — todo local
-NUNCA reescribir scripts Bash que ya funcionan — invocarlos desde Python
+NUNCA reescribir scripts Bash que ya funcionan — invocarlos, o corregir el bug puntual
 NUNCA eval() en comandos ADB — siempre parametrizado
+NUNCA agregar interfaz (UI, web, deploy) — todo el trabajo es por prompt/terminal
 SIEMPRE backup automático antes de cada optimización
 SIEMPRE abortar si temperatura > 42°C
 SIEMPRE comandos reversibles con revert_cmd registrado
+SIEMPRE que se toque una lista de packages a desactivar, pasar por safe_disable_pkg()/is_critical_pkg()
 ```
 
 Ante duda entre "hacer más" y "hacer menos y bien": menos y bien.
@@ -162,143 +155,63 @@ Ante duda entre "hacer más" y "hacer menos y bien": menos y bien.
   - Vulkan + MSAA forzado
   - ~~Resolución `612x1360 @ 260dpi`~~ — **MUERTO en Android 16**: `wm size` requiere `WRITE_SECURE_SETTINGS`, revocado sin root. No intentar.
   - **Animaciones**: usar `settings put system` (NO `global`) — el namespace `global` requiere `WRITE_SECURE_SETTINGS` en Android 16 (parche BP2A.250605.031.A3+). El CLI ya hace esto correctamente vía `adb_setting_put_system`.
-- **Governor:** `sugov_ext` (propietario MediaTek, default HyperOS). Disponibles: `sugov_ext | conservative | powersave | performance | schedutil`. Sin root: no legible ni modificable directamente. Usar `cmd game mode performance <pkg>` para elevar governor por app.
+- **Governor:** `sugov_ext` (propietario MediaTek, default HyperOS). Disponibles: `sugov_ext | conservative | powersave | performance | schedutil`. Sin root: no legible ni modificable directamente.
 - **ZRAM:** `zram0` configurado en 4 GB (SwapTotal=4194300 kB). Algoritmo no legible sin root. No modificar.
-- **Lista de bloatware:** en `src/cli/data/bloatware_db.sh` → array `PROFILE_POCO_MODE` (canónico para el CLI). El espejo Python está en `forge/core/debloat_engine.py:_POCO_MODE`. Si modificás uno, modificás el otro.
+- **Lista de bloatware:** en `src/cli/data/bloatware_db.sh` → array `PROFILE_POCO_MODE` (fuente canónica única, sin espejo Python — `debloat_engine.py` se eliminó en la purga).
+- **Perfil personalizado:** `src/cli/data/profile_runtime.sh` → array `PROFILE_RUNTIME`, apps extra a desactivar además de `PROFILE_POCO_MODE`. Antes lo generaba el wizard de la UI; ahora es estático y editable a mano. Usado por `./run.sh --profile`.
 
 ---
 
 ## Stack técnico
 
 ```
-Redmi Forge
-├── Entry point:  main.py  →  init_db() + MainWindow().show()
+MejoraRedmi14C
+├── Scripts Bash (NÚCLEO — nunca reescribir, solo invocar o corregir bugs puntuales):
+│   └── src/cli/run.sh              — orquestador principal
+│       ├── core/config.sh          — constantes + safe_disable_pkg()/is_critical_pkg() + funciones ADB
+│       ├── core/database.sh, adb_utils.sh, display.sh, device_profile.sh
+│       ├── data/bloatware_db.sh    — PROFILE_POCO_MODE (lista canónica global)
+│       ├── data/profile_runtime.sh — PROFILE_RUNTIME (perfil personalizado, editable a mano)
+│       ├── data/devices.db         — SQLite: historial de runs por dispositivo
+│       ├── engines/                — bloatware.sh, performance.sh, memory.sh, camera_fix.sh, network.sh, thermal.sh
+│       └── modes/                  — full_optimize.sh, maintenance.sh, monitor.sh, emergency.sh, profile_optimize.sh, scan.sh
 │
-├── UI: Python 3.11 + PySide6 (Qt 6)
-│   ├── forge/ui/app.py           — MainWindow: sidebar + QStackedWidget + DeviceWatcher
-│   ├── forge/ui/theme.py         — tokens COLORS + STYLESHEET (QSS global)
-│   └── forge/ui/screens/
-│       ├── home.py               — cockpit, estado del dispositivo, botón Optimizar
-│       ├── profile.py            — wizard de perfil de usuario (4 pasos)
-│       ├── plan.py               — preview del plan de debloat antes de ejecutar
-│       ├── execution.py          — streaming de output de run.sh en tiempo real
-│       ├── history.py            — historial de runs por dispositivo
-│       ├── settings.py           — configuración general
-│       └── audit.py              — auditoría de apps instaladas + limpieza definitiva
+├── forge/core/ — módulos Python de soporte, sin dependencias de UI
+│   ├── adb_bridge.py     — find_adb(), find_shell(), list_devices(), get_device_info(),
+│   │                        scan_device() (lee RAM/pkgs/tweaks sin modificar nada)
+│   ├── apps_catalog.py   — DEBLOAT_CATALOG, SAFETYNET_PROTECTED, BUSINESS_CRITICAL
+│   ├── packages_db.py    — PACKAGES_DB: catálogo local ~400 packages conocidos
+│   │                        (AOSP, HyperOS, Google, MediaTek), lookup()
+│   ├── app_scanner.py    — scan_packages(), disable_package(), classify_batch_with_haiku()
+│   │                        (Claude Haiku vía API, opcional) — CLI: python -m forge.core.app_scanner --scan <SERIAL>
+│   └── ota_watcher.py    — OTAState, should_check(), check_for_update(), scan_tweaks(), reapply_tweaks()
+│                            (lógica pura, sin Qt — la usa ota_check.py)
 │
-├── Core
-│   ├── forge/core/adb_bridge.py    — find_adb(), find_shell(), list_devices(),
-│   │                                  get_device_info(), scan_device() (lee RAM/pkgs/tweaks sin modificar),
-│   │                                  run_cli_script() (generator que yields líneas del CLI Bash)
-│   ├── forge/core/device_watcher.py — QThread: poll ADB cada 2s, emite signals
-│   ├── forge/core/game_mode.py     — enable()/disable()/status() para Game Mode; 3 mecanismos en cascada:
-│   │                                  game_api_performance → game_api_custom → fixed_performance global.
-│   │                                  CLI directo: python -m forge.core.game_mode <serial> enable|disable|status [pkg]
-│   ├── forge/core/debloat_engine.py — build_debloat_list(), dry_run_report(),
-│   │                                  write_runtime_profile() → escribe profile_runtime.sh
-│   ├── forge/core/apps_catalog.py  — DEBLOAT_CATALOG, HEAVY_APPS_SET, WIZARD_APPS,
-│   │                                  SAFETYNET_PROTECTED, BUSINESS_CRITICAL, WORK_INDICATOR_APPS
-│   ├── forge/core/app_scanner.py   — scan_packages(), disable_package(),
-│   │                                  classify_batch_with_haiku() (Claude Haiku vía API)
-│   ├── forge/core/packages_db.py   — PACKAGES_DB: catálogo local ~400 packages conocidos
-│   │                                  (AOSP, HyperOS, Google, MediaTek), lookup()
-│   └── forge/core/log_parser.py    — parsing del output de run.sh para la UI
-│
-├── Persistencia: SQLite en %LOCALAPPDATA%/RedmiForge/redmiforge.db
-│   └── forge/db/database.py        — init_db(), upsert_device(), start_run(), finish_run(), list_runs()
-│
-├── Servicios headless (sin Qt — para Task Scheduler)
-│   ├── forge/services/ota_check.py          — OTA watcher, registrado en setup.ps1 (cada 14 días)
-│   └── forge/services/maintenance_check.py  — storage/temp/backup WhatsApp por dispositivo,
-│                                                mismo patrón que ota_check.py pero AÚN NO registrado
-│                                                en setup.ps1 (correr manual por ahora)
-│
-├── Dev tools
-│   └── forge/dev/seed.py           — poblar DB con datos ficticios para desarrollo sin dispositivo
-│
-└── Scripts Bash (NÚCLEO — nunca modificar, solo invocar):
-    └── src/cli/run.sh              — orquestador principal
-        ├── core/config.sh          — constantes + safe_disable_pkg() + funciones ADB
-        ├── core/database.sh, adb_utils.sh, display.sh, device_profile.sh
-        ├── data/bloatware_db.sh    — arrays de bloatware (PROFILE_POCO_MODE, etc.)
-        ├── data/profile_runtime.sh — GENERADO por debloat_engine.write_runtime_profile() — no editar
-        ├── engines/                — bloatware.sh, performance.sh, memory.sh, camera_fix.sh, network.sh, thermal.sh
-        └── modes/                  — full_optimize.sh, maintenance.sh, monitor.sh, emergency.sh, profile_optimize.sh
+└── forge/services/ — headless, sin Qt, para Task Scheduler/cron
+    ├── ota_check.py           — chequeo OTA cada 14-15 días, registrado en setup.ps1
+    └── maintenance_check.py   — storage/temp/backup WhatsApp por dispositivo, correr manual por ahora
 ```
 
-### Flujo de auditoría de apps (AuditScreen)
+### Auditoría de apps desde terminal
 
-1. `ScanWorker(QThread)` llama a `app_scanner.scan_packages(serial)` — escanea via `pm list packages`
+1. `python -m forge.core.app_scanner --scan <SERIAL>` — escanea via `pm list packages`
 2. Apps conocidas se categorizan contra `PACKAGES_DB` y `DEBLOAT_CATALOG`
-3. Apps desconocidas se envían en batches de 20 a `classify_batch_with_haiku()` — Claude Haiku via `anthropic` SDK
-4. El usuario puede marcar cada app: Keep / Remove / Ask
-5. `ExecuteWorker(QThread)` llama `app_scanner.disable_package()` por cada app marcada para remover
-6. `disable_package()` aplica los guardrails: joyose, SafetyNet, BUSINESS_CRITICAL antes de ejecutar
+3. Apps desconocidas se envían en batches a `classify_batch_with_haiku()` — Claude Haiku via `anthropic` SDK (requiere `ANTHROPIC_API_KEY`; sin ella el escaneo funciona igual pero sin descripción)
+4. `disable_package()` aplica los guardrails antes de ejecutar: joyose, SafetyNet (`SAFETYNET_PROTECTED`), críticas de negocio (`BUSINESS_CRITICAL`)
 
-**ANTHROPIC_API_KEY** debe estar disponible en el entorno para que Haiku funcione. Sin clave, el escaneo funciona igual pero las apps desconocidas quedan sin descripción.
+### OTA watch
 
-### Puente Python → Bash (clave para entender el flujo)
-
-Cuando el usuario ejecuta "Optimizar" con un perfil guardado:
-
-1. `debloat_engine.build_debloat_list(serial)` calcula qué packages remover según el perfil
-2. `debloat_engine.write_runtime_profile()` escribe `src/cli/data/profile_runtime.sh` con el array `PROFILE_RUNTIME`
-3. `adb_bridge.run_cli_script("--full", serial)` detecta si `has_profile(serial)`: si SÍ, escribe el runtime profile y pasa `--profile` al script; si NO hay perfil, pasa `--full` sin modificar
-4. `run.sh` sourcea `modes/profile_optimize.sh`, que sourcea `profile_runtime.sh` y llama a `bloatware_run`
-5. El output se streaming vía generator al `ExecutionScreen`
-
-**OTA state persistence:** Los archivos de estado se guardan por dispositivo en `%LOCALAPPDATA%/RedmiForge/`: `ota_state_pablo.json` y `ota_state_sindy.json`. El módulo `ota_watcher.py` también expone `OTAWorker` y `TweakScanWorker` (QThread) para la UI; `ota_check.py` es la versión headless (sin Qt) para Task Scheduler.
+`forge/core/ota_watcher.py` es lógica pura (sin Qt): `OTAState` persiste en `%LOCALAPPDATA%/RedmiForge/ota_state.json` (o el path que le pasen), `should_check()`/`check_for_update()` consultan el RSS de GitHub y el scraping de xmfirmwareupdater.com en cascada, `scan_tweaks()`/`reapply_tweaks()` verifican y reaplican tweaks reseteados por un OTA. `forge/services/ota_check.py` la invoca directo, sin threads ni UI — corre una vez por ejecución del Task Scheduler.
 
 ---
 
-## Paleta (tokens — no cambiar, definidos en `forge/ui/theme.py`)
+## Defense-in-depth (capas en orden)
 
-```python
-"bg":          "#FFFFFF"   # fondo principal
-"blue":        "#0066FF"   # acción primaria
-"red":         "#E63946"   # emergencia / danger
-"yellow":      "#FFD60A"   # warning
-"success":     "#22C55E"   # dispositivo conectado, OK
-"text":        "#0A0A0A"   # texto principal
-"text_muted":  "#666666"   # texto secundario
-"border":      "#E8E8E8"   # bordes
-"surface":     "#F8F9FA"   # fondos secundarios
-"sidebar":     "#F5F5F5"   # fondo del sidebar
-```
-
-Fondo blanco, modo claro. Sin gradientes, sin glassmorphism, sin sombras dramáticas.
-
----
-
-## Schema SQLite real (`forge/db/database.py`)
-
-```sql
-devices(serial PK, model, nickname, android_ver, hyperos_ver, first_seen, last_seen, profile_json)
-optimization_runs(id, serial FK, phase, mode_flag, started_at, ended_at, status, exit_code, output)
-metrics(id, serial FK, run_id FK, measured_at, kind, value_json)
-```
-
-`profile_json` en `devices` almacena el perfil del wizard como JSON plano (name, banking, bank_name, wa_hours, apps[]).
-
----
-
-## UX — reglas de interacción
-
-- Acción reversible: **Toast con UNDO** (no "¿estás seguro?")
-- Acción destructiva: **countdown 3s** con preview del efecto + cancelar
-- Si acción < 200ms: **sin loader**
-- Si acción > 200ms: **skeleton tipo Linear**
-- Cada acción tiene 3 fases: anticipación 0.2s → acción → resolución 0.4s
-
----
-
-## Defense-in-depth (5 capas en orden)
-
-1. **Guardrails inviolables:** joyose intocable, temp>42°C aborta, eval prohibido
-2. **Backup global automático** antes de cada optimización (retención: últimos 10 + 1/mes)
+1. **Guardrails inviolables:** joyose intocable (`CRITICAL_SYSTEM_APPS` + `is_critical_pkg()`, chequeado en `optimize-boot.sh` desde la corrección del BUG 1), temp>42°C aborta, eval prohibido
+2. **Backup global automático** antes de cada optimización (retención: últimos 10 + 1/mes), FASE 1 de `full_optimize.sh`/`profile_optimize.sh`
 3. **Tweaks granulares reversibles** — `pm disable-user --user 0` es reversible con `pm enable`
-4. **Confirmación con preview** en acciones destructivas (3s countdown + diff visual en PlanScreen)
-5. **Modo emergencia:** revierte a último backup bueno en < 2 min
+4. **Preview sin modificar** — `./run.sh --scan` / `modes/scan.sh` muestra el estado real antes de tocar nada
+5. **Modo emergencia:** `./run.sh --emergency` revierte a defaults en < 2 min
 
 ---
 
@@ -306,48 +219,13 @@ metrics(id, serial FK, run_id FK, measured_at, kind, value_json)
 
 | Sprint | Foco | Estado |
 |--------|------|--------|
-| **S1 — Foundation** | UI Python/PySide6 + cockpit + detección ADB | ✅ Completo |
-| **S2 — Telemetría** | Gauges en vivo + SQLite timeseries | ✅ Funcional |
-| **S3 — Perfiles + Bash bridge** | Wizard perfil + Poco Mode + bridge profile_runtime.sh | ✅ Completo |
-| **S4 — OTA watch** | Motor OTA + Task Scheduler + notificación nativa Windows | ✅ Completo (`forge/core/ota_watcher.py` + `forge/services/ota_check.py`) |
-| **S5 — Benchmark** | Benchmarks reales de RAM, I/O, Game Mode, AOT — todos descartados con evidencia | ✅ Cerrado (ver hallazgos en CLAUDE.md) |
+| **S1 — Foundation** | UI Python/PySide6 + cockpit + detección ADB | ✅ Completo (UI eliminada en S7) |
+| **S2 — Telemetría** | Gauges en vivo + SQLite timeseries | ✅ Funcional (eliminado en S7) |
+| **S3 — Perfiles + Bash bridge** | Wizard perfil + Poco Mode + bridge profile_runtime.sh | ✅ Completo (bridge eliminado en S7; `profile_runtime.sh` quedó estático) |
+| **S4 — OTA watch** | Motor OTA + Task Scheduler + notificación nativa Windows | ✅ Completo — sigue en producción, ahora sin dependencia de Qt |
+| **S5 — Benchmark** | Benchmarks reales de RAM, I/O, Game Mode, AOT — todos descartados con evidencia | ✅ Cerrado (ver hallazgos arriba) |
 | **S6 — Release** | Decisión: UI pausada. Entregables: setup.ps1 + OTA como servicio | ✅ Cerrado |
-
-**Bugs conocidos en la UI (documentados, no bloqueantes para uso CLI):**
-- `execution.py` — sin feedback visual durante DEXOPT (fase larga sin output). La UI no se cuelga pero parece inactiva ~10 min.
-- `_CollapsibleLog` — corregido (26/05/2026)
-- Workers sin cleanup en desconexión — corregido (26/05/2026)
-- exit code del generador siempre 0 — corregido (26/05/2026)
-
----
-
-## Métricas de éxito (medir en S5)
-
-| Métrica | Target |
-|---------|--------|
-| Cold start app | < 1.5s |
-| Poco Mode end-to-end | < 45s |
-| Modo emergencia | < 120s |
-| Falsos positivos OTA auto-heal | 0 |
-| Overhead telemetría en PC | < 1% CPU, < 50MB RAM |
-| Ollama (S6) | latencia p50 < 2s — candidatos: qwen2.5:3b, llama3.2:3b, phi3.5 |
-
----
-
-## Anti-patterns — rechazá si los ves
-
-```
-❌ Loaders en acciones < 200ms
-❌ "¿Estás seguro?" en acciones reversibles
-❌ Telemetría / analytics a cualquier nube
-❌ Iconos Lucide en gauges/termómetro (→ SVG custom)
-❌ Múltiples CTAs del mismo nivel en una vista
-❌ CDN para fuentes (siempre @fontsource si aplica)
-❌ Tocar com.xiaomi.joyose
-❌ Reescribir scripts Bash v6.0 que funcionan
-❌ Editar profile_runtime.sh a mano (es auto-generado)
-❌ Avanzar de sprint sin OK explícito
-```
+| **S7 — Purga de interfaces (29/08/2026)** | Se decidió no retomar la UI y eliminar toda interfaz del repo: UI PySide6, web app, stub Electron, plan de migración a Tauri. Se corrigió el BUG 1 (joyose en `optimize-boot.sh`) de paso. | ✅ Cerrado |
 
 ---
 
@@ -360,11 +238,6 @@ metrics(id, serial FK, run_id FK, measured_at, kind, value_json)
 - Reddit: r/Xiaomi, r/MIUI — búsquedas "Redmi 14C optimization"
 - Docs AOSP para entender qué hacen los settings que tocamos
 
-Registrá cada fuente en `RESEARCH_LOG.md`:
-```
-| Fecha | Fuente | URL | Hallazgo clave |
-```
-
 ---
 
-*CLAUDE.md v2.4 — 29/08/2026 — MejoraRedmi14C (todos los sprints cerrados — producto terminado; gap detectado por /init: maintenance_check.py documentado)*
+*CLAUDE.md v3.0 — 29/08/2026 — MejoraRedmi14C (purga completa de interfaces; solo queda CLI Bash + módulos Python headless/terminal; BUG 1 resuelto)*

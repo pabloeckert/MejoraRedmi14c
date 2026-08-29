@@ -1,5 +1,7 @@
 #!/bin/bash
-# Auto-generado por forge/core/debloat_engine.py — no editar a mano
+# Perfil personalizado (apps extra a desactivar además de PROFILE_POCO_MODE).
+# Antes lo generaba el wizard de la UI (retirada) — ahora es estático,
+# editable a mano. Usado por: ./run.sh --profile
 # Perfil: Pablo | Serial: NB5XWCLZSGB6J74D
 
 PROFILE_RUNTIME=(
