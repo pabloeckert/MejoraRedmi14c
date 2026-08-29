@@ -81,6 +81,7 @@ El script detecta automáticamente si han pasado 7+ días desde el último run y
 | `optimize-boot.sh` | Optimiza receivers de arranque (usar con `--dry-run` primero) |
 | `measure-boot.sh` | Mide tiempo real de encendido |
 | `mega-verificar.sh` | Verifica si los tweaks se aplicaron |
+| `set-launcher.sh <pkg>` | Reemplaza el launcher de HyperOS por otro instalado (ej. Lawnchair), 100% reversible con `--reset` |
 | `ruta-optima.sh` | Calcula ruta óptima de optimización |
 | `log-apply.sh` | Aplica un log de cambios previo |
 | `test-verificacion.sh` | Pruebas de verificación del sistema |

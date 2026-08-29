@@ -95,6 +95,36 @@ Android 16 con el parche de seguridad de junio 2025 bloqueó múltiples mecanism
 
 ---
 
+## Investigación 29/08/2026 — máximo rendimiento sin bootloader
+
+Objetivo del usuario: la experiencia de un launcher puro (referencia: Motorola RAZR, Poco X3 Pro) — rápido, sin crashes, sin cuelgues, sin pantallas negras, con fondo de escritorio propio. Como mínimo aceptable, no como techo.
+
+### Sacar HyperOS por completo — DESCARTADO, con más certeza que antes
+
+No es solo riesgo de brick: **Xiaomi bloqueó directamente el desbloqueo de bootloader para el Redmi 14C** como SKU (confirmado en el hilo de XDA del modelo). Sin bootloader desbloqueado no hay LineageOS, GSI de Project Treble ni ninguna ROM alternativa. Los métodos alternativos (MTK client / bypass por BROM en el MT6769J) tienen reportes de brick real en la comunidad. No hay puerta de entrada — no re-investigar salvo que Xiaomi cambie la política de unlock para este modelo.
+
+### Shizuku — evaluado y descartado para este toolkit
+
+Da permisos a nivel `adb shell` (incluye `WRITE_SECURE_SETTINGS`) a apps del propio teléfono sin PC y sin root. Pero corre con el mismo UID `shell` que ya usa el CLI por USB — **no destraba nada que `adb shell` no pueda hacer ya** (en particular, `pm disable-user` en apps de sistema sigue bloqueado, no es un límite de "falta de puente" sino de HyperOS mismo). Tampoco arranca solo al reiniciar en dispositivos sin root — hay que abrir la app y tocar "Start" cada vez. No aporta sobre lo que ya hace `run.sh` conectado por USB. No integrar.
+
+### Bug confirmado de HyperOS 3 — System Launcher como causa de crashes/pantallas negras
+
+Xiaomi reconoció públicamente un bug del System Launcher (`com.miui.home`) en HyperOS 3 que causa force-closes, parpadeo de pantalla y entrada a Safe Mode, por conflicto con el widget de clima nativo. Builds confirmados: OS3.0.3.0–OS3.0.5.0 (variantes WNNEUXM/WNEEUXM/WOSEUXM/WNCEUXM). El build de Pablo es OS3.0.20.0.WGTMIXM — variante distinta, no confirmado que sea el mismo bug exacto, pero misma familia de falla (el launcher nativo de Xiaomi como punto de quiebre).
+
+**Mitigación — `src/cli/tools/set-launcher.sh` (nuevo):** `com.miui.home` queda protegido como crítico (no se desactiva), pero se puede dejar de usar como default vía `cmd package set-home-activity` — solo cambia qué app responde al rol HOME, no toca instalación ni permisos, 100% reversible, sin riesgo de brick (el selector de apps predeterminadas de Ajustes siempre funciona como último recurso).
+
+```bash
+bash src/cli/tools/set-launcher.sh app.lawnchair   # launcher elegido: Lawnchair (open source, tipo Pixel)
+bash src/cli/tools/set-launcher.sh --status        # ver HOME activo
+bash src/cli/tools/set-launcher.sh --reset         # volver a com.miui.home
+```
+
+### Vulkan + MSAA forzado — PENDIENTE DE VERIFICAR, probablemente inerte
+
+`engines/performance.sh` (bloque GPU, líneas ~27-41) ya maneja bien el caso bloqueado — detecta "exception/denied" en la salida de `settings put global force_gpu_rendering 1` y loguea warning en vez de falso "ok". Pero dado que `settings put global` está confirmado bloqueado en Android 16 sin root (tabla arriba), es muy probable que este bloque **nunca se aplique** en el build actual, pese a que el CLAUDE.md lo listaba como "tweak validado". **Verificar corriendo `bash src/cli/tools/mega-verificar.sh`** — si la sección GPU muestra ❌ en vez de ✅, confirmar y corregir la entrada correspondiente en "Contexto técnico del dispositivo" más abajo (dejaría de ser una fuente de inestabilidad real, porque no estaría corriendo).
+
+---
+
 ## Hallazgos definitivos — vectores descartados
 
 > Benchmarks reales contra el dispositivo NB5XWCLZSGB6J74D (25/05/2026). No re-investigar sin nuevo hardware o cambio de OS.
@@ -152,7 +182,7 @@ Ante duda entre "hacer más" y "hacer menos y bien": menos y bien.
 - **Tweaks validados en v6.0 (NO tocar sin testear):**
   - `swappiness=20`, LMK agresivo, Dalvik + HWUI heap XL
   - Animaciones `0.3x` (persiste — guardado en Settings DB)
-  - Vulkan + MSAA forzado
+  - Vulkan + MSAA forzado — ⚠️ **pendiente de reverificar** (ver "Investigación 29/08/2026" arriba): usa `settings put global`, bloqueado en Android 16 sin root; probablemente inerte en el build actual. Confirmar con `mega-verificar.sh` antes de seguir listándolo como validado.
   - ~~Resolución `612x1360 @ 260dpi`~~ — **MUERTO en Android 16**: `wm size` requiere `WRITE_SECURE_SETTINGS`, revocado sin root. No intentar.
   - **Animaciones**: usar `settings put system` (NO `global`) — el namespace `global` requiere `WRITE_SECURE_SETTINGS` en Android 16 (parche BP2A.250605.031.A3+). El CLI ya hace esto correctamente vía `adb_setting_put_system`.
 - **Governor:** `sugov_ext` (propietario MediaTek, default HyperOS). Disponibles: `sugov_ext | conservative | powersave | performance | schedutil`. Sin root: no legible ni modificable directamente.
@@ -240,4 +270,4 @@ MejoraRedmi14C
 
 ---
 
-*CLAUDE.md v3.0 — 29/08/2026 — MejoraRedmi14C (purga completa de interfaces; solo queda CLI Bash + módulos Python headless/terminal; BUG 1 resuelto)*
+*CLAUDE.md v3.1 — 29/08/2026 — MejoraRedmi14C (investigación: bootloader confirmado bloqueado, Shizuku descartado, bug de System Launcher HyperOS 3 identificado, `set-launcher.sh` agregado)*
