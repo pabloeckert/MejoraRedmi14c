@@ -9,6 +9,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## ⏭️ PRÓXIMO PASO — ejecutar apenas el dispositivo esté conectado
+
+Pendiente de la investigación del 29/08/2026 (detalle completo en la sección "Investigación 29/08/2026" más abajo). Con el Redmi 14C de Pablo (serial `NB5XWCLZSGB6J74D`) conectado por USB, ejecutar **en orden, sin parar entre pasos salvo que alguno falle o la temperatura esté alta**:
+
+1. `adb devices` — confirmar que aparece `NB5XWCLZSGB6J74D`.
+2. `cd src/cli && ./run.sh --scan` — baseline real: RAM, temperatura, batería. Si temp > 38°C, esperar a que enfríe antes de seguir (no forzar).
+3. `bash tools/mega-verificar.sh` — mirar puntualmente la sección GPU: ¿pasa ✅ o falla ❌? Esto resuelve si "Vulkan + MSAA forzado" realmente está aplicado en este build o no (ver nota en "Contexto técnico del dispositivo").
+4. `adb shell pm list packages app.lawnchair` — si NO aparece, avisarle a Pablo que instale **Lawnchair** desde Play Store en el teléfono y esperar a que confirme antes de seguir (no se puede scriptear la instalación desde Play Store).
+5. `bash tools/set-launcher.sh app.lawnchair` — reemplaza `com.miui.home` como HOME por defecto.
+6. `bash tools/set-launcher.sh --status` — confirmar que Lawnchair quedó como HOME activo.
+7. Actualizar la línea "Vulkan + MSAA forzado" en "Contexto técnico del dispositivo" con el resultado real del paso 3 (confirmar o corregir). Borrar esta sección "PRÓXIMO PASO" una vez completada.
+8. Commit + push de los cambios de doc con los datos reales.
+
+**No queda "resuelto" en el paso 6** — eso solo confirma que el cambio técnico se aplicó. El síntoma real (crashes/pantallas negras) se confirma o descarta después de unos días de uso normal; pedirle a Pablo ese feedback antes de dar el tema por cerrado.
+
+---
+
 ## Estado actual del proyecto
 
 Repo depurado el 29/08/2026: se eliminó toda interfaz (UI PySide6, web app WebUSB, stub Electron, plan de migración a Tauri) y todo lo que solo la servía. Lo que queda es exclusivamente para trabajar la limpieza y el mantenimiento del teléfono **desde la terminal**.
