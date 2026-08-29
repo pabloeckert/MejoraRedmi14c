@@ -5,7 +5,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Redmi Forge — CLAUDE.md para Claude Code
 
 > **Repo base:** https://github.com/pabloeckert/MejoraRedmi14c  
-> **Actualizado:** 08 de junio de 2026
+> **Actualizado:** 29 de agosto de 2026
 
 ---
 
@@ -16,6 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 | `src/cli/` | ✅ **Producción** | Toolkit Bash v6.0 — producto terminado para uso personal |
 | `forge/core/` | ✅ Funcional | Módulos Python de soporte: adb_bridge, ota_watcher, app_scanner, debloat_engine |
 | `forge/services/ota_check.py` | ✅ Producción | OTA watcher autónomo — corre via Task Scheduler sin UI |
+| `forge/services/maintenance_check.py` | ⚠️ Funcional, sin scheduler | Monitor headless de storage/temp/backup local WhatsApp — mismo patrón que `ota_check.py` pero **no** registrado aún en `setup.ps1`; correr manual: `python -m forge.services.maintenance_check` |
 | `setup.ps1` | ✅ Producción | Setup one-command para PC nueva |
 | `forge/ui/` | ⏸ Pausada | UI Python/PySide6 — funcional con bugs conocidos (ver abajo). Retomar cuando haya usuario final concreto. |
 | `main.py` | ⏸ Pausado | Entry point de la UI — funcional pero con UX incompleta en fases largas (DEXOPT) |
@@ -48,6 +49,10 @@ python -m forge.dev.seed          # puebla la DB con un dispositivo ficticio
 
 # ─── Auditoría manual de apps (con dispositivo conectado) ───────────────
 python -m forge.core.app_scanner --scan <SERIAL>   # escanea y muestra tabla de apps
+
+# ─── Monitores headless (mismo patrón, para Task Scheduler) ─────────────
+python forge/services/ota_check.py           # chequeo OTA — ya registrado en setup.ps1
+python -m forge.services.maintenance_check   # storage/temp/backup WhatsApp — correr manual, sin scheduler aún
 
 # ─── CLI Bash (núcleo — no modificar) ───────────────────────────────────
 cd src/cli && ./run.sh            # auto-detección de dispositivo
@@ -201,6 +206,12 @@ Redmi Forge
 │
 ├── Persistencia: SQLite en %LOCALAPPDATA%/RedmiForge/redmiforge.db
 │   └── forge/db/database.py        — init_db(), upsert_device(), start_run(), finish_run(), list_runs()
+│
+├── Servicios headless (sin Qt — para Task Scheduler)
+│   ├── forge/services/ota_check.py          — OTA watcher, registrado en setup.ps1 (cada 14 días)
+│   └── forge/services/maintenance_check.py  — storage/temp/backup WhatsApp por dispositivo,
+│                                                mismo patrón que ota_check.py pero AÚN NO registrado
+│                                                en setup.ps1 (correr manual por ahora)
 │
 ├── Dev tools
 │   └── forge/dev/seed.py           — poblar DB con datos ficticios para desarrollo sin dispositivo
@@ -356,4 +367,4 @@ Registrá cada fuente en `RESEARCH_LOG.md`:
 
 ---
 
-*CLAUDE.md v2.3 — 08/06/2026 — MejoraRedmi14C (todos los sprints cerrados — producto terminado)*
+*CLAUDE.md v2.4 — 29/08/2026 — MejoraRedmi14C (todos los sprints cerrados — producto terminado; gap detectado por /init: maintenance_check.py documentado)*
