@@ -48,7 +48,13 @@ _DEVICES = [
         "name":       "Pablo",
         "codename":   "pond",  # confirmado 30/08/2026: adb shell getprop ro.product.device
         "variant":    "WGTMIXM",
-        "known_build": "OS3.0.20.0.WGTMIXM",
+        # Re-verificado 30/08/2026 con el dispositivo real (ro.mi.os.version.incremental):
+        # ya había pasado de .20.0 a .306.0 sin que nadie actualizara este baseline —
+        # con el valor viejo, el próximo chequeo hubiese disparado un falso "nueva
+        # versión disponible" para un build que ya está instalado. Sin un state file
+        # todavía en esta PC (%LOCALAPPDATA%\RedmiForge no existe), este seed es el
+        # que se usa la primera vez que corra la tarea programada.
+        "known_build": "OS3.0.306.0.WGTMIXM",
         "state_file": "ota_state_pablo.json",
     },
     {
@@ -106,6 +112,19 @@ def _adb_connected() -> set[str]:
         return set()
 
 
+def _installed_build(serial: str) -> str | None:
+    """Build HyperOS realmente instalada, vía ro.mi.os.version.incremental."""
+    try:
+        res = subprocess.run(
+            ["adb", "-s", serial, "shell", "getprop", "ro.mi.os.version.incremental"],
+            capture_output=True, text=True, timeout=10,
+        )
+        val = res.stdout.strip()
+        return val or None
+    except Exception:
+        return None
+
+
 def _notify_device(serial: str) -> bool:
     try:
         cmd = f'cmd notification post {_ADB_TAG} "{_MSG_ADB}"'
@@ -161,7 +180,24 @@ def main() -> int:
             else:
                 log.info("%s: aún no toca chequear (last_check=%s)", dev["name"], state.last_check_iso)
 
-            # 2. Drenar cola ADB — si el dispositivo está conectado
+            # 2. Reconciliar contra la build real instalada — si el usuario ya
+            # aplicó el OTA, ota_detected/pending_adb_notify quedarían pegados
+            # en True para siempre (nada más los limpia) y el próximo chequeo
+            # a los 14 días volvería a "detectar" y notificar la misma build
+            # que ya está instalada. Con el dispositivo conectado es gratis
+            # confirmar contra la fuente real en vez de confiar solo en RSS/scraping.
+            if dev["serial"] in connected:
+                installed = _installed_build(dev["serial"])
+                if installed and installed != state.known_build:
+                    log.info("%s: build instalada %s (baseline previo: %s) — sincronizando",
+                             dev["name"], installed, state.known_build)
+                    state.known_build = installed
+                    state.ota_detected = False
+                    state.ota_build = None
+                    state.pending_adb_notify = False
+                    state.save(state_path)
+
+            # 3. Drenar cola ADB — si el dispositivo está conectado y sigue pendiente
             if state.pending_adb_notify:
                 if dev["serial"] in connected:
                     if _notify_device(dev["serial"]):

@@ -149,3 +149,30 @@ BUSINESS_CRITICAL: frozenset[str] = frozenset({
     "com.google.android.apps.maps",     # Google Maps — navegación / trabajo de campo
     "com.google.android.calendar",      # Google Calendar — agenda laboral
 })
+
+
+# ─── Apps críticas del sistema — NUNCA desactivar ────────────────────────────
+# Espejo de CRITICAL_SYSTEM_APPS en src/cli/core/config.sh. app_scanner.py es
+# el único camino de desactivación de apps que no pasa por safe_disable_pkg()/
+# is_critical_pkg() del CLI Bash, así que necesita su propio guardrail — antes
+# solo tenía JOYOSE_PKG + SAFETYNET_PROTECTED + BUSINESS_CRITICAL, lo que
+# dejaba systemui/miui.home/phone/etc. sin protección explícita (solo evitados
+# por estar ya catalogados en PACKAGES_DB con action="keep", una protección
+# por omisión, no por regla). Mantener sincronizado a mano con config.sh.
+CRITICAL_SYSTEM_APPS: frozenset[str] = frozenset({
+    "com.android.systemui",
+    "com.android.settings",
+    "com.android.phone",
+    "com.miui.home",
+    "com.android.vending",
+    "com.google.android.gms",
+    "com.android.dialer",
+    "com.android.contacts",
+    "com.android.mms",
+    "com.android.camera",
+    "com.xiaomi.account",
+    "com.xiaomi.joyose",
+    "com.xiaomi.joyose.helio",
+    "com.android.stk",
+    "com.google.android.as.oss",
+})

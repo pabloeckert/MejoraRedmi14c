@@ -23,8 +23,11 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/config.sh" ]; then
-    source "$SCRIPT_DIR/config.sh"
+# config.sh vive en ../core/, no en este directorio (mismo bug que tenía
+# optimize-boot.sh antes del fix de BUG 1 — acá era inofensivo porque este
+# script no usa nada de config.sh, pero el path estaba mal igual).
+if [ -f "$SCRIPT_DIR/../core/config.sh" ]; then
+    source "$SCRIPT_DIR/../core/config.sh"
 fi
 
 RED='\033[0;31m'

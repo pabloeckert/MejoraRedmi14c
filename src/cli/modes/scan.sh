@@ -61,9 +61,9 @@ mode_scan() {
     log_step "Tweaks de performance"
 
     local anim refresh blur gpu perf_mode wm_size wm_dpi
-    # Animaciones: Settings.System (global bloqueado en Android 16 sin root)
+    # Animaciones: se guardan en Settings.System en este CLI (persisten igual)
     anim=$(adb -s "$serial" shell settings get system window_animation_scale 2>/dev/null | tr -d '\r')
-    # GPU: Settings.Global — en Android 16 sin root siempre null (bloqueado)
+    # GPU: Settings.Global — el shell SÍ puede escribirlo sin root (verificado 30/08/2026)
     gpu=$(adb -s "$serial"  shell settings get global force_gpu_rendering    2>/dev/null | tr -d '\r')
     refresh=$(adb -s "$serial" shell settings get system peak_refresh_rate   2>/dev/null | tr -d '\r')
     blur=$(adb -s "$serial" shell settings get global disable_window_blurs   2>/dev/null | tr -d '\r')
@@ -74,22 +74,24 @@ mode_scan() {
 
     _scan_tweak "Animaciones"      "${anim:-no conf.}"   "0.3"
     _scan_tweak "Refresh rate Hz"  "${refresh:-no conf.}" "90"
-    # Blur: bloqueado en Android 16 sin root (WRITE_SECURE_SETTINGS requerido)
+    # Blur/GPU/Resolución: settings put global SÍ funciona sin root (el shell
+    # tiene WRITE_SECURE_SETTINGS por defecto en AOSP) — verificado con el
+    # dispositivo real 30/08/2026, contradice el hallazgo previo de "bloqueado".
+    # Si no está en el target, es simplemente que no se aplicó todavía.
     if [ "${blur:-null}" = "1" ]; then
         log_ok  "$(printf '%-22s' "Blur desact.") 1  [ya aplicado]"
     else
-        log_info "$(printf '%-22s' "Blur desact.") bloqueado en Android 16 (requiere root)"
+        log_warn "$(printf '%-22s' "Blur desact.") ${blur:-no conf.}  → target: 1 (pendiente, correr --full/--profile)"
     fi
-    # GPU y resolución: bloqueados en Android 16 sin root — mostrar estado real
     if [ "${gpu:-null}" = "1" ]; then
         log_ok  "$(printf '%-22s' "GPU forzada") 1  [ya aplicado]"
     else
-        log_info "$(printf '%-22s' "GPU forzada") bloqueado en Android 16 (requiere root)"
+        log_warn "$(printf '%-22s' "GPU forzada") ${gpu:-no conf.}  → target: 1 (pendiente, correr --full/--profile)"
     fi
     if [ "${wm_size:-null}" = "${GAMING_RES_W}x${GAMING_RES_H}" ]; then
         log_ok  "$(printf '%-22s' "Resolución") ${wm_size}  [ya aplicado]"
     else
-        log_info "$(printf '%-22s' "Resolución") ${wm_size:-?}  → bloqueado en Android 16 (requiere root)"
+        log_info "$(printf '%-22s' "Resolución") ${wm_size:-?}  → target: ${GAMING_RES_W}x${GAMING_RES_H} (opcional, no aplicado)"
     fi
     if [ "${perf_mode:-false}" = "true" ]; then
         log_ok  "$(printf '%-22s' "Performance mode") true  [ya aplicado]"

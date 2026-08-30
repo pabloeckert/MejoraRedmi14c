@@ -5,7 +5,14 @@
 # ═══════════════════════════════════════════════════════════════
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/config.sh"
+# config.sh vive en ../core/, no en este directorio (mismo bug que BUG 1 de
+# optimize-boot.sh). Acá era más grave que en los otros scripts: con el path
+# viejo el source fallaba en silencio y dejaba $ANIM_POCO_MODE, $SWAPPINESS_
+# PERFORMANCE, $MAX_CACHED_PROCESSES, $DALVIK_HEAP, $DNS_VALIDITY y $TCP_RWND
+# todos vacíos — "grep -q ''" contra cualquier valor real siempre matchea, así
+# que TODOS los checks de animaciones/memoria/red reportaban ✅ PASS sin
+# importar el valor real del dispositivo. El score final quedaba inflado.
+source "$SCRIPT_DIR/../core/config.sh"
 
 PASS=0
 FAIL=0
@@ -39,11 +46,14 @@ ANDROID=$(adb shell getprop ro.build.version.release 2>/dev/null | tr -d '\r')
 echo -e "  📱 $DEVICE (Android $ANDROID)"
 echo ""
 
-# ANIMACIONES
+# ANIMACIONES — el CLI las aplica en namespace "system" (ver engines/performance.sh),
+# no "global": HyperOS 3 no parece leer las claves de animación desde Settings.Global
+# (quedan en 0.0 ahí incluso con "system" en 0.3, verificado con el dispositivo real
+# 30/08/2026). Chequear "global" acá siempre daba falso negativo.
 echo -e "${CYAN}  🎬 ANIMACIONES${NC}"
-WIN=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')
-TRANS=$(adb shell settings get global transition_animation_scale 2>/dev/null | tr -d '\r')
-ANIM=$(adb shell settings get global animator_duration_scale 2>/dev/null | tr -d '\r')
+WIN=$(adb shell settings get system window_animation_scale 2>/dev/null | tr -d '\r')
+TRANS=$(adb shell settings get system transition_animation_scale 2>/dev/null | tr -d '\r')
+ANIM=$(adb shell settings get system animator_duration_scale 2>/dev/null | tr -d '\r')
 check "Window animation" "$ANIM_POCO_MODE" "$WIN"
 check "Transition animation" "$ANIM_POCO_MODE" "$TRANS"
 check "Animator duration" "$ANIM_POCO_MODE" "$ANIM"
@@ -108,12 +118,6 @@ else
     FAIL=$((FAIL + 1))
 fi
 
-# THERMAL
-echo ""
-echo -e "${CYAN}  🌡️  THERMAL${NC}"
-THERMAL=$(adb shell settings get global thermal_limit_enabled 2>/dev/null | tr -d '\r')
-check "Thermal limit disabled" "0" "$THERMAL"
-
 # REFRESH RATE
 echo ""
 echo -e "${CYAN}  🔄 REFRESH RATE${NC}"
@@ -128,16 +132,17 @@ MEM_AVAIL=$(adb shell cat /proc/meminfo 2>/dev/null | grep "MemAvailable:" | gre
 if [ -n "$MEM_TOTAL" ] && [ -n "$MEM_AVAIL" ]; then
     MEM_USED=$((MEM_TOTAL - MEM_AVAIL))
     MEM_PCT=$((MEM_USED * 100 / MEM_TOTAL))
-    MEM_AVAIL_GB=$(echo "scale=1; $MEM_AVAIL / 1048576" | bc 2>/dev/null)
+    MEM_AVAIL_GB=$(awk "BEGIN {printf \"%.1f\", $MEM_AVAIL / 1048576}" 2>/dev/null)
     echo -e "  RAM disponible: ${BOLD}${MEM_AVAIL_GB}GB${NC} ($(( 100 - MEM_PCT ))% libre)"
 fi
 
 # BATERÍA
 echo ""
 echo -e "${CYAN}  🔋 BATERÍA${NC}"
-BATT=$(adb shell dumpsys battery 2>/dev/null | grep "level:" | grep -o '[0-9]*')
+# Anclado — "Capacity level:" también matchea un grep suelto de "level:"
+BATT=$(adb shell dumpsys battery 2>/dev/null | grep -E "^\s*level:" | grep -o '[0-9]*' | head -1)
 TEMP=$(adb shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*')
-TEMP_C=$(echo "scale=1; $TEMP / 10" | bc 2>/dev/null)
+TEMP_C=$(awk "BEGIN {printf \"%.1f\", $TEMP / 10}" 2>/dev/null)
 echo -e "  Nivel: ${BOLD}${BATT}%${NC} | Temperatura: ${TEMP_C}°C"
 
 # SCORE

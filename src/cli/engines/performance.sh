@@ -22,8 +22,10 @@ performance_apply_poco_mode() {
     [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "Animaciones ${ANIM_POCO_MODE}x" "ok"
 
     # ── Bloque 2: GPU máxima potencia ──
-    # force_gpu_rendering y debug.hwui.* son Settings.Global — bloqueados en Android 16 sin root.
-    # Se intentan de todas formas; si fallan se loguea warning en vez de éxito falso.
+    # force_gpu_rendering y debug.hwui.* son Settings.Global — el shell SÍ tiene
+    # WRITE_SECURE_SETTINGS por defecto en AOSP, funciona sin root (verificado
+    # con el dispositivo real 30/08/2026). Igual se detecta el error si en algún
+    # build futuro llegara a bloquearse, para no loguear éxito falso.
     log_info "GPU + Vulkan..."
     local _gpu_out
     _gpu_out=$(adb -s "$DEVICE_SERIAL" shell settings put global force_gpu_rendering 1 2>&1 | tr -d '\r')
@@ -55,12 +57,15 @@ performance_apply_poco_mode() {
 
     # ── Bloque 5: Performance mode ──
     log_info "Performance mode..."
-    local _pm_out
-    _pm_out=$(adb -s "$DEVICE_SERIAL" shell cmd power set-fixed-performance-mode-enabled true 2>&1 | tr -d '\r')
-    if echo "$_pm_out" | grep -qi "unknown command\|exception\|error"; then
-        log_warn "Performance mode: no soportado en esta ROM (HyperOS 3)"
-    else
+    adb -s "$DEVICE_SERIAL" shell cmd power set-fixed-performance-mode-enabled true >/dev/null 2>&1
+    local _pm_check
+    _pm_check=$(adb -s "$DEVICE_SERIAL" shell dumpsys power 2>/dev/null | grep -i "FixedPerformanceMode")
+    if [ -n "$_pm_check" ]; then
         log_ok "Fixed performance mode activado"
+    else
+        # El comando no devuelve error de texto, pero HyperOS 3 no expone
+        # mFixedPerformanceModeEnabled en dumpsys power — no hace nada real.
+        log_warn "Performance mode: no soportado en esta ROM (HyperOS 3)"
     fi
 
     # ── Bloque 6: Font scale ──
@@ -87,7 +92,9 @@ performance_apply_poco_mode() {
     log_ok "BT scanning / NFC / WiFi scan: desactivados"
 
     # ── Bloque 11: Resolución optimizada para +FPS ──
-    # wm size/density requieren WRITE_SECURE_SETTINGS en Android 16 — bloqueado sin root.
+    # wm size/density funcionan sin root (mismo permiso de shell que el Bloque 2,
+    # verificado con el dispositivo real 30/08/2026). Se detecta error igual por
+    # las dudas — reduce resolución real, evaluar si vale la pena vs. nitidez.
     log_info "Resolución gaming..."
     local _wm_out
     _wm_out=$(adb -s "$DEVICE_SERIAL" shell wm size "${GAMING_RES_W}x${GAMING_RES_H}" 2>&1 | tr -d '\r')

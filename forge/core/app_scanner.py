@@ -7,7 +7,7 @@ import subprocess
 from dataclasses import dataclass, field
 
 from forge.core.apps_catalog import (
-    DEBLOAT_CATALOG, SAFETYNET_PROTECTED, BUSINESS_CRITICAL,
+    DEBLOAT_CATALOG, SAFETYNET_PROTECTED, BUSINESS_CRITICAL, CRITICAL_SYSTEM_APPS,
 )
 from forge.core.packages_db import PACKAGES_DB, lookup as db_lookup
 
@@ -125,6 +125,7 @@ def scan_packages(serial: str) -> list[AppInfo]:
         is_protected = (
             pkg in SAFETYNET_PROTECTED
             or pkg in BUSINESS_CRITICAL
+            or pkg in CRITICAL_SYSTEM_APPS
             or pkg == JOYOSE_PKG
         )
 
@@ -207,8 +208,13 @@ def classify_batch_with_haiku(pkgs: list[str], api_key: str) -> dict[str, str]:
 
 
 def disable_package(serial: str, pkg: str) -> tuple[bool, str]:
-    """Desactiva un package. Doble guardrail: joyose + SAFETYNET + BUSINESS_CRITICAL."""
-    if pkg == JOYOSE_PKG or pkg in SAFETYNET_PROTECTED or pkg in BUSINESS_CRITICAL:
+    """Desactiva un package. Guardrail: joyose + SAFETYNET + BUSINESS_CRITICAL + CRITICAL_SYSTEM_APPS."""
+    if (
+        pkg == JOYOSE_PKG
+        or pkg in SAFETYNET_PROTECTED
+        or pkg in BUSINESS_CRITICAL
+        or pkg in CRITICAL_SYSTEM_APPS
+    ):
         return False, "Protegido — operación denegada"
 
     adb = _get_adb()

@@ -10,17 +10,15 @@
 # ═══════════════════════════════════════════════════════════════
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/config.sh"
+# config.sh vive en ../core/, no en este directorio (mismo bug que BUG 1 de
+# optimize-boot.sh — acá fallaba en silencio y dejaba $VERSION vacío).
+source "$SCRIPT_DIR/../core/config.sh"
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
 MODE="${1:-antes}"
 REPORT_FILE="$SCRIPT_DIR/benchmark_${MODE}_${TIMESTAMP}.txt"
 
-# Colores
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-NC='\033[0m'
+# Colores ya definidos (readonly) por config.sh — redeclararlos acá tira
+# "readonly variable" ahora que el source de arriba realmente funciona.
 
 header() { echo -e "${CYAN}════════════════════════════════════════════${NC}"; }
 section() { echo -e "\n${GREEN}[$1] $2${NC}"; echo "[$1] $2" >> "$REPORT_FILE"; }
@@ -249,10 +247,13 @@ echo "" >> "$REPORT_FILE"
 # ═══════════════════════════════════════════════
 section "5/10" "BATERÍA Y TEMPERATURA"
 
-BATTERY=$(adb shell dumpsys battery 2>/dev/null | grep "level:" | grep -o '[0-9]*')
-TEMP=$(adb shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*')
+# Anclado a "solo espacios antes de la clave" — dumpsys battery también tiene
+# "Capacity level:" y "Max charging voltage:", que igual matchean un grep
+# suelto de "level:"/"voltage:" y devuelven 2 valores en vez de 1.
+BATTERY=$(adb shell dumpsys battery 2>/dev/null | grep -E "^\s*level:" | grep -o '[0-9]*' | head -1)
+TEMP=$(adb shell dumpsys battery 2>/dev/null | grep "temperature:" | grep -o '[0-9]*' | head -1)
 TEMP_C=$(awk "BEGIN {printf \"%.1f\", $TEMP / 10}" 2>/dev/null || echo "?")
-VOLTAGE=$(adb shell dumpsys battery 2>/dev/null | grep "voltage:" | grep -o '[0-9]*')
+VOLTAGE=$(adb shell dumpsys battery 2>/dev/null | grep -E "^\s*voltage:" | grep -o '[0-9]*' | head -1)
 HEALTH=$(adb shell dumpsys battery 2>/dev/null | grep "health:" | grep -o '[0-9]*')
 CHARGING=$(adb shell dumpsys battery 2>/dev/null | grep "AC powered:" | grep -o 'true\|false')
 PLUGGED=$(adb shell dumpsys battery 2>/dev/null | grep "plugged:" | grep -o '[0-9]*')

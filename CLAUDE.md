@@ -5,22 +5,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Redmi Forge — CLAUDE.md para Claude Code
 
 > **Repo base:** https://github.com/pabloeckert/MejoraRedmi14c  
-> **Actualizado:** 30 de agosto de 2026
+> **Actualizado:** 30 de agosto de 2026 (sesión de limpieza + auditoría de bugs)
 
 ---
 
-## ⏭️ PENDIENTE — feedback de uso real (checklist técnico ya completado)
+## 🎯 Objetivo del proyecto
 
-Todo lo scripteable/verificable del 29-30/08/2026 (purga, merge, investigación de rendimiento) está hecho y confirmado con el dispositivo real de Pablo conectado:
+Pablo viene de un **POCO X3 Pro** y quiere que el Redmi 14C se sienta lo más parecido posible a esa experiencia: un Android rápido, predecible, sin capas de más encima. HyperOS es la capa — el objetivo de este repo es **acercarse a un Android limpio sin arriesgar el brickeo del equipo**.
 
-- ✅ Codename confirmado: **`pond`** (no `lake`) — corregido en `ota_check.py`/`ota_watcher.py`.
-- ✅ `./run.sh --scan`: 4 apps ya desactivadas, 3 pendientes, animaciones 0.3x y 90Hz aplicados, temp 29°C.
-- ✅ Vulkan/MSAA/GPU forzada: confirmado **inerte** (bloqueado sin root) — sacado de la lista de tweaks activos.
-- ✅ Lawnchair instalado (package real: **`app.lawnchair.play`**, la build de Play Store — no `app.lawnchair`, esa es la de F-Droid) y activado como HOME con `tools/set-launcher.sh app.lawnchair.play`. `com.miui.home` sigue instalado e intocado, reversible con `--reset`.
+Orden de preferencia, de más a menos deseable:
 
-**Lo único que falta no se puede scriptear:** unos días de uso normal para que Pablo confirme si el cambio de launcher realmente eliminó los crashes/pantallas negras (el bug de HyperOS 3 apuntaba al System Launcher — ver "Investigación 29/08/2026"). Hasta que no haya ese feedback, el tema sigue abierto aunque el cambio técnico ya esté aplicado.
+1. **Android limpio real (AOSP/GSI/custom ROM)** — descartado por ahora. Requiere bootloader desbloqueado, y aunque el proceso oficial de Xiaomi para desbloquear existe para equipos globales (pedido + espera vía su comunidad, no es un unlock instantáneo — ver "Bootloader unlock" más abajo, matizado 30/08/2026), el costo es alto y permanente: se pierden OTAs, Find My Device, desbloqueo por huella/rostro y Google Pay, y en HyperOS 3 encima hay que re-solicitar el unlock request. Para un teléfono de uso diario que Pablo necesita andando, ese trade-off no vale la pena — **no se busca salvo pedido explícito**.
+2. **HyperOS "vaciado" al máximo sin root ni unlock** — el camino real de este repo. Bloatware fuera, telemetría cortada, capas visuales de MIUI apagadas donde se puede, launcher propio en vez de `com.miui.home`. Esto es lo que hace `./run.sh` hoy.
+3. **Lo que quede de HyperOS después de (2)** — es el piso, no el objetivo. Cosas 100% atadas al firmware de Xiaomi (gestor térmico `com.xiaomi.joyose`, drivers de cámara/módem) se quedan sí o sí.
 
-**Pendiente aparte, sin relación con lo anterior:** confirmar el codename real del dispositivo de Sindy (VOSWQCOVJVQWT8LR) la próxima vez que se conecte — hoy está inferido como `pond` por ser el mismo modelo, no confirmado en su propio teléfono.
+**Hallazgo grande de esta sesión (30/08/2026):** el punto 2 tenía mucho más margen del que el repo creía. Ver "Sesión 30/08/2026 — limpieza, auditoría de bugs y re-verificación en vivo" más abajo — varios tweaks que la documentación daba por "bloqueados sin root" (GPU forzada, Vulkan/MSAA, resolución gaming, incluso el propio namespace `global` de Settings) en realidad **sí funcionan** contra el dispositivo real de Pablo hoy. La causa más probable: el toggle de Ajustes de desarrollador **"Depuración USB (Config. de seguridad)"** — un permiso extra que HyperOS/MIUI exige para que `adb shell` tenga `WRITE_SECURE_SETTINGS`. Si en algún momento estos tweaks vuelven a fallar, lo primero a chequear es que ese toggle siga activado.
+
+---
+
+## ⏭️ PENDIENTE
+
+- **Feedback de uso real del launcher:** Lawnchair está activo como HOME desde el 30/08 (ver detalle en la sección de investigación). Falta que pasen unos días de uso normal para confirmar si eliminó los crashes/pantallas negras del bug de System Launcher de HyperOS 3.
+- **Codename de Sindy:** seguí sin confirmar en su propio dispositivo (VOSWQCOVJVQWT8LR) — inferido como `pond` por ser el mismo modelo que el de Pablo. Confirmar con `adb shell getprop ro.product.device` la próxima vez que se conecte.
+- **Re-aplicar tweaks de performance con el hallazgo de hoy:** `./run.sh --scan` (ya corregido) y `mega-verificar.sh` (ya corregido) muestran que GPU forzada, MSAA, resolución gaming, `activity_manager_constants` y TCP window nunca llegaron a aplicarse de verdad en el dispositivo de Pablo — quedó pendiente de que él decida si corre `--profile`/`--full` de nuevo para efectivamente aplicarlos, ahora que se sabe que sí funcionan.
+- **Sección bloqueada de `profile_sindy.sh`:** juegos/redes sociales/3 apps sin identificar siguen esperando que Pablo confirme qué hacer con cada una antes de correr `--sindy`.
 
 ---
 
@@ -41,7 +49,7 @@ Repo depurado el 29/08/2026: se eliminó toda interfaz (UI PySide6, web app WebU
 | `forge/services/maintenance_check.py` | ✅ Producción | Storage/temp/backup WhatsApp + limpieza de caché liviana (24h) + `--maintenance` completo oportunista (7 días) + snapshot de uso — registrado en `setup.ps1` (Task Scheduler, cada 60 min) |
 | `setup.ps1` / `setup.bat` | ✅ Producción | Setup one-command para PC nueva — instala deps headless, ADB, Task Scheduler (OTA cada 15 días + mantenimiento cada 60 min) |
 | `src/cli/modes/sindy_optimize.sh` + `data/profile_sindy.sh` | ⚠️ Funcional, con bloqueo pendiente | Modo whitelist (`./run.sh --sindy`) para el teléfono de Sindy — inversa del modo Pablo: protege lo que está en la whitelist, desactiva TODO el resto de apps de terceros. La whitelist tiene una sección explícita de apps (juegos, redes sociales, 3 apps sin identificar) **bloqueada hasta confirmación de Pablo** — no tocar sin esa confirmación. |
-| **Dispositivo Pablo** | NB5XWCLZSGB6J74D | 75 apps eliminadas, animaciones 0.3x, 90Hz, DEXOPT completo. Baseline: 1141MB RAM libre, 29°C reposo. Build: OS3.0.20.0.WGTMIXM (abr 2026) — la más reciente para MXM. Codename **pond** (confirmado 30/08/2026). |
+| **Dispositivo Pablo** | NB5XWCLZSGB6J74D | Re-verificado en vivo 30/08/2026: 41 apps desactivadas (de 450), animaciones 0.3x (namespace `system`, las 3 claves) y 90Hz aplicados, ~1GB RAM libre (28-30%), 34°C. GPU forzada/MSAA/resolución gaming/`activity_manager_constants`/TCP window **no están aplicados todavía** (ver hallazgo de hoy — sí son aplicables, solo falta correr `--profile`/`--full` de nuevo). Build: **OS3.0.306.0.WGTMIXM** (subió desde OS3.0.20.0 documentado en abril — hubo un OTA entremedio no registrado). Security patch 2026-07-01. Codename **pond** (confirmado). |
 | **Dispositivo Sindy** | VOSWQCOVJVQWT8LR | Monitoreado por OTA watcher (`ota_check.py`) + `maintenance_check.py`. Perfil whitelist armado (`profile_sindy.sh`) pero con bloqueo pendiente de confirmación — no se corrió `--sindy` todavía. Codename `pond` inferido (mismo modelo que Pablo), sin confirmar en su dispositivo real. |
 
 **Eliminado en la purga del 29/08/2026** (ver commit correspondiente para detalle): `forge/ui/` (UI PySide6), `main.py`, `src/web/` (web app WebUSB), `app/` (stub Electron), `forge/dev/` (seed solo usado por la UI), `forge/core/debloat_engine.py` (puente perfil-UI → Bash), `forge/core/device_watcher.py` (poller Qt), `forge/core/game_mode.py` (feature de rendimiento, fuera de alcance de limpieza/mantenimiento — ver hallazgo "Game Mode" abajo), `forge/core/log_parser.py` (parsing para la UI), `.github/workflows/deploy.yml` (publicaba la web app), `SCRIPTS_INVENTORY.md` (planificaba una migración a Tauri, obsoleto). `forge/db/` se borró en la purga y se restauró en el merge del 30/08/2026 (ver abajo) — sí hacía falta, para `maintenance_check.py`.
@@ -65,7 +73,7 @@ Una sesión anterior de Claude Code Desktop, corriendo local en la PC de Pablo, 
 - `database.sh`: corrige el cálculo de `total_ram_freed_mb` (usaba una variable de otro scope; ahora subconsulta el valor real por `run_id`).
 - `run.sh`: agrega el flag `--sindy`.
 
-**Codename OTA — resuelto para Pablo, pendiente para Sindy:** se verificó con el dispositivo de Pablo conectado (`pond`, confirmado con `getprop`, no adivinado). El de Sindy quedó en `pond` también por ser el mismo modelo, pero sin confirmar en su propio dispositivo — ver ítem 0 de "PRÓXIMO PASO".
+**Codename OTA — resuelto para Pablo, pendiente para Sindy:** se verificó con el dispositivo de Pablo conectado (`pond`, confirmado con `getprop`, no adivinado). El de Sindy quedó en `pond` también por ser el mismo modelo, pero sin confirmar en su propio dispositivo — ver "PENDIENTE" al principio del archivo.
 
 ---
 
@@ -108,7 +116,8 @@ bash src/cli/tools/optimize-boot.sh --dry-run   # SIEMPRE con --dry-run primero 
 
 **Requisitos módulos Python:** Python 3.11+, `anthropic ≥ 0.28.0` (clasificación de apps desconocidas en `app_scanner.py`, opcional — requiere `ANTHROPIC_API_KEY`), `plyer ≥ 2.1.0` (notificación Windows en `ota_check.py`), ADB en PATH o en `vendor/adb/adb.exe`. Instalar via `pip install -r requirements.txt`. **No hay PySide6 en el repo** — se sacó junto con la UI.  
 **Requisitos CLI:** bash 4+ (WSL o Git Bash en Windows), ADB, sqlite3, dispositivo con USB debugging.  
-**Shell en Windows:** `forge/core/adb_bridge.py:find_shell()` detecta Git Bash → WSL en ese orden (Git Bash tiene preferencia; WSL con systemd roto causa fallos).
+**Shell en Windows:** `forge/core/adb_bridge.py:find_shell()` detecta Git Bash → WSL en ese orden (Git Bash tiene preferencia; WSL con systemd roto causa fallos).  
+**No hay suite de tests, linter ni CI configurados en el repo** (sin `pytest`, sin `ruff`/`black`, sin `.github/workflows`). La verificación de cambios es contra el dispositivo real, vía los scripts de `tools/` (`--dry-run` primero cuando el script lo soporta) y `./run.sh --scan` para confirmar estado sin modificar nada.
 
 ---
 
@@ -116,13 +125,41 @@ bash src/cli/tools/optimize-boot.sh --dry-run   # SIEMPRE con --dry-run primero 
 
 - **BUG 1 (resuelto 29/08/2026, fix mejorado 30/08/2026)** `src/cli/tools/optimize-boot.sh` tenía `com.xiaomi.joyose` hardcodeado en `BOOT_APPS` y lo desactivaba con `pm disable-user` directo, sin pasar por `safe_disable_pkg()`/`is_critical_pkg()`. Causa raíz real (encontrada 30/08/2026): el `source` de `config.sh` apuntaba a la carpeta equivocada y fallaba en silencio — `is_critical_pkg` nunca estaba disponible ahí. Fix actual: path de `source` corregido a `../core/config.sh` (+ `adb_utils.sh` + `engines/thermal.sh`), `joyose` sacado del array, guardrail `is_critical_pkg` en el loop, y se le agregó backup + gate térmico igual que al resto de los modos. Corré siempre con `--dry-run` primero de todos modos.
 
-## Limitaciones Android 16 — parche BP2A.250605.031.A3 (confirmadas 01/06/2026)
+### Sesión 30/08/2026 (tarde) — limpieza, auditoría de bugs y re-verificación en vivo
 
-Android 16 con el parche de seguridad de junio 2025 bloqueó múltiples mecanismos que antes funcionaban vía ADB sin root. El CLI en `safe_disable_pkg()` ya tiene el fallback correcto:
+Pablo pidió una limpieza general del repo (sin interfaces, sin referencias a terceros), una revisión de bugs de punta a punta, y una actualización con información/mejoras vigentes — con el dispositivo real conectado durante toda la sesión. Se encontró bastante más de lo esperado:
+
+**Limpieza:**
+- Se borró `GEMINI.md` (doc desactualizado de otra sesión con otra IA — describía la web app WebUSB que ya no existe; no correspondía tenerlo en un repo que es solo Claude + Pablo).
+- Se borraron archivos gitignorados que habían quedado sueltos en la raíz (`sindy_pkgs.txt`, un dump crudo de paquetes con nombre de path de Windows mal formado), `tools/` en la raíz (huérfano de antes de la reestructuración a `src/cli/tools/`, sin ninguna referencia en el código), un benchmark viejo suelto en `src/cli/tools/`, y las carpetas vacías que había dejado la purga del 29/08 (`app/`, `forge/ui/`, `forge/dev/`, `src/web/`, incluyendo `.pyc` sueltos de la UI PySide6 eliminada). `.gitignore` también se depuró de reglas muertas (Node/Electron/GitHub Pages/instalador — nada de eso existe en este repo).
+
+**BUG 2 — `scan.sh` reportaba "bloqueado en Android 16 (requiere root)" sin haberlo probado nunca.** `modes/scan.sh` mostraba ese mensaje para GPU forzada, blur y resolución solo comparando el valor *actual* contra el target — si no coincidía, asumía que era por permisos, sin intentar escribirlo. Se probó en vivo contra el dispositivo real (`settings put global force_gpu_rendering 1`, `window_animation_scale`, `wm size 612x1360`): **las tres funcionan perfectamente sin root.** El "hallazgo" de Vulkan/GPU inerte de más abajo en este mismo archivo (30/08/2026, misma sesión) se basó en leer este mensaje engañoso, no en una escritura real fallida — quedó corregido en el momento (ver sección de GPU actualizada más abajo). Fix: `scan.sh` ahora muestra "pendiente, correr --full/--profile" en vez de afirmar que está bloqueado.
+
+**BUG 3 — `performance.sh` reportaba "Fixed performance mode activado" aunque HyperOS 3 no soporta esa función.** El comando `cmd power set-fixed-performance-mode-enabled` no devuelve texto de error en esta ROM, así que el chequeo de excepción nunca detectaba la falla. Fix: ahora verifica contra `dumpsys power` (que no expone `mFixedPerformanceModeEnabled` en HyperOS 3) antes de loguear éxito.
+
+**BUG 4 — `bloatware_restore_all()` no revertía el fallback de `PROFILE_RUNTIME` (perfil de Pablo).** El Intento 3 de `safe_disable_pkg()` (appops `RUN_ANY_IN_BACKGROUND deny`) se revertía solo para `PROFILE_POCO_MODE` y `PROFILE_XIAOMI_TELEMETRY` — pero `./run.sh --profile` (el modo que usa el perfil personalizado de Pablo) también puede disparar ese mismo fallback, y `PROFILE_RUNTIME` ni siquiera se cargaba en el arranque de `run.sh` (solo dentro de `profile_optimize.sh`/`scan.sh`). Resultado: si `--emergency` corría después de un `--profile`, esos paquetes quedaban bloqueados en background para siempre. Fix: `bloatware_restore_all()` ahora sourcea `profile_runtime.sh` si hace falta e incluye `PROFILE_RUNTIME` en el revert.
+
+**BUG 5 — `app_scanner.py` (`disable_package()`) sin guardrail de apps críticas del sistema.** A diferencia del CLI Bash (`is_critical_pkg()` contra `CRITICAL_SYSTEM_APPS`), el camino de desactivación en Python solo bloqueaba joyose + SafetyNet + apps críticas de negocio — `com.android.systemui`, `com.miui.home`, `com.android.phone`, etc. no tenían protección explícita, solo quedaban afuera del flujo interactivo por estar ya catalogados en `PACKAGES_DB` con `action="keep"` (protección por omisión, no por regla). Fix: se agregó `CRITICAL_SYSTEM_APPS` a `apps_catalog.py` (espejo de la lista de `config.sh`) y se usa como guardrail explícito en `disable_package()`, igual que en Bash.
+
+**BUG 6 — `adb_bridge.py` leía la versión de HyperOS de una propiedad vieja.** `get_device_info()` usaba `ro.miui.ui.version.name` (devuelve "V816", un código interno de la era MIUI) en vez de `ro.mi.os.version.name` (devuelve "OS3.0", lo que el CLI Bash y el resto del proyecto ya usan). No estaba conectado a ningún flujo activo todavía, pero hubiera reportado mal la versión apenas se usara. Corregido para que coincida con el resto del proyecto.
+
+**BUG 7 — `ota_check.py` tenía un baseline de build desactualizado y sin mecanismo de auto-corrección.** El seed hardcodeado para Pablo (`OS3.0.20.0.WGTMIXM`) quedó viejo — el dispositivo real ya está en `OS3.0.306.0.WGTMIXM` (hubo un OTA entremedio que nadie registró). Con ese seed, el próximo chequeo programado iba a disparar una notificación falsa de "nueva versión disponible" para un build que ya estaba instalado. Peor: nada en el código avanzaba `known_build` después de detectar un update, así que una vez marcado `ota_detected=True` quedaba así para siempre y re-notificaba cada 14 días indefinidamente, incluso después de que Pablo aplicara el OTA a mano. Fix: baseline actualizado al build real, y `main()` ahora reconcilia contra `ro.mi.os.version.incremental` cada vez que el dispositivo está conectado — si la build instalada cambió, actualiza el estado y limpia las flags, sin esperar al próximo ciclo de 14 días.
+
+**BUG 8 — mismo patrón que el BUG 1, sin propagar a los scripts hermanos.** `src/cli/tools/benchmark.sh` y `mega-verificar.sh` tenían el mismo `source "$SCRIPT_DIR/config.sh"` con el path viejo (el archivo real está en `../core/config.sh`) — el mismo bug que ya se había encontrado y arreglado una vez en `optimize-boot.sh`, pero nunca se replicó acá. En `mega-verificar.sh` esto era grave: como el source fallaba en silencio, `$ANIM_POCO_MODE`, `$SWAPPINESS_PERFORMANCE`, `$MAX_CACHED_PROCESSES`, `$DALVIK_HEAP`, `$DNS_VALIDITY` y `$TCP_RWND` quedaban vacíos, y `grep -q ""` contra cualquier valor real siempre matchea — **todos los checks de animaciones/memoria/red reportaban ✅ PASS sin importar el estado real del dispositivo.** `set-launcher.sh` tenía el mismo path roto pero sin consecuencia (no usa nada de `config.sh`). Se corrigieron los tres paths.
+  - De paso, `mega-verificar.sh` chequeaba las animaciones contra el namespace `global` (siempre en 0.0 en este HyperOS, no es lo que lee el sistema) en vez de `system` (donde el CLI realmente las aplica) — verificado en vivo que HyperOS 3 no parece leer las claves de animación desde `Settings.Global` en este dispositivo. Corregido para chequear `system`.
+  - También tenía un check muerto de `thermal_limit_enabled` — una clave que ningún engine del CLI aplica nunca (probablemente de un prototipo previo). Se eliminó el check en vez de dejarlo fallando siempre.
+  - Y tanto `benchmark.sh` como `mega-verificar.sh` extraían batería/temperatura con `grep "level:"`/`grep "voltage:"` sin anclar el patrón — `dumpsys battery` también tiene líneas `Capacity level:` y `Max charging voltage:` que matchean el mismo grep suelto y devuelven dos valores en vez de uno (se veía literalmente como "74\n3%" en la salida). `device_profile.sh` ya tenía este fix (`head -1`) para el camino principal del CLI, pero no se había propagado a las herramientas de diagnóstico. Corregido con grep anclado a inicio de línea.
+  - Confirmado en vivo tras los fixes: `mega-verificar.sh` corrido contra el dispositivo real de Pablo ahora muestra animaciones ✅, RAM/batería/temperatura con valores reales (antes en blanco por falta de `bc`, reemplazado por `awk` como ya hacía `benchmark.sh`), y un score honesto de 9/15 (60%) en vez de un falso ~100%.
+
+**Hallazgo de fondo, no un bug de código:** todo lo anterior converge en la misma causa raíz — el repo asumía que `settings put global <key>` estaba bloqueado sin `WRITE_SECURE_SETTINGS` en Android 16/HyperOS 3, y varias piezas (código y documentación) se construyeron sobre esa asunción sin volver a probarla contra hardware real. Probado en vivo hoy: **`settings put global` funciona perfectamente** para `force_gpu_rendering`, `window_animation_scale`, `disable_window_blurs`, `dns_resolver_*`, `dalvik_vm_heapsize`, `lmk_minfree_levels`, y `wm size` también funciona. La explicación más probable, corroborada por guías externas de debloat de HyperOS 3 (ver sección de research más abajo): el toggle de Ajustes de desarrollador **"Depuración USB (Config. de seguridad)"** — distinto del simple "Depuración USB" — es lo que le da a `adb shell` el permiso `WRITE_SECURE_SETTINGS`. Es razonable que estuviera desactivado cuando se hizo la investigación original del 01/06/2026 y se haya activado después en algún momento (p. ej. al perseguir otro problema). **Acción recomendada:** verificar que ese toggle esté activo, y si en el futuro estos tweaks vuelven a fallar, revisarlo antes de asumir que Android volvió a bloquearlos.
+
+## Limitaciones Android 16 — parche BP2A.250605.031.A3 (confirmadas 01/06/2026, re-verificadas 30/08/2026)
+
+Android 16 con el parche de seguridad de junio 2025 bloquea algunos mecanismos que antes funcionaban vía ADB sin root — pero no todos los que este archivo daba por bloqueados. El CLI en `safe_disable_pkg()` ya tiene el fallback correcto:
 
 | Comando | Estado | Alternativa válida |
 |---------|--------|--------------------|
-| `settings put global <key>` | ❌ Bloqueado (requiere WRITE_SECURE_SETTINGS) | `settings put system <key>` para animaciones/display |
+| `settings put global <key>` | ✅ Funciona (re-verificado 30/08/2026 en vivo: GPU, animaciones, blur, DNS, LMK, Dalvik heap, `wm size` — todo escribe y persiste sin root). El shell de ADB en HyperOS 3 tiene `WRITE_SECURE_SETTINGS` — casi seguro gracias al toggle "Depuración USB (Config. de seguridad)" en Ajustes de desarrollador. El hallazgo previo de "bloqueado" salió de leer el mensaje engañoso de `scan.sh` (BUG 2, ver sesión 30/08/2026), no de una escritura real fallida. | — (ya no hace falta alternativa; queda `system` como namespace real para animaciones, ver nota abajo) |
 | `pm disable-user --user 0 <system_pkg>` | ❌ Bloqueado para apps del sistema | `pm uninstall -k --user 0` (ver abajo) |
 | `pm uninstall -k --user 0 <system_pkg>` | ⚠️ Parcial — funciona solo para overlays/apps sin dependencias del kernel | `cmd appops set <pkg> RUN_ANY_IN_BACKGROUND deny` |
 | `pm hide --user 0 <pkg>` | ❌ Bloqueado (requiere MANAGE_USERS) | — |
@@ -139,9 +176,13 @@ Android 16 con el parche de seguridad de junio 2025 bloqueó múltiples mecanism
 
 Objetivo del usuario: la experiencia de un launcher puro (referencia: Motorola RAZR, Poco X3 Pro) — rápido, sin crashes, sin cuelgues, sin pantallas negras, con fondo de escritorio propio. Como mínimo aceptable, no como techo.
 
-### Sacar HyperOS por completo — DESCARTADO, con más certeza que antes
+### Sacar HyperOS por completo — DESCARTADO, matizado 30/08/2026
 
-No es solo riesgo de brick: **Xiaomi bloqueó directamente el desbloqueo de bootloader para el Redmi 14C** como SKU (confirmado en el hilo de XDA del modelo). Sin bootloader desbloqueado no hay LineageOS, GSI de Project Treble ni ninguna ROM alternativa. Los métodos alternativos (MTK client / bypass por BROM en el MT6769J) tienen reportes de brick real en la comunidad. No hay puerta de entrada — no re-investigar salvo que Xiaomi cambie la política de unlock para este modelo.
+Sigue descartado, pero por trade-off, no por imposibilidad técnica absoluta. Research de hoy (fuentes externas, no específicas al Redmi 14C — ver abajo) matiza la afirmación anterior de "SKU bloqueado": el desbloqueo de bootloader en equipos Xiaomi globales (no China mainland) sigue existiendo como proceso oficial — pedís permiso vía la cuenta Mi/comunidad Xiaomi, esperás la aprobación (históricamente días, a veces más), y recién ahí el Mi Unlock Tool desbloquea. No es un SKU-block instantáneo y permanente como se había concluido antes; es el mismo proceso lento y con fricción deliberada que Xiaomi aplica a la mayoría de sus modelos globales. No se re-verificó el hilo específico de XDA del Redmi 14C que motivó la conclusión original, así que tratá esto como "vale la pena re-chequear", no como una reversión confirmada.
+
+Aun si el unlock es técnicamente alcanzable, el costo sigue siendo alto y permanente una vez desbloqueado: **se pierden OTAs oficiales, Find My Device, desbloqueo por huella/rostro y Google Pay**, y en HyperOS 3 el re-lock tampoco devuelve todo al estado anterior. Para el teléfono de uso diario de Pablo, con la mayor parte del resultado ya alcanzable sin root (ver hallazgo de la sesión 30/08/2026: `settings put global` funciona, GPU/Vulkan/resolución/animaciones/red están al alcance sin ningún unlock), ese trade-off no se justifica. GSI/Project Treble sobre el MT6769J sigue en el mismo lugar: requiere el mismo bootloader unlock como prerrequisito, así que no cambia el cálculo. Los métodos alternativos (MTK client / bypass BROM) siguen con reportes de brick real en la comunidad — no recomendados.
+
+**Conclusión sin cambios: no se persigue el unlock salvo pedido explícito de Pablo sabiendo el costo.** Lo que sí cambió con la sesión de hoy es que el "Android limpio sin bootloader" tiene mucho más recorrido del que se creía.
 
 ### Shizuku — evaluado y descartado para este toolkit
 
@@ -149,7 +190,7 @@ Da permisos a nivel `adb shell` (incluye `WRITE_SECURE_SETTINGS`) a apps del pro
 
 ### Bug confirmado de HyperOS 3 — System Launcher como causa de crashes/pantallas negras
 
-Xiaomi reconoció públicamente un bug del System Launcher (`com.miui.home`) en HyperOS 3 que causa force-closes, parpadeo de pantalla y entrada a Safe Mode, por conflicto con el widget de clima nativo. Builds confirmados: OS3.0.3.0–OS3.0.5.0 (variantes WNNEUXM/WNEEUXM/WOSEUXM/WNCEUXM). El build de Pablo es OS3.0.20.0.WGTMIXM — variante distinta, no confirmado que sea el mismo bug exacto, pero misma familia de falla (el launcher nativo de Xiaomi como punto de quiebre).
+Xiaomi reconoció públicamente un bug del System Launcher (`com.miui.home`) en HyperOS 3 que causa force-closes, parpadeo de pantalla y entrada a Safe Mode, por conflicto con el widget de clima nativo. Builds confirmados: OS3.0.3.0–OS3.0.5.0 (variantes WNNEUXM/WNEEUXM/WOSEUXM/WNCEUXM). El build de Pablo es OS3.0.306.0.WGTMIXM (re-verificado 30/08/2026) — variante distinta, no confirmado que sea el mismo bug exacto, pero misma familia de falla (el launcher nativo de Xiaomi como punto de quiebre).
 
 **Mitigación — `src/cli/tools/set-launcher.sh` (nuevo, aplicado 30/08/2026):** `com.miui.home` queda protegido como crítico (no se desactiva), pero se puede dejar de usar como default vía `cmd package set-home-activity` — solo cambia qué app responde al rol HOME, no toca instalación ni permisos, 100% reversible, sin riesgo de brick (el selector de apps predeterminadas de Ajustes siempre funciona como último recurso).
 
@@ -162,9 +203,9 @@ bash src/cli/tools/set-launcher.sh --reset               # volver a com.miui.hom
 
 **Estado real (30/08/2026):** Lawnchair activo como HOME, confirmado con `--status`. Pendiente: feedback de Pablo tras unos días de uso — ver "PENDIENTE" al principio del archivo.
 
-### Vulkan + MSAA forzado — CONFIRMADO INERTE (30/08/2026)
+### Vulkan + MSAA forzado — REVERTIDO: SÍ FUNCIONA (corregido 30/08/2026, misma sesión)
 
-`engines/performance.sh` (bloque GPU, líneas ~27-41) ya maneja bien el caso bloqueado — detecta "exception/denied" en la salida de `settings put global force_gpu_rendering 1` y loguea warning en vez de falso "ok". Se confirmó con el dispositivo real (`./run.sh --scan`): "GPU forzada → bloqueado en Android 16 (requiere root)". Nunca se aplicó en este build pese a que el CLAUDE.md lo listaba como "tweak validado" — corregido. No es una fuente de inestabilidad real (no corre), así que no explica los crashes/pantallas negras por sí solo — el sospechoso principal sigue siendo el bug del System Launcher (ver arriba).
+Este archivo llegó a decir "CONFIRMADO INERTE" más temprano en el mismo día 30/08/2026, basado en leer el mensaje "GPU forzada → bloqueado en Android 16 (requiere root)" de `./run.sh --scan` — que resultó ser un falso negativo del propio `scan.sh` (BUG 2, ver "Sesión 30/08/2026" arriba): el script nunca probaba escribir el valor, solo asumía "bloqueado" si no coincidía con el target. Probado en vivo directo contra el dispositivo (sin pasar por el CLI): `settings put global force_gpu_rendering 1` escribe y persiste sin error, igual que `force_msaa` y `debug.hwui.renderer skiavk`. `engines/performance.sh` (bloque GPU) ya tenía la detección de "exception/denied" correcta desde antes — el bug estaba en `scan.sh`, no ahí. Sigue sin aplicarse en el dispositivo de Pablo porque nadie corrió `--full`/`--profile` desde que se creía bloqueado — queda pendiente que Pablo decida si lo aplica. No es una fuente de inestabilidad real per se; el sospechoso principal de crashes/pantallas negras sigue siendo el bug del System Launcher (ver arriba).
 
 ---
 
@@ -219,15 +260,16 @@ Ante duda entre "hacer más" y "hacer menos y bien": menos y bien.
 
 ## Contexto técnico del dispositivo
 
-- **Modelo:** Redmi 14C (2409BRN2CL) — serial NB5XWCLZSGB6J74D — codename **pond** (confirmado 30/08/2026 con `adb shell getprop ro.product.device`)
+- **Modelo:** Redmi 14C (2409BRN2CL) — serial NB5XWCLZSGB6J74D — codename **pond** (confirmado con `adb shell getprop ro.product.device`)
 - **SoC:** Helio G81 Ultra (MediaTek **MT6769J**) — 6× Cortex-A55 @ 1.7 GHz (cpu0–5) + 2× Cortex-A75 @ 2.0 GHz (cpu6–7)
-- **OS:** HyperOS V816 / Android 16
+- **OS:** HyperOS **OS3.0** (build `OS3.0.306.0.WGTMIXM`, re-verificado 30/08/2026) / Android 16, SDK 36, security patch 2026-07-01, `ro.build.display.id` = `BP2A.250605.031.A3`. Nota: `ro.miui.ui.version.name` devuelve "V816" (código interno heredado de la era MIUI) — no es la versión de HyperOS que ve el usuario en Ajustes; usar siempre `ro.mi.os.version.name`/`ro.mi.os.version.incremental` como fuente real (mismo criterio ya aplicado en `adb_bridge.py`, corregido 30/08/2026 — ver BUG 6).
 - **Tweaks validados en v6.0 (NO tocar sin testear):**
   - `swappiness=20`, LMK agresivo, Dalvik + HWUI heap XL
-  - Animaciones `0.3x` (persiste — guardado en Settings DB)
-  - ~~Vulkan + MSAA forzado~~ — **CONFIRMADO INERTE 30/08/2026**: `./run.sh --scan` en el dispositivo real muestra "GPU forzada → bloqueado en Android 16 (requiere root)". Nunca se aplicó en este build — no es una fuente de inestabilidad real porque no corre. Sacado de la lista de tweaks activos.
-  - ~~Resolución `612x1360 @ 260dpi`~~ — **MUERTO en Android 16**: `wm size` requiere `WRITE_SECURE_SETTINGS`, revocado sin root. No intentar.
-  - **Animaciones**: usar `settings put system` (NO `global`) — el namespace `global` requiere `WRITE_SECURE_SETTINGS` en Android 16 (parche BP2A.250605.031.A3+). El CLI ya hace esto correctamente vía `adb_setting_put_system`.
+  - Animaciones `0.3x` (persiste — guardado en Settings DB, namespace `system`)
+  - **Vulkan + MSAA forzado** — funciona sin root (re-verificado en vivo 30/08/2026, ver "Sesión 30/08/2026" arriba). Pendiente de que Pablo corra `--full`/`--profile` para aplicarlo de verdad en su dispositivo.
+  - **Resolución gaming `612x1360 @ 260dpi`** — funciona sin root (`wm size`/`wm density`, re-verificado en vivo 30/08/2026). Antes documentado como "muerto", era el mismo falso negativo del BUG 2. Pendiente de aplicar; evaluar si vale la pena el trade-off de nitidez.
+  - **Animaciones**: usar `settings put system` (NO `global`) — verificado que en este HyperOS 3 las claves de animación en `Settings.Global` quedan en `0.0` incluso con `system` en `0.3` (namespaces distintos, el sistema solo lee `system`). El CLI ya hace esto correctamente vía `adb_setting_put_system`.
+  - **`settings put global` en general SÍ funciona sin root** en este dispositivo (GPU, blur, DNS, LMK, Dalvik heap, `wm size`) — probablemente gracias al toggle "Depuración USB (Config. de seguridad)" en Ajustes de desarrollador. Si algo empieza a fallar de golpe, revisar ese toggle antes de asumir que Android lo volvió a bloquear.
 - **Governor:** `sugov_ext` (propietario MediaTek, default HyperOS). Disponibles: `sugov_ext | conservative | powersave | performance | schedutil`. Sin root: no legible ni modificable directamente.
 - **ZRAM:** `zram0` configurado en 4 GB (SwapTotal=4194300 kB). Algoritmo no legible sin root. No modificar.
 - **Lista de bloatware:** en `src/cli/data/bloatware_db.sh` → array `PROFILE_POCO_MODE` (fuente canónica única, sin espejo Python — `debloat_engine.py` se eliminó en la purga).
@@ -317,9 +359,18 @@ También activa `device_quiet_mode_enable()` (corta WiFi/datos + No Molestar) du
 | **S5 — Benchmark** | Benchmarks reales de RAM, I/O, Game Mode, AOT — todos descartados con evidencia | ✅ Cerrado (ver hallazgos arriba) |
 | **S6 — Release** | Decisión: UI pausada. Entregables: setup.ps1 + OTA como servicio | ✅ Cerrado |
 | **S7 — Purga de interfaces (29/08/2026)** | Se decidió no retomar la UI y eliminar toda interfaz del repo: UI PySide6, web app, stub Electron, plan de migración a Tauri. Se corrigió el BUG 1 (joyose en `optimize-boot.sh`) de paso. | ✅ Cerrado |
-| **S8 — Merge trabajo local + modo Sindy (30/08/2026)** | Se rescató y mergeó trabajo local no commiteado: modo whitelist para Sindy, `usage_stats.py`, fix mejorado del BUG 1, fallback appops ya codeado, `database.py` restaurada. Codename de Pablo confirmado (`pond`) con el dispositivo conectado. Queda abierto: destrabar la sección bloqueada de `profile_sindy.sh` y confirmar el codename de Sindy en su propio dispositivo. | ⚠️ Casi cerrado — ver "PRÓXIMO PASO" |
+| **S8 — Merge trabajo local + modo Sindy (30/08/2026)** | Se rescató y mergeó trabajo local no commiteado: modo whitelist para Sindy, `usage_stats.py`, fix mejorado del BUG 1, fallback appops ya codeado, `database.py` restaurada. Codename de Pablo confirmado (`pond`) con el dispositivo conectado. | ✅ Cerrado |
+| **S9 — Limpieza + auditoría de bugs + realineación de objetivo (30/08/2026)** | Se sacó todo lo que no correspondía (doc de otra IA, archivos sueltos, carpetas vacías de la purga). Se encontraron y corrigieron 8 bugs reales (BUG 2-8, ver "Sesión 30/08/2026" arriba) — el más grande: `settings put global` sí funciona sin root en este dispositivo, y varios "hallazgos" previos de tweaks bloqueados eran falsos negativos de la propia herramienta de diagnóstico. Se fijó el objetivo explícito del proyecto (Android lo más limpio posible, referencia POCO X3 Pro, sin arriesgar brickeo) al principio de este archivo. | ✅ Cerrado — ver "PENDIENTE" al principio del archivo para lo que sigue abierto |
 
 ---
+
+## Research externo — 30/08/2026
+
+Búsqueda puntual para esta sesión (no específica al Redmi 14C, contexto general HyperOS 3 vigente a la fecha):
+
+- El desbloqueo de bootloader Xiaomi en equipos globales sigue siendo un proceso oficial con aprobación previa (no un unlock instantáneo), y trae pérdida permanente de OTA/Find Device/biometría/Google Pay — consistente con lo que ya sabíamos, matiza el "SKU bloqueado" de la investigación del 29/08 (ver sección de bootloader arriba).
+- Múltiples guías independientes (GitHub, blogs) confirman el mismo hallazgo de esta sesión: ADB sin root puede debloatear HyperOS 3 a fondo y tocar `Settings.Global`, siempre que el toggle "Depuración USB (Config. de seguridad)" esté activo — coincide con el hallazgo de fondo de "Sesión 30/08/2026" arriba.
+- Nada nuevo sobre GSI/Project Treble específico para MT6769J — sigue atado al mismo prerrequisito de bootloader desbloqueado, no cambia el cálculo de costo/beneficio.
 
 ## Investigación — cuándo y cómo
 
@@ -332,4 +383,4 @@ También activa `device_quiet_mode_enable()` (corta WiFi/datos + No Molestar) du
 
 ---
 
-*CLAUDE.md v4.1 — 30/08/2026 — MejoraRedmi14C (checklist técnico completado con el dispositivo real: codename `pond` confirmado, Vulkan confirmado inerte, Lawnchair activo como HOME — pendiente solo feedback de uso real y codename de Sindy)*
+*CLAUDE.md v4.2 — 30/08/2026 — MejoraRedmi14C (sesión de limpieza + auditoría de bugs: 8 bugs corregidos, `settings put global` confirmado funcional sin root contra el dispositivo real, objetivo del proyecto explicitado — pendiente feedback de uso real del launcher y codename de Sindy)*

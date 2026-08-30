@@ -119,7 +119,7 @@ def get_device_info(serial: str) -> DeviceInfo:
     props = [
         ("ro.product.model",        "model"),
         ("ro.build.version.release","android_version"),
-        ("ro.miui.ui.version.name", "hyperos_version"),
+        ("ro.mi.os.version.name",   "hyperos_version"),
     ]
     for prop, attr in props:
         _, val, _ = _adb("shell", "getprop", prop, serial=serial)

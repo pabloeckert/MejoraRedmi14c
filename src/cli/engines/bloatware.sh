@@ -222,12 +222,19 @@ bloatware_restore_all() {
     # Revertir el fallback RUN_ANY_IN_BACKGROUND de safe_disable_pkg() (Intento 3):
     # esos paquetes siguen habilitados/instalados, así que no aparecen en
     # "pm list packages -d" y quedarían bloqueados en background para siempre
-    # si no se revierten explícitamente acá.
+    # si no se revierten explícitamente acá. PROFILE_RUNTIME no se carga en
+    # el arranque de run.sh (solo dentro de profile_optimize.sh/scan.sh), así
+    # que hay que sourcearlo acá también o --emergency no revierte lo que
+    # desactivó ./run.sh --profile.
+    if [ -z "${PROFILE_RUNTIME+x}" ] && [ -f "$DATA_DIR/profile_runtime.sh" ]; then
+        source "$DATA_DIR/profile_runtime.sh"
+    fi
     local catalog_pkg
-    for catalog_pkg in "${PROFILE_POCO_MODE[@]}" "${PROFILE_XIAOMI_TELEMETRY[@]}"; do
+    for catalog_pkg in "${PROFILE_POCO_MODE[@]}" "${PROFILE_XIAOMI_TELEMETRY[@]}" "${PROFILE_RUNTIME[@]:-}"; do
+        [ -z "$catalog_pkg" ] && continue
         adb -s "$DEVICE_SERIAL" shell cmd appops set "$catalog_pkg" RUN_ANY_IN_BACKGROUND allow >/dev/null 2>&1
     done
-    log_ok "RUN_ANY_IN_BACKGROUND restaurado (allow) en el catálogo completo."
+    log_ok "RUN_ANY_IN_BACKGROUND restaurado (allow) en el catálogo completo (incluye PROFILE_RUNTIME si existe)."
 
     log_ok "$restored app(s) reactivadas."
     echo "$restored"

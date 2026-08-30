@@ -1,35 +1,14 @@
 data/devices.db
-node_modules/
-dist/
-dist-release/
-out/
 .DS_Store
 *.log
-logs/*.json
-!logs/.gitkeep
 .env
-!installer/
 
 # Benchmark results (generated at runtime)
 benchmark_antes_*.txt
 benchmark_despues_*.txt
 
-# Rescue points (contain device-specific data)
-rescue-points/*/
-!rescue-points/.gitkeep
-
-# Backups (contain device-specific data)
+# Backups (contienen datos específicos del dispositivo)
 backups/
-
-# Internal/test files
-PROMPT.md
-test-resultados.txt
-
-# Gaming resolution backup
-.gaming-resolution-backup
-
-# GitHub Pages build output
-_site/
 
 # Python
 __pycache__/
