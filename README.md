@@ -28,6 +28,7 @@ El script detecta automáticamente:
 | `./run.sh` | Auto-detección | variable |
 | `./run.sh --full` / `-f` | Optimización completa | 15-30 min |
 | `./run.sh --profile` / `-p` | Optimización con perfil personalizado (`data/profile_runtime.sh`) | 15-30 min |
+| `./run.sh --sindy` | Perfil whitelist para el teléfono de Sindy (`data/profile_sindy.sh`) — tiene una sección bloqueada pendiente de confirmación, ver CLAUDE.md | 15-30 min |
 | `./run.sh --maintenance` / `-s` | Mantenimiento semanal | < 5 min |
 | `./run.sh --monitor` / `-m` | Monitoreo en tiempo real | continuo |
 | `./run.sh --emergency` / `-e` | Restaurar todo a fábrica | 2-3 min |

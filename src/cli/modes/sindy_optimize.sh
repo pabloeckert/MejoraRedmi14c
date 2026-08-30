@@ -1,11 +1,12 @@
 #!/bin/bash
 # ═══════════════════════════════════════════════════════════════
-#  PhoneOptimizer Pro — Modo optimización completa (primera vez)
-#  Flujo: backup → bloatware → performance → camera → memoria
-#         → red → thermal → limpieza → dexopt → reinicio
+#  PhoneOptimizer Pro — Modo optimización personalizada (Sindy)
+#  Copia estructural de modes/full_optimize.sh — único cambio real:
+#  FASE 2 usa bloatware_run_whitelist (whitelist) en vez de
+#  bloatware_run (blacklist). Todo lo demás se reutiliza sin cambios.
 # ═══════════════════════════════════════════════════════════════
 
-mode_full_optimize() {
+mode_sindy_optimize() {
     local start_time; start_time=$(date +%s)
     local run_id=0
     local apps_disabled=0
@@ -14,6 +15,10 @@ mode_full_optimize() {
     # ── FASE 0: Preparación ──
     log_section "FASE 0 — Preparación"
     thermal_gate_check || exit 1
+    device_quiet_mode_enable
+    # Si el script aborta en cualquier fase posterior (exit 1), igual hay que
+    # restaurar WiFi/datos/DND — si no, el teléfono queda sin conexión.
+    trap device_quiet_mode_disable EXIT
 
     memory_get_stats
     local ram_before_mb="${MEMORY_AVAIL_MB:-0}"
@@ -22,7 +27,6 @@ mode_full_optimize() {
     log_info "Score inicial: ${score_before}%"
     log_info "RAM disponible: ${ram_before_mb}MB"
 
-    # Inicializar dashboard si el terminal lo soporta
     if [ -t 1 ] && command -v tput &>/dev/null && [ "$(tput cols 2>/dev/null || echo 0)" -ge 80 ]; then
         display_init
         display_draw_frame
@@ -45,16 +49,15 @@ mode_full_optimize() {
     log_ok "Backup: $snap_path"
     [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "Backup creado" "ok"
 
-    # Iniciar run en DB
-    run_id=$(db_start_run "full" "$score_before" "$ram_before_mb" \
+    run_id=$(db_start_run "sindy" "$score_before" "$ram_before_mb" \
                           "$DEVICE_BATTERY_PCT" "$DEVICE_TEMP_C")
     log_info "Run ID: $run_id"
 
-    # ── FASE 2: Bloatware ──
-    log_section "FASE 2 — Bloatware (Poco Mode)"
+    # ── FASE 2: Bloatware — WHITELIST (único cambio real vs full_optimize.sh) ──
+    log_section "FASE 2 — Bloatware (perfil whitelist Sindy)"
     [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_update_progress 2 9 "Bloatware"
     local _bloat_raw
-    _bloat_raw=$(bloatware_run "PROFILE_POCO_MODE" "$run_id")
+    _bloat_raw=$(bloatware_run_whitelist "PROFILE_SINDY_WHITELIST" "$run_id")
     log_raw "$_bloat_raw"
     apps_disabled=$(printf '%s' "$_bloat_raw" | grep -E '^[0-9]+$' | tail -1)
     apps_disabled="${apps_disabled:-0}"
@@ -70,10 +73,9 @@ mode_full_optimize() {
     thermal_apply_performance
     network_apply_optimization "$run_id"
 
-    # ── Gate térmico intermedio — las fases 4-5 son las más largas/calientes (dexopt) ──
     thermal_gate_check || { log_fail "Abortando fases restantes por temperatura crítica."; exit 1; }
 
-    # ── FASE 4: Camera + WhatsApp fix (FIX CRÍTICO) ──
+    # ── FASE 4: Camera + WhatsApp fix (prioridad de Sindy) ──
     log_section "FASE 4 — Camera + WhatsApp Fix"
     [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_update_progress 4 9 "Camera Fix"
     local cam_raw
@@ -98,7 +100,6 @@ mode_full_optimize() {
     log_section "FASE 7 — Verificación"
     [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_update_progress 7 9 "Verificación"
 
-    # Verificar temperatura post
     thermal_check >/dev/null
     if [ "${DEVICE_TEMP_C:-0}" -gt 45 ]; then
         log_warn "Temperatura alta post-optimización: ${DEVICE_TEMP_C}°C"
@@ -106,23 +107,23 @@ mode_full_optimize() {
         log_ok "Temperatura: ${DEVICE_TEMP_C}°C — OK"
     fi
 
-    # Score final
     memory_get_stats
     local ram_after_mb="${MEMORY_AVAIL_MB:-0}"
     local score_after; score_after=$(performance_calculate_score)
     log_ok "Score final: ${score_after}% (antes: ${score_before}%)"
 
-    # ── Registrar resultado en DB ──
     local end_time; end_time=$(date +%s)
     local duration=$(( end_time - start_time ))
     db_end_run "$run_id" "$score_after" "$ram_after_mb" \
                "$apps_disabled" "$apps_compiled" "$duration" \
-               "Poco Mode — HyperOS 3"
+               "Perfil Sindy (whitelist) — HyperOS 3"
 
-    # Guardar métricas
     db_record_metrics \
         "$MEMORY_USED_PCT" 0 "$DEVICE_TEMP_C" "$DEVICE_BATTERY_PCT" \
         "$(bloatware_get_count)" 0
+
+    trap - EXIT
+    device_quiet_mode_disable
 
     # ── FASE 8: Reinicio ──
     log_section "FASE 8 — Reinicio"

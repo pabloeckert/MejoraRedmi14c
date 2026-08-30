@@ -11,8 +11,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## ⏭️ PRÓXIMO PASO — ejecutar apenas el dispositivo esté conectado
 
-Pendiente de la investigación del 29/08/2026 (detalle completo en la sección "Investigación 29/08/2026" más abajo). Con el Redmi 14C de Pablo (serial `NB5XWCLZSGB6J74D`) conectado por USB, ejecutar **en orden, sin parar entre pasos salvo que alguno falle o la temperatura esté alta**:
+Pendiente de la investigación del 29/08/2026 (detalle completo en la sección "Investigación 29/08/2026" más abajo) **y** del merge del 30/08/2026 con el trabajo local no commiteado (detalle en "Merge 30/08/2026" más abajo). Con el Redmi 14C de Pablo (serial `NB5XWCLZSGB6J74D`) conectado por USB, ejecutar **en orden, sin parar entre pasos salvo que alguno falle o la temperatura esté alta**:
 
+0. **🔴 BLOQUEANTE — verificar codename real:** `adb shell getprop ro.product.device`. Hay una inconsistencia sin resolver entre el commit original (`f70fe26`: "Pablo (lake) + Sindy (pond)"), lo que corría en producción hasta hoy (los dos en `pond`) y el fix del merge de hoy (los dos en `lake`). Ver "Merge 30/08/2026" abajo — corregir `forge/services/ota_check.py` y `forge/core/ota_watcher.py` con el valor real antes de confiar en el OTA watcher de cualquiera de los dos dispositivos.
 1. `adb devices` — confirmar que aparece `NB5XWCLZSGB6J74D`.
 2. `cd src/cli && ./run.sh --scan` — baseline real: RAM, temperatura, batería. Si temp > 38°C, esperar a que enfríe antes de seguir (no forzar).
 3. `bash tools/mega-verificar.sh` — mirar puntualmente la sección GPU: ¿pasa ✅ o falla ❌? Esto resuelve si "Vulkan + MSAA forzado" realmente está aplicado en este build o no (ver nota en "Contexto técnico del dispositivo").
@@ -37,15 +38,37 @@ Repo depurado el 29/08/2026: se eliminó toda interfaz (UI PySide6, web app WebU
 | `forge/core/app_scanner.py` | ✅ Funcional | Auditoría/limpieza de apps desde terminal: `python -m forge.core.app_scanner --scan <SERIAL>` |
 | `forge/core/apps_catalog.py`, `packages_db.py` | ✅ Funcional | Catálogos de soporte para `app_scanner.py` |
 | `forge/core/ota_watcher.py` | ✅ Funcional | Lógica pura de chequeo/reaplicación de tweaks OTA (sin Qt) — usada por `ota_check.py` |
-| `forge/services/ota_check.py` | ✅ Producción | OTA watcher autónomo — corre via Task Scheduler, sin UI |
-| `forge/services/maintenance_check.py` | ⚠️ Funcional, sin scheduler | Monitor headless de storage/temp/backup local WhatsApp — mismo patrón que `ota_check.py` pero **no** registrado aún en `setup.ps1`; correr manual: `python -m forge.services.maintenance_check` |
-| `setup.ps1` / `setup.bat` | ✅ Producción | Setup one-command para PC nueva — instala deps headless, ADB, Task Scheduler |
-| **Dispositivo Pablo** | NB5XWCLZSGB6J74D | 75 apps eliminadas, animaciones 0.3x, 90Hz, DEXOPT completo. Baseline: 1141MB RAM libre, 29°C reposo. Build: OS3.0.20.0.WGTMIXM (abr 2026) — la más reciente para MXM. |
-| **Dispositivo Sindy** | VOSWQCOVJVQWT8LR | Monitoreado por OTA watcher (`ota_check.py`). Estado: desconocido — no optimizado con CLI. |
+| `forge/core/usage_stats.py` | ✅ Funcional | Snapshot de uso real vía `dumpsys usagestats` — alimenta `maintenance_check.py` con evidencia para decidir el perfil de debloat de Sindy |
+| `forge/db/database.py` | ✅ Funcional (restaurada 30/08/2026) | SQLite en `%LOCALAPPDATA%/RedmiForge/redmiforge.db` — se había borrado en la purga por creerla solo-UI; `maintenance_check.py` la necesita para `record_metric()`. Conexión ahora vía context manager (cierra siempre, commit/rollback automático). |
+| `forge/services/ota_check.py` | ✅ Producción | OTA watcher autónomo — corre via Task Scheduler, sin UI. Logging a archivo (`ota_check.log`) + manejo de errores por dispositivo (30/08/2026). ⚠️ Codename por dispositivo sin verificar — ver "PRÓXIMO PASO". |
+| `forge/services/maintenance_check.py` | ✅ Producción | Storage/temp/backup WhatsApp + limpieza de caché liviana (24h) + `--maintenance` completo oportunista (7 días) + snapshot de uso — registrado en `setup.ps1` (Task Scheduler, cada 60 min) |
+| `setup.ps1` / `setup.bat` | ✅ Producción | Setup one-command para PC nueva — instala deps headless, ADB, Task Scheduler (OTA cada 15 días + mantenimiento cada 60 min) |
+| `src/cli/modes/sindy_optimize.sh` + `data/profile_sindy.sh` | ⚠️ Funcional, con bloqueo pendiente | Modo whitelist (`./run.sh --sindy`) para el teléfono de Sindy — inversa del modo Pablo: protege lo que está en la whitelist, desactiva TODO el resto de apps de terceros. La whitelist tiene una sección explícita de apps (juegos, redes sociales, 3 apps sin identificar) **bloqueada hasta confirmación de Pablo** — no tocar sin esa confirmación. |
+| **Dispositivo Pablo** | NB5XWCLZSGB6J74D | 75 apps eliminadas, animaciones 0.3x, 90Hz, DEXOPT completo. Baseline: 1141MB RAM libre, 29°C reposo. Build: OS3.0.20.0.WGTMIXM (abr 2026) — la más reciente para MXM. Codename real sin confirmar (ver "PRÓXIMO PASO"). |
+| **Dispositivo Sindy** | VOSWQCOVJVQWT8LR | Monitoreado por OTA watcher (`ota_check.py`) + `maintenance_check.py`. Perfil whitelist armado (`profile_sindy.sh`) pero con bloqueo pendiente de confirmación — no se corrió `--sindy` todavía. |
 
-**Eliminado en la purga del 29/08/2026** (ver commit correspondiente para detalle): `forge/ui/` (UI PySide6), `main.py`, `src/web/` (web app WebUSB), `app/` (stub Electron), `forge/db/` + `forge/dev/` (persistencia y seed solo usados por la UI), `forge/core/debloat_engine.py` (puente perfil-UI → Bash), `forge/core/device_watcher.py` (poller Qt), `forge/core/game_mode.py` (feature de rendimiento, fuera de alcance de limpieza/mantenimiento — ver hallazgo "Game Mode" abajo), `forge/core/log_parser.py` (parsing para la UI), `.github/workflows/deploy.yml` (publicaba la web app), `SCRIPTS_INVENTORY.md` (planificaba una migración a Tauri, obsoleto).
+**Eliminado en la purga del 29/08/2026** (ver commit correspondiente para detalle): `forge/ui/` (UI PySide6), `main.py`, `src/web/` (web app WebUSB), `app/` (stub Electron), `forge/dev/` (seed solo usado por la UI), `forge/core/debloat_engine.py` (puente perfil-UI → Bash), `forge/core/device_watcher.py` (poller Qt), `forge/core/game_mode.py` (feature de rendimiento, fuera de alcance de limpieza/mantenimiento — ver hallazgo "Game Mode" abajo), `forge/core/log_parser.py` (parsing para la UI), `.github/workflows/deploy.yml` (publicaba la web app), `SCRIPTS_INVENTORY.md` (planificaba una migración a Tauri, obsoleto). `forge/db/` se borró en la purga y se restauró en el merge del 30/08/2026 (ver abajo) — sí hacía falta, para `maintenance_check.py`.
 
 No hay interfaz de ningún tipo en este repo. Todo el trabajo es por prompt/terminal: CLI Bash + módulos Python invocados con `python -m`.
+
+---
+
+## Merge 30/08/2026 — trabajo local no commiteado
+
+Una sesión anterior de Claude Code Desktop, corriendo local en la PC de Pablo, había hecho un trabajo grande (modo Sindy completo + varios bugs corregidos) que nunca se commiteó — quedó solo en el disco de esa PC hasta que se rescató como snapshot (`git checkout -b wip-sindy-local-snapshot && git add -A && git commit` + push) y se mergeó acá.
+
+**Se descartó del merge:** el `CLAUDE.md` de esa sesión no era una edición del de este repo — era un documento genérico de 28 líneas sobre "criterio de modelo y esfuerzo" para Mejora Continua (sin relación con el Redmi 14C), que pisó por accidente todo el contenido de este archivo. Se recuperó la versión de la purga y se le agregó la documentación de lo nuevo acá.
+
+**Se incorporó (todo real, coherente con el estilo de seguridad del proyecto):**
+- `optimize-boot.sh`: arregla la causa raíz de que `config.sh` nunca se cargaba ahí (el path apuntaba a la carpeta equivocada — `$SCRIPT_DIR/config.sh` en vez de `$SCRIPT_DIR/../core/config.sh`), agrega backup + gate térmico, corrige otro bug de namespace de animaciones (`global`→`system`). Reemplaza mi fix anterior del BUG 1 — este es más completo.
+- `config.sh` (`safe_disable_pkg`): agrega el 3er intento ya documentado pero nunca codeado — `cmd appops set <pkg> RUN_ANY_IN_BACKGROUND deny` como fallback final.
+- `bloatware.sh`: agrega `bloatware_run_whitelist()` (motor del modo Sindy) y corrige `bloatware_restore_all()` para revertir ese nuevo intento 3 (si no, esos paquetes quedan bloqueados en background para siempre tras un `--emergency`).
+- `device_profile.sh`: agrega `device_quiet_mode_enable/disable()` — corta WiFi/datos + activa No Molestar durante la optimización de Sindy, restaura el estado exacto previo al terminar.
+- `adb_utils.sh` (`adb_take_snapshot`): verifica que el snapshot no haya quedado vacío por desconexión a mitad de camino.
+- `database.sh`: corrige el cálculo de `total_ram_freed_mb` (usaba una variable de otro scope; ahora subconsulta el valor real por `run_id`).
+- `run.sh`: agrega el flag `--sindy`.
+
+**Codename OTA sin resolver — ver ítem 0 de "PRÓXIMO PASO":** no se puede verificar sin el dispositivo conectado, así que quedó marcado como pendiente en vez de adivinado.
 
 ---
 
@@ -61,6 +84,7 @@ Set-ExecutionPolicy -Scope CurrentUser Bypass -Force
 cd src/cli && ./run.sh            # auto-detección de dispositivo
 cd src/cli && ./run.sh --full     # optimización completa (Poco Mode)
 cd src/cli && ./run.sh --profile  # optimización con perfil personalizado (data/profile_runtime.sh)
+cd src/cli && ./run.sh --sindy    # perfil whitelist para el teléfono de Sindy — TIENE bloqueo pendiente, ver data/profile_sindy.sh
 cd src/cli && ./run.sh --maintenance
 cd src/cli && ./run.sh --monitor
 cd src/cli && ./run.sh --emergency
@@ -93,7 +117,7 @@ bash src/cli/tools/optimize-boot.sh --dry-run   # SIEMPRE con --dry-run primero 
 
 ## Bugs críticos — resueltos
 
-- **BUG 1 (resuelto 29/08/2026)** `src/cli/tools/optimize-boot.sh` tenía `com.xiaomi.joyose` hardcodeado en `BOOT_APPS` y lo desactivaba con `pm disable-user` directo, sin pasar por `safe_disable_pkg()`/`is_critical_pkg()`. Se sacó `joyose` del array y se agregó un guardrail explícito en el loop (`is_critical_pkg` de `config.sh`, con fallback hardcodeado si `config.sh` no está sourceado) que salta cualquier paquete crítico antes de tocarlo. Corré siempre con `--dry-run` primero de todos modos.
+- **BUG 1 (resuelto 29/08/2026, fix mejorado 30/08/2026)** `src/cli/tools/optimize-boot.sh` tenía `com.xiaomi.joyose` hardcodeado en `BOOT_APPS` y lo desactivaba con `pm disable-user` directo, sin pasar por `safe_disable_pkg()`/`is_critical_pkg()`. Causa raíz real (encontrada 30/08/2026): el `source` de `config.sh` apuntaba a la carpeta equivocada y fallaba en silencio — `is_critical_pkg` nunca estaba disponible ahí. Fix actual: path de `source` corregido a `../core/config.sh` (+ `adb_utils.sh` + `engines/thermal.sh`), `joyose` sacado del array, guardrail `is_critical_pkg` en el loop, y se le agregó backup + gate térmico igual que al resto de los modos. Corré siempre con `--dry-run` primero de todos modos.
 
 ## Limitaciones Android 16 — parche BP2A.250605.031.A3 (confirmadas 01/06/2026)
 
@@ -109,6 +133,8 @@ Android 16 con el parche de seguridad de junio 2025 bloqueó múltiples mecanism
 | `cmd appops set <pkg> RUN_ANY_IN_BACKGROUND deny` | ✅ Funciona para TODO tipo de package | **Usar siempre como fallback** |
 
 **Consecuencia práctica:** Para paquetes del sistema de Xiaomi (`com.miui.*`, `com.android.*`), el único mecanismo efectivo sin root es `RUN_ANY_IN_BACKGROUND deny`. Impide que inicien servicios en background; si el usuario nunca abre la app, no corre. Es efectivo para telemetría (`com.miui.analytics`) y publicidad (`com.miui.msa.global`).
+
+**Ya codeado (30/08/2026):** `safe_disable_pkg()` en `config.sh` tiene este fallback como Intento 3 — antes estaba documentado acá pero no implementado. `bloatware_restore_all()` lo revierte explícitamente (`RUN_ANY_IN_BACKGROUND allow`) porque estos paquetes no aparecen en `pm list packages -d`, así que el loop de restauración normal no los alcanzaría.
 
 ---
 
@@ -193,7 +219,7 @@ Ante duda entre "hacer más" y "hacer menos y bien": menos y bien.
 
 ## Contexto técnico del dispositivo
 
-- **Modelo:** Redmi 14C (2409BRN2CL) — serial NB5XWCLZSGB6J74D — codename **pond** (global)
+- **Modelo:** Redmi 14C (2409BRN2CL) — serial NB5XWCLZSGB6J74D — codename ⚠️ **sin confirmar** (ver "PRÓXIMO PASO" — el commit original decía "lake", esta línea decía "pond", y el fix del merge del 30/08 puso "lake" en los dos dispositivos; ninguna fuente es confiable sin chequear `adb shell getprop ro.product.device` directo)
 - **SoC:** Helio G81 Ultra (MediaTek **MT6769J**) — 6× Cortex-A55 @ 1.7 GHz (cpu0–5) + 2× Cortex-A75 @ 2.0 GHz (cpu6–7)
 - **OS:** HyperOS V816 / Android 16
 - **Tweaks validados en v6.0 (NO tocar sin testear):**
@@ -205,7 +231,8 @@ Ante duda entre "hacer más" y "hacer menos y bien": menos y bien.
 - **Governor:** `sugov_ext` (propietario MediaTek, default HyperOS). Disponibles: `sugov_ext | conservative | powersave | performance | schedutil`. Sin root: no legible ni modificable directamente.
 - **ZRAM:** `zram0` configurado en 4 GB (SwapTotal=4194300 kB). Algoritmo no legible sin root. No modificar.
 - **Lista de bloatware:** en `src/cli/data/bloatware_db.sh` → array `PROFILE_POCO_MODE` (fuente canónica única, sin espejo Python — `debloat_engine.py` se eliminó en la purga).
-- **Perfil personalizado:** `src/cli/data/profile_runtime.sh` → array `PROFILE_RUNTIME`, apps extra a desactivar además de `PROFILE_POCO_MODE`. Antes lo generaba el wizard de la UI; ahora es estático y editable a mano. Usado por `./run.sh --profile`.
+- **Perfil personalizado (Pablo):** `src/cli/data/profile_runtime.sh` → array `PROFILE_RUNTIME`, apps extra a desactivar además de `PROFILE_POCO_MODE`. Antes lo generaba el wizard de la UI; ahora es estático y editable a mano. Usado por `./run.sh --profile`. Es blacklist: "esto además se elimina".
+- **Perfil personalizado (Sindy):** `src/cli/data/profile_sindy.sh` → array `PROFILE_SINDY_WHITELIST`. Al revés del de Pablo — es whitelist: "esto se protege, TODO el resto de apps de terceros se desactiva". Tiene una sección de apps (juegos, redes sociales, 3 sin identificar) explícitamente bloqueada hasta que Pablo confirme. Usado por `./run.sh --sindy` vía `bloatware_run_whitelist()`.
 
 ---
 
@@ -217,11 +244,14 @@ MejoraRedmi14C
 │   └── src/cli/run.sh              — orquestador principal
 │       ├── core/config.sh          — constantes + safe_disable_pkg()/is_critical_pkg() + funciones ADB
 │       ├── core/database.sh, adb_utils.sh, display.sh, device_profile.sh
-│       ├── data/bloatware_db.sh    — PROFILE_POCO_MODE (lista canónica global)
-│       ├── data/profile_runtime.sh — PROFILE_RUNTIME (perfil personalizado, editable a mano)
+│       ├── data/bloatware_db.sh    — PROFILE_POCO_MODE (lista canónica global, blacklist)
+│       ├── data/profile_runtime.sh — PROFILE_RUNTIME (perfil Pablo, blacklist adicional, editable a mano)
+│       ├── data/profile_sindy.sh   — PROFILE_SINDY_WHITELIST (perfil Sindy, whitelist — con bloqueo pendiente)
 │       ├── data/devices.db         — SQLite: historial de runs por dispositivo
-│       ├── engines/                — bloatware.sh, performance.sh, memory.sh, camera_fix.sh, network.sh, thermal.sh
-│       └── modes/                  — full_optimize.sh, maintenance.sh, monitor.sh, emergency.sh, profile_optimize.sh, scan.sh
+│       ├── engines/                — bloatware.sh (incl. bloatware_run_whitelist()), performance.sh, memory.sh,
+│       │                             camera_fix.sh, network.sh, thermal.sh
+│       └── modes/                  — full_optimize.sh, maintenance.sh, monitor.sh, emergency.sh,
+│                                     profile_optimize.sh, sindy_optimize.sh, scan.sh
 │
 ├── forge/core/ — módulos Python de soporte, sin dependencias de UI
 │   ├── adb_bridge.py     — find_adb(), find_shell(), list_devices(), get_device_info(),
@@ -231,12 +261,18 @@ MejoraRedmi14C
 │   │                        (AOSP, HyperOS, Google, MediaTek), lookup()
 │   ├── app_scanner.py    — scan_packages(), disable_package(), classify_batch_with_haiku()
 │   │                        (Claude Haiku vía API, opcional) — CLI: python -m forge.core.app_scanner --scan <SERIAL>
+│   ├── usage_stats.py    — collect_usage_snapshot() vía dumpsys usagestats, sin root
 │   └── ota_watcher.py    — OTAState, should_check(), check_for_update(), scan_tweaks(), reapply_tweaks()
 │                            (lógica pura, sin Qt — la usa ota_check.py)
 │
+├── forge/db/ — persistencia SQLite en %LOCALAPPDATA%/RedmiForge/redmiforge.db
+│   └── database.py       — init_db(), upsert_device(), start_run()/finish_run(),
+│                            record_metric()/get_latest_metric()/list_metrics() (usage_stats de Sindy)
+│
 └── forge/services/ — headless, sin Qt, para Task Scheduler/cron
-    ├── ota_check.py           — chequeo OTA cada 14-15 días, registrado en setup.ps1
-    └── maintenance_check.py   — storage/temp/backup WhatsApp por dispositivo, correr manual por ahora
+    ├── ota_check.py           — chequeo OTA cada 14-15 días + logging a archivo, registrado en setup.ps1
+    └── maintenance_check.py   — storage/temp/backup WhatsApp + limpieza liviana + --maintenance oportunista
+                                 + snapshot de uso, registrado en setup.ps1 (cada 60 min)
 ```
 
 ### Auditoría de apps desde terminal
@@ -245,6 +281,14 @@ MejoraRedmi14C
 2. Apps conocidas se categorizan contra `PACKAGES_DB` y `DEBLOAT_CATALOG`
 3. Apps desconocidas se envían en batches a `classify_batch_with_haiku()` — Claude Haiku via `anthropic` SDK (requiere `ANTHROPIC_API_KEY`; sin ella el escaneo funciona igual pero sin descripción)
 4. `disable_package()` aplica los guardrails antes de ejecutar: joyose, SafetyNet (`SAFETYNET_PROTECTED`), críticas de negocio (`BUSINESS_CRITICAL`)
+
+### Modo Sindy — whitelist, con bloqueo pendiente
+
+`./run.sh --sindy` corre `mode_sindy_optimize()` (copia estructural de `full_optimize.sh` — la única diferencia real es la FASE 2). En vez de blacklist (Pablo: "esto se elimina"), usa whitelist (`bloatware_run_whitelist()` en `engines/bloatware.sh`): calcula todos los paquetes de terceros (`pm list packages -3`) que NO están en `PROFILE_SINDY_WHITELIST`, muestra un preview completo, y pide confirmación manual (`[s/N]`) antes de tocar nada — nunca toca paquetes de sistema por construcción.
+
+También activa `device_quiet_mode_enable()` (corta WiFi/datos + No Molestar) durante toda la corrida para que no le entren mensajes de WhatsApp, con `trap ... EXIT` para garantizar que se restaura aunque el script aborte a mitad de camino.
+
+**`data/profile_sindy.sh` tiene una sección explícitamente marcada como bloqueada** (juegos instalados, redes sociales, y 3 apps sin identificar) — no descomentar ni mover esos paquetes a la whitelist sin que Pablo confirme primero qué hacer con cada uno.
 
 ### OTA watch
 
@@ -273,6 +317,7 @@ MejoraRedmi14C
 | **S5 — Benchmark** | Benchmarks reales de RAM, I/O, Game Mode, AOT — todos descartados con evidencia | ✅ Cerrado (ver hallazgos arriba) |
 | **S6 — Release** | Decisión: UI pausada. Entregables: setup.ps1 + OTA como servicio | ✅ Cerrado |
 | **S7 — Purga de interfaces (29/08/2026)** | Se decidió no retomar la UI y eliminar toda interfaz del repo: UI PySide6, web app, stub Electron, plan de migración a Tauri. Se corrigió el BUG 1 (joyose en `optimize-boot.sh`) de paso. | ✅ Cerrado |
+| **S8 — Merge trabajo local + modo Sindy (30/08/2026)** | Se rescató y mergeó trabajo local no commiteado: modo whitelist para Sindy, `usage_stats.py`, fix mejorado del BUG 1, fallback appops ya codeado, `database.py` restaurada. Queda abierto: confirmar codename real del dispositivo (`lake`/`pond`) y destrabar la sección bloqueada de `profile_sindy.sh`. | ⚠️ Abierto — ver "PRÓXIMO PASO" |
 
 ---
 
@@ -287,4 +332,4 @@ MejoraRedmi14C
 
 ---
 
-*CLAUDE.md v3.1 — 29/08/2026 — MejoraRedmi14C (investigación: bootloader confirmado bloqueado, Shizuku descartado, bug de System Launcher HyperOS 3 identificado, `set-launcher.sh` agregado)*
+*CLAUDE.md v4.0 — 30/08/2026 — MejoraRedmi14C (merge con trabajo local: modo Sindy whitelist, usage_stats, fix mejorado BUG 1, database.py restaurada — codename de dispositivos pendiente de confirmar)*

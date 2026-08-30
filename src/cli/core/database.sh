@@ -144,7 +144,9 @@ WHERE id = $run_id;
 
 UPDATE devices
 SET run_count           = run_count + 1,
-    total_ram_freed_mb  = total_ram_freed_mb + ($ram_after - ram_before_mb),
+    total_ram_freed_mb  = total_ram_freed_mb + ($ram_after - (
+                              SELECT ram_before_mb FROM optimization_runs WHERE id = $run_id
+                          )),
     total_apps_disabled = total_apps_disabled + $apps_disabled,
     last_seen           = datetime('now')
 WHERE serial = '$DEVICE_SERIAL';

@@ -1,16 +1,19 @@
 """
 Wrapper Python sobre ADB — localizar el binario, listar dispositivos y leer
-su estado (RAM, paquetes, tweaks) sin modificar nada. Usado por
-forge/core/app_scanner.py para la auditoría de apps desde terminal.
+su estado (RAM, paquetes, tweaks) sin modificar nada, e invocar src/cli/run.sh
+para forge/services/maintenance_check.py (mantenimiento oportunista headless).
 """
+import os
 import shutil
 import subprocess
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Generator
 
 # Rutas relativas a la raíz del proyecto
 _ROOT = Path(__file__).parents[2]
 _ADB_VENDOR = _ROOT / "vendor" / "adb" / "adb.exe"
+_CLI_RUN = _ROOT / "src" / "cli" / "run.sh"
 
 
 @dataclass
@@ -77,6 +80,16 @@ def shell_available() -> bool:
         return True
     except FileNotFoundError:
         return False
+
+
+def _to_posix_path(windows_path: Path, shell_exe: str) -> str:
+    """Convierte ruta Windows a formato compatible con el shell detectado."""
+    if "wsl" in shell_exe.lower():
+        drive = windows_path.drive[0].lower()          # "C" → "c"
+        rest = str(windows_path).replace("\\", "/")[2:]  # "\Github\..." → "/Github/..."
+        return f"/mnt/{drive}{rest}"
+    # Git Bash acepta rutas con / sin conversión de drive
+    return str(windows_path).replace("\\", "/")
 
 
 # ─── Operaciones ADB básicas ──────────────────────────────────────────────────
@@ -184,3 +197,37 @@ def scan_device(serial: str) -> ScanResult:
         installed_packages=installed,
         disabled_packages=disabled,
     )
+
+
+# ─── Invocar src/cli/run.sh ───────────────────────────────────────────────────
+
+def run_cli_script(mode_flag: str, serial: str) -> Generator[str, None, int]:
+    """
+    Generator que ejecuta src/cli/run.sh <mode_flag> y hace yield de cada línea
+    de output. Al terminar devuelve el exit code vía StopIteration.value.
+
+    Usado por forge/services/maintenance_check.py para correr `--maintenance`
+    oportunísticamente sin abrir una terminal — no hay traducción de flags acá
+    (el bridge de perfiles vía UI se eliminó en la purga del 29/08/2026; los
+    perfiles ahora son estáticos en src/cli/data/ y se seleccionan pasando el
+    flag correspondiente, ej. --profile o --sindy, directo).
+    """
+    shell_exe, prefix = find_shell()
+    script_path = _to_posix_path(_CLI_RUN, shell_exe)
+
+    cmd = [shell_exe] + prefix + [script_path, mode_flag]
+    env = {**os.environ, "ANDROID_SERIAL": serial}
+
+    with subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        bufsize=1,
+        env=env,
+    ) as proc:
+        for line in proc.stdout:
+            yield line.rstrip()
+    return proc.returncode

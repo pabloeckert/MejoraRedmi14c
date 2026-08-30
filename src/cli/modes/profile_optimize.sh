@@ -40,14 +40,18 @@ mode_profile_optimize() {
     log_section "FASE 1 — Backup"
     local snap_path
     snap_path=$(adb_take_snapshot "$DEVICE_SERIAL" "$BACKUPS_DIR")
-    if [ $? -eq 0 ] && [ -n "$snap_path" ]; then
-        log_ok "Backup: $snap_path"
-    else
-        log_warn "Backup no disponible — continuando igual"
+    if [ -z "$snap_path" ]; then
+        log_fail "Abortando — no se pudo crear un backup verificable (¿se desconectó el dispositivo?)"
+        exit 1
     fi
+    log_ok "Backup: $snap_path"
+
+    memory_get_stats
+    local ram_before_mb="${MEMORY_AVAIL_MB:-0}"
+    local score_before; score_before=$(performance_calculate_score)
 
     local run_id
-    run_id=$(db_start_run "profile" "0" "0" "${DEVICE_BATTERY_PCT:-0}" "${DEVICE_TEMP_C:-0}")
+    run_id=$(db_start_run "profile" "$score_before" "$ram_before_mb" "${DEVICE_BATTERY_PCT:-0}" "${DEVICE_TEMP_C:-0}")
     log_info "Run ID: $run_id"
 
     # ── FASE 2: Debloat personalizado ──
@@ -69,9 +73,13 @@ mode_profile_optimize() {
     network_apply_optimization "$run_id"
 
     # ── Finalizar run en DB ──
+    memory_get_stats
+    local ram_after_mb="${MEMORY_AVAIL_MB:-0}"
+    local score_after; score_after=$(performance_calculate_score)
+
     local end_time; end_time=$(date +%s)
     local duration=$(( end_time - start_time ))
-    db_end_run "$run_id" "0" "0" "$apps_disabled" "0" "$duration" \
+    db_end_run "$run_id" "$score_after" "$ram_after_mb" "$apps_disabled" "0" "$duration" \
                "Perfil personalizado — HyperOS 3"
 
     log_section "Optimización personalizada completada"

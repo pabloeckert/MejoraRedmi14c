@@ -8,6 +8,7 @@
 #    ./run.sh --maintenance / -s → mantenimiento semanal
 #    ./run.sh --monitor  / -m   → monitoreo en tiempo real
 #    ./run.sh --emergency / -e  → restaurar a fábrica
+#    ./run.sh --sindy           → perfil whitelist personalizado (Sindy)
 #
 #  Target: Redmi 14C — HyperOS 3 / Android 16 / Helio G81 Ultra
 # ═══════════════════════════════════════════════════════════════
@@ -30,6 +31,7 @@ source "$SCRIPT_DIR/core/adb_utils.sh"
 source "$SCRIPT_DIR/core/display.sh"
 source "$SCRIPT_DIR/core/device_profile.sh"
 source "$SCRIPT_DIR/data/bloatware_db.sh"
+source "$SCRIPT_DIR/data/profile_sindy.sh"
 source "$SCRIPT_DIR/engines/bloatware.sh"
 source "$SCRIPT_DIR/engines/performance.sh"
 source "$SCRIPT_DIR/engines/memory.sh"
@@ -114,6 +116,7 @@ for arg in "$@"; do
         --full|-f)      MODE="full"      ;;
         --profile|-p)   MODE="profile"   ;;
         --scan|-c)      MODE="scan"      ;;
+        --sindy)        MODE="sindy"     ;;
     esac
 done
 
@@ -179,6 +182,10 @@ case "$MODE" in
     scan)
         source "$SCRIPT_DIR/modes/scan.sh"
         mode_scan
+        ;;
+    sindy)
+        source "$SCRIPT_DIR/modes/sindy_optimize.sh"
+        mode_sindy_optimize
         ;;
 esac
 

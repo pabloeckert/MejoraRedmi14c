@@ -158,6 +158,50 @@ Set-ScheduledTask -InputObject $registeredTask | Out-Null
 
 Write-OK "Tarea '$taskName' registrada — corre cada 15 dias a las 09:00, sin ventana"
 
+# ─── 6. Maintenance watcher en Task Scheduler ────────────────────────────────
+Write-Step 6 "Registrando maintenance watcher en Programador de tareas"
+
+$maintTaskName   = "RedmiForge-Maintenance"
+$maintScriptPath = Join-Path $ROOT "forge\services\maintenance_check.py"
+
+$existingMaint = Get-ScheduledTask -TaskName $maintTaskName -ErrorAction SilentlyContinue
+if ($existingMaint) {
+    Unregister-ScheduledTask -TaskName $maintTaskName -Confirm:$false
+    Write-Host "  Tarea anterior eliminada (se recrea con config actual)" -ForegroundColor Gray
+}
+
+$maintAction = New-ScheduledTaskAction `
+    -Execute          $pythonw `
+    -Argument         "`"$maintScriptPath`"" `
+    -WorkingDirectory $ROOT
+
+# Cadencia corta (cada 60 min): la ventana de oportunidad es que el
+# dispositivo esté conectado por USB, algo corto e impredecible — a
+# diferencia del chequeo OTA, fallar rápido acá no cuesta nada.
+$maintTrigger = New-ScheduledTaskTrigger `
+    -Once -At (Get-Date) `
+    -RepetitionInterval (New-TimeSpan -Minutes 60) `
+    -RepetitionDuration ([TimeSpan]::MaxValue)
+
+$maintSettings = New-ScheduledTaskSettingsSet `
+    -ExecutionTimeLimit (New-TimeSpan -Minutes 10) `
+    -StartWhenAvailable `
+    -DontStopOnIdleEnd
+
+Register-ScheduledTask `
+    -TaskName    $maintTaskName `
+    -Action      $maintAction `
+    -Trigger     $maintTrigger `
+    -Settings    $maintSettings `
+    -Description "Redmi Forge: limpieza de cache + mantenimiento + snapshot de uso, oportunista cada 60 min si el dispositivo esta conectado" `
+    -RunLevel    Limited | Out-Null
+
+$registeredMaintTask = Get-ScheduledTask -TaskName $maintTaskName
+$registeredMaintTask.Settings.Hidden = $true
+Set-ScheduledTask -InputObject $registeredMaintTask | Out-Null
+
+Write-OK "Tarea '$maintTaskName' registrada — corre cada 60 min, sin ventana"
+
 # ─── Resumen ──────────────────────────────────────────────────────────────────
 Write-Host @"
 
@@ -165,10 +209,12 @@ Write-Host @"
 
   CLI (optimizar):     cd src/cli && bash run.sh --full
   CLI (mantenimiento): cd src/cli && bash run.sh --maintenance
+  CLI (perfil Sindy):  cd src/cli && bash run.sh --sindy
   CLI (solo escanear): cd src/cli && bash run.sh --scan
   Auditoria de apps:   python -m forge.core.app_scanner --scan <SERIAL>
   OTA watcher:         corre automatico cada 15 dias (Task Scheduler)
                        o manualmente: python forge\services\ota_check.py
-  Monitor mantenim.:   python -m forge.services.maintenance_check (manual, sin scheduler aun)
+  Maintenance watcher: corre automatico cada 60 min (Task Scheduler)
+                       o manualmente: python -m forge.services.maintenance_check
 
 "@ -ForegroundColor White

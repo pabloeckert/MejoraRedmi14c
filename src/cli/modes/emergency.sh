@@ -18,7 +18,10 @@ mode_emergency() {
 
     # ── 1: Reactivar TODOS los paquetes desactivados ──
     log_step "Paso 1/8 — Reactivando todas las apps..."
-    local restored; restored=$(bloatware_restore_all)
+    local restored_raw; restored_raw=$(bloatware_restore_all)
+    log_raw "$restored_raw"
+    local restored; restored=$(printf '%s' "$restored_raw" | grep -E '^[0-9]+$' | tail -1)
+    restored="${restored:-0}"
     log_ok "$restored app(s) reactivadas."
 
     # ── 2: Restaurar animaciones ──
