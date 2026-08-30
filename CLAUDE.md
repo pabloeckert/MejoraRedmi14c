@@ -14,9 +14,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 Pendiente de la investigación del 29/08/2026 (detalle completo en la sección "Investigación 29/08/2026" más abajo) **y** del merge del 30/08/2026 con el trabajo local no commiteado (detalle en "Merge 30/08/2026" más abajo). Con el Redmi 14C de Pablo (serial `NB5XWCLZSGB6J74D`) conectado por USB, ejecutar **en orden, sin parar entre pasos salvo que alguno falle o la temperatura esté alta**:
 
 0. ~~🔴 BLOQUEANTE — verificar codename real~~ **RESUELTO 30/08/2026:** `adb shell getprop ro.product.device` en el teléfono de Pablo (NB5XWCLZSGB6J74D) confirmó **`pond`**. Corregido en `ota_check.py` y `ota_watcher.py`. El de Sindy (VOSWQCOVJVQWT8LR) quedó en `pond` también (inferido — mismo modelo Redmi 14C), pero **sin confirmar en su dispositivo real todavía** — verificar la próxima vez que se conecte.
-1. `adb devices` — confirmar que aparece `NB5XWCLZSGB6J74D`.
-2. `cd src/cli && ./run.sh --scan` — baseline real: RAM, temperatura, batería. Si temp > 38°C, esperar a que enfríe antes de seguir (no forzar).
-3. `bash tools/mega-verificar.sh` — mirar puntualmente la sección GPU: ¿pasa ✅ o falla ❌? Esto resuelve si "Vulkan + MSAA forzado" realmente está aplicado en este build o no (ver nota en "Contexto técnico del dispositivo").
+1. ~~`adb devices` — confirmar que aparece `NB5XWCLZSGB6J74D`~~ **HECHO 30/08/2026** — device autorizado, RAM 3646MB, batería 51%, temp 29°C (OK para optimizar).
+2. ~~`cd src/cli && ./run.sh --scan` — baseline real~~ **HECHO 30/08/2026.** Resultado: 4 apps ya desactivadas, 3 pendientes, animaciones 0.3x y 90Hz ya aplicados. GPU/Blur/Resolución/Performance mode confirmados bloqueados sin root (ver Vulkan abajo).
+3. ~~Verificar sección GPU~~ **HECHO — confirmado inerte**, ver "Vulkan + MSAA forzado" en Investigación 29/08/2026.
 4. `adb shell pm list packages app.lawnchair` — si NO aparece, avisarle a Pablo que instale **Lawnchair** desde Play Store en el teléfono y esperar a que confirme antes de seguir (no se puede scriptear la instalación desde Play Store).
 5. `bash tools/set-launcher.sh app.lawnchair` — reemplaza `com.miui.home` como HOME por defecto.
 6. `bash tools/set-launcher.sh --status` — confirmar que Lawnchair quedó como HOME activo.
@@ -162,9 +162,9 @@ bash src/cli/tools/set-launcher.sh --status        # ver HOME activo
 bash src/cli/tools/set-launcher.sh --reset         # volver a com.miui.home
 ```
 
-### Vulkan + MSAA forzado — PENDIENTE DE VERIFICAR, probablemente inerte
+### Vulkan + MSAA forzado — CONFIRMADO INERTE (30/08/2026)
 
-`engines/performance.sh` (bloque GPU, líneas ~27-41) ya maneja bien el caso bloqueado — detecta "exception/denied" en la salida de `settings put global force_gpu_rendering 1` y loguea warning en vez de falso "ok". Pero dado que `settings put global` está confirmado bloqueado en Android 16 sin root (tabla arriba), es muy probable que este bloque **nunca se aplique** en el build actual, pese a que el CLAUDE.md lo listaba como "tweak validado". **Verificar corriendo `bash src/cli/tools/mega-verificar.sh`** — si la sección GPU muestra ❌ en vez de ✅, confirmar y corregir la entrada correspondiente en "Contexto técnico del dispositivo" más abajo (dejaría de ser una fuente de inestabilidad real, porque no estaría corriendo).
+`engines/performance.sh` (bloque GPU, líneas ~27-41) ya maneja bien el caso bloqueado — detecta "exception/denied" en la salida de `settings put global force_gpu_rendering 1` y loguea warning en vez de falso "ok". Se confirmó con el dispositivo real (`./run.sh --scan`): "GPU forzada → bloqueado en Android 16 (requiere root)". Nunca se aplicó en este build pese a que el CLAUDE.md lo listaba como "tweak validado" — corregido. No es una fuente de inestabilidad real (no corre), así que no explica los crashes/pantallas negras por sí solo — el sospechoso principal sigue siendo el bug del System Launcher (ver arriba).
 
 ---
 
@@ -225,7 +225,7 @@ Ante duda entre "hacer más" y "hacer menos y bien": menos y bien.
 - **Tweaks validados en v6.0 (NO tocar sin testear):**
   - `swappiness=20`, LMK agresivo, Dalvik + HWUI heap XL
   - Animaciones `0.3x` (persiste — guardado en Settings DB)
-  - Vulkan + MSAA forzado — ⚠️ **pendiente de reverificar** (ver "Investigación 29/08/2026" arriba): usa `settings put global`, bloqueado en Android 16 sin root; probablemente inerte en el build actual. Confirmar con `mega-verificar.sh` antes de seguir listándolo como validado.
+  - ~~Vulkan + MSAA forzado~~ — **CONFIRMADO INERTE 30/08/2026**: `./run.sh --scan` en el dispositivo real muestra "GPU forzada → bloqueado en Android 16 (requiere root)". Nunca se aplicó en este build — no es una fuente de inestabilidad real porque no corre. Sacado de la lista de tweaks activos.
   - ~~Resolución `612x1360 @ 260dpi`~~ — **MUERTO en Android 16**: `wm size` requiere `WRITE_SECURE_SETTINGS`, revocado sin root. No intentar.
   - **Animaciones**: usar `settings put system` (NO `global`) — el namespace `global` requiere `WRITE_SECURE_SETTINGS` en Android 16 (parche BP2A.250605.031.A3+). El CLI ya hace esto correctamente vía `adb_setting_put_system`.
 - **Governor:** `sugov_ext` (propietario MediaTek, default HyperOS). Disponibles: `sugov_ext | conservative | powersave | performance | schedutil`. Sin root: no legible ni modificable directamente.
