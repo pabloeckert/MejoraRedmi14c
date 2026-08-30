@@ -17,7 +17,7 @@
 #    ./set-launcher.sh --status           — muestra el HOME activo
 #    ./set-launcher.sh --reset            — vuelve a com.miui.home
 #
-#  Ej: ./set-launcher.sh app.lawnchair
+#  Ej: ./set-launcher.sh app.lawnchair.play
 # ═══════════════════════════════════════════════════════════════
 
 set -e

@@ -5,25 +5,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 # Redmi Forge — CLAUDE.md para Claude Code
 
 > **Repo base:** https://github.com/pabloeckert/MejoraRedmi14c  
-> **Actualizado:** 29 de agosto de 2026
+> **Actualizado:** 30 de agosto de 2026
 
 ---
 
-## ⏭️ PRÓXIMO PASO — ejecutar apenas el dispositivo esté conectado
+## ⏭️ PENDIENTE — feedback de uso real (checklist técnico ya completado)
 
-Pendiente de la investigación del 29/08/2026 (detalle completo en la sección "Investigación 29/08/2026" más abajo) **y** del merge del 30/08/2026 con el trabajo local no commiteado (detalle en "Merge 30/08/2026" más abajo). Con el Redmi 14C de Pablo (serial `NB5XWCLZSGB6J74D`) conectado por USB, ejecutar **en orden, sin parar entre pasos salvo que alguno falle o la temperatura esté alta**:
+Todo lo scripteable/verificable del 29-30/08/2026 (purga, merge, investigación de rendimiento) está hecho y confirmado con el dispositivo real de Pablo conectado:
 
-0. ~~🔴 BLOQUEANTE — verificar codename real~~ **RESUELTO 30/08/2026:** `adb shell getprop ro.product.device` en el teléfono de Pablo (NB5XWCLZSGB6J74D) confirmó **`pond`**. Corregido en `ota_check.py` y `ota_watcher.py`. El de Sindy (VOSWQCOVJVQWT8LR) quedó en `pond` también (inferido — mismo modelo Redmi 14C), pero **sin confirmar en su dispositivo real todavía** — verificar la próxima vez que se conecte.
-1. ~~`adb devices` — confirmar que aparece `NB5XWCLZSGB6J74D`~~ **HECHO 30/08/2026** — device autorizado, RAM 3646MB, batería 51%, temp 29°C (OK para optimizar).
-2. ~~`cd src/cli && ./run.sh --scan` — baseline real~~ **HECHO 30/08/2026.** Resultado: 4 apps ya desactivadas, 3 pendientes, animaciones 0.3x y 90Hz ya aplicados. GPU/Blur/Resolución/Performance mode confirmados bloqueados sin root (ver Vulkan abajo).
-3. ~~Verificar sección GPU~~ **HECHO — confirmado inerte**, ver "Vulkan + MSAA forzado" en Investigación 29/08/2026.
-4. `adb shell pm list packages app.lawnchair` — si NO aparece, avisarle a Pablo que instale **Lawnchair** desde Play Store en el teléfono y esperar a que confirme antes de seguir (no se puede scriptear la instalación desde Play Store).
-5. `bash tools/set-launcher.sh app.lawnchair` — reemplaza `com.miui.home` como HOME por defecto.
-6. `bash tools/set-launcher.sh --status` — confirmar que Lawnchair quedó como HOME activo.
-7. Actualizar la línea "Vulkan + MSAA forzado" en "Contexto técnico del dispositivo" con el resultado real del paso 3 (confirmar o corregir). Borrar esta sección "PRÓXIMO PASO" una vez completada.
-8. Commit + push de los cambios de doc con los datos reales.
+- ✅ Codename confirmado: **`pond`** (no `lake`) — corregido en `ota_check.py`/`ota_watcher.py`.
+- ✅ `./run.sh --scan`: 4 apps ya desactivadas, 3 pendientes, animaciones 0.3x y 90Hz aplicados, temp 29°C.
+- ✅ Vulkan/MSAA/GPU forzada: confirmado **inerte** (bloqueado sin root) — sacado de la lista de tweaks activos.
+- ✅ Lawnchair instalado (package real: **`app.lawnchair.play`**, la build de Play Store — no `app.lawnchair`, esa es la de F-Droid) y activado como HOME con `tools/set-launcher.sh app.lawnchair.play`. `com.miui.home` sigue instalado e intocado, reversible con `--reset`.
 
-**No queda "resuelto" en el paso 6** — eso solo confirma que el cambio técnico se aplicó. El síntoma real (crashes/pantallas negras) se confirma o descarta después de unos días de uso normal; pedirle a Pablo ese feedback antes de dar el tema por cerrado.
+**Lo único que falta no se puede scriptear:** unos días de uso normal para que Pablo confirme si el cambio de launcher realmente eliminó los crashes/pantallas negras (el bug de HyperOS 3 apuntaba al System Launcher — ver "Investigación 29/08/2026"). Hasta que no haya ese feedback, el tema sigue abierto aunque el cambio técnico ya esté aplicado.
+
+**Pendiente aparte, sin relación con lo anterior:** confirmar el codename real del dispositivo de Sindy (VOSWQCOVJVQWT8LR) la próxima vez que se conecte — hoy está inferido como `pond` por ser el mismo modelo, no confirmado en su propio teléfono.
 
 ---
 
@@ -154,13 +151,16 @@ Da permisos a nivel `adb shell` (incluye `WRITE_SECURE_SETTINGS`) a apps del pro
 
 Xiaomi reconoció públicamente un bug del System Launcher (`com.miui.home`) en HyperOS 3 que causa force-closes, parpadeo de pantalla y entrada a Safe Mode, por conflicto con el widget de clima nativo. Builds confirmados: OS3.0.3.0–OS3.0.5.0 (variantes WNNEUXM/WNEEUXM/WOSEUXM/WNCEUXM). El build de Pablo es OS3.0.20.0.WGTMIXM — variante distinta, no confirmado que sea el mismo bug exacto, pero misma familia de falla (el launcher nativo de Xiaomi como punto de quiebre).
 
-**Mitigación — `src/cli/tools/set-launcher.sh` (nuevo):** `com.miui.home` queda protegido como crítico (no se desactiva), pero se puede dejar de usar como default vía `cmd package set-home-activity` — solo cambia qué app responde al rol HOME, no toca instalación ni permisos, 100% reversible, sin riesgo de brick (el selector de apps predeterminadas de Ajustes siempre funciona como último recurso).
+**Mitigación — `src/cli/tools/set-launcher.sh` (nuevo, aplicado 30/08/2026):** `com.miui.home` queda protegido como crítico (no se desactiva), pero se puede dejar de usar como default vía `cmd package set-home-activity` — solo cambia qué app responde al rol HOME, no toca instalación ni permisos, 100% reversible, sin riesgo de brick (el selector de apps predeterminadas de Ajustes siempre funciona como último recurso).
 
 ```bash
-bash src/cli/tools/set-launcher.sh app.lawnchair   # launcher elegido: Lawnchair (open source, tipo Pixel)
-bash src/cli/tools/set-launcher.sh --status        # ver HOME activo
-bash src/cli/tools/set-launcher.sh --reset         # volver a com.miui.home
+bash src/cli/tools/set-launcher.sh app.lawnchair.play   # launcher elegido: Lawnchair, build de Play Store
+                                                          # (OJO: "app.lawnchair" sin ".play" es la build de F-Droid — no es la instalada acá)
+bash src/cli/tools/set-launcher.sh --status              # ver HOME activo
+bash src/cli/tools/set-launcher.sh --reset               # volver a com.miui.home
 ```
+
+**Estado real (30/08/2026):** Lawnchair activo como HOME, confirmado con `--status`. Pendiente: feedback de Pablo tras unos días de uso — ver "PENDIENTE" al principio del archivo.
 
 ### Vulkan + MSAA forzado — CONFIRMADO INERTE (30/08/2026)
 
@@ -332,4 +332,4 @@ También activa `device_quiet_mode_enable()` (corta WiFi/datos + No Molestar) du
 
 ---
 
-*CLAUDE.md v4.0 — 30/08/2026 — MejoraRedmi14C (merge con trabajo local: modo Sindy whitelist, usage_stats, fix mejorado BUG 1, database.py restaurada — codename de dispositivos pendiente de confirmar)*
+*CLAUDE.md v4.1 — 30/08/2026 — MejoraRedmi14C (checklist técnico completado con el dispositivo real: codename `pond` confirmado, Vulkan confirmado inerte, Lawnchair activo como HOME — pendiente solo feedback de uso real y codename de Sindy)*
