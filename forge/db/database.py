@@ -1,16 +1,31 @@
 import json
 import sqlite3
+from contextlib import contextmanager
 from pathlib import Path
 from datetime import datetime
 
 DB_PATH = Path.home() / "AppData" / "Local" / "RedmiForge" / "redmiforge.db"
 
 
-def get_connection() -> sqlite3.Connection:
+@contextmanager
+def get_connection():
+    """Conexión de un solo uso: commitea (o rollback en error) y siempre cierra.
+
+    sqlite3.Connection.__exit__ solo maneja la transacción, no cierra el
+    handle — usado como generador aquí para que cada `with get_connection()`
+    no deje conexiones/file descriptors abiertos indefinidamente.
+    """
     DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
-    return conn
+    try:
+        yield conn
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 def init_db() -> None:
@@ -142,6 +157,47 @@ def finish_run(run_id: int, exit_code: int, output: str, status: str = "complete
                WHERE id = ?""",
             (now, exit_code, output, status, run_id)
         )
+
+
+def record_metric(serial: str, kind: str, value: dict, run_id: int | None = None) -> None:
+    now = datetime.now().isoformat()
+    with get_connection() as conn:
+        conn.execute(
+            """INSERT INTO metrics (serial, run_id, measured_at, kind, value_json)
+               VALUES (?, ?, ?, ?, ?)""",
+            (serial, run_id, now, kind, json.dumps(value))
+        )
+
+
+def get_latest_metric(serial: str, kind: str) -> dict | None:
+    with get_connection() as conn:
+        row = conn.execute(
+            """SELECT * FROM metrics
+               WHERE serial = ? AND kind = ?
+               ORDER BY measured_at DESC LIMIT 1""",
+            (serial, kind)
+        ).fetchone()
+        if not row:
+            return None
+        result = dict(row)
+        result["value_json"] = json.loads(result["value_json"])
+        return result
+
+
+def list_metrics(serial: str, kind: str, limit: int = 20) -> list[dict]:
+    with get_connection() as conn:
+        rows = conn.execute(
+            """SELECT * FROM metrics
+               WHERE serial = ? AND kind = ?
+               ORDER BY measured_at DESC LIMIT ?""",
+            (serial, kind, limit)
+        ).fetchall()
+        results = []
+        for row in rows:
+            d = dict(row)
+            d["value_json"] = json.loads(d["value_json"])
+            results.append(d)
+        return results
 
 
 def list_runs(serial: str, limit: int = 20) -> list[dict]:

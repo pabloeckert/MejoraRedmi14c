@@ -27,7 +27,7 @@ from PySide6.QtCore import QThread, Signal
 
 # ─── Constantes ───────────────────────────────────────────────────────────────
 
-CODENAME            = "pond"
+CODENAME            = "lake"
 VARIANT             = "WGTMIXM"
 FALLBACK_BUILD      = "OS3.0.20.0.WGTMIXM"
 CHECK_INTERVAL_DAYS = 14
@@ -35,9 +35,9 @@ _HTTP_TIMEOUT       = 10  # segundos
 
 _RSS_GITHUB = (
     "https://raw.githubusercontent.com/XiaomiFirmwareUpdater/"
-    "miui-updates-tracker/master/rss/pond.xml"
+    "miui-updates-tracker/master/rss/lake.xml"
 )
-_XMFIRMWARE_URL = "https://xmfirmwareupdater.com/hyperos/pond/"
+_XMFIRMWARE_URL = "https://xmfirmwareupdater.com/hyperos/lake/"
 
 _BUILD_RE = re.compile(r"OS(\d+\.\d+\.\d+\.\d+)\." + VARIANT)
 
@@ -186,15 +186,19 @@ _TWEAKS_SPEC: list[dict] = [
     {
         "name": "Animaciones 0.3x",
         "readonly": False,
+        # Android 16 (parche BP2A.250605.031.A3+) bloquea "settings put/get global"
+        # sin WRITE_SECURE_SETTINGS. El CLI real aplica esto vía namespace "system"
+        # (adb_setting_put_system) — este check debe leer/escribir el mismo namespace
+        # o siempre reporta falso "reseteado" y el fix falla en silencio.
         "checks": [
-            ("settings get global window_animation_scale", "0.3"),
-            ("settings get global transition_animation_scale", "0.3"),
-            ("settings get global animator_duration_scale", "0.3"),
+            ("settings get system window_animation_scale", "0.3"),
+            ("settings get system transition_animation_scale", "0.3"),
+            ("settings get system animator_duration_scale", "0.3"),
         ],
         "fixes": [
-            "settings put global window_animation_scale 0.3",
-            "settings put global transition_animation_scale 0.3",
-            "settings put global animator_duration_scale 0.3",
+            "settings put system window_animation_scale 0.3",
+            "settings put system transition_animation_scale 0.3",
+            "settings put system animator_duration_scale 0.3",
         ],
     },
     {

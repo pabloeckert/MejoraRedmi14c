@@ -33,7 +33,11 @@ class DeviceWatcher(QThread):
                 continue
 
             for serial in current - self._known:
-                info = get_device_info(serial)
+                try:
+                    info = get_device_info(serial)
+                except Exception as e:
+                    self.adb_unavailable.emit(f"Error leyendo {serial}: {e}")
+                    continue
                 self.device_connected.emit(info)
 
             for serial in self._known - current:

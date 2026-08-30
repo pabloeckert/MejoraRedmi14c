@@ -114,6 +114,45 @@ device_keepalive_disable() {
     log_info "Pantalla: timeout restaurado a 5 min."
 }
 
+# ─── Cortar datos/WiFi y activar No Molestar durante la optimización ───
+# svc wifi/data (no settings put global) — son comandos de servicio shell,
+# no settings secure, así que no dependen de WRITE_SECURE_SETTINGS. Por USB
+# esto no afecta la conexión ADB (transporte distinto a WiFi/datos).
+# Guarda el estado previo real para restaurar exacto, no asume que todo
+# estaba encendido.
+device_quiet_mode_enable() {
+    log_step "MODO SILENCIOSO — sin datos ni notificaciones durante la optimización"
+
+    QUIET_WIFI_WAS_ON=$(adb_setting_get wifi_on)
+    QUIET_DATA_WAS_ON=$(adb_setting_get mobile_data)
+    QUIET_ZEN_WAS=$(adb_setting_get zen_mode)
+
+    adb -s "$DEVICE_SERIAL" shell svc wifi disable          >/dev/null 2>&1
+    adb -s "$DEVICE_SERIAL" shell svc data disable          >/dev/null 2>&1
+    adb -s "$DEVICE_SERIAL" shell cmd notification set_dnd on >/dev/null 2>&1
+
+    log_ok "WiFi y datos móviles desactivados (no van a entrar mensajes de WhatsApp)"
+    log_ok "No Molestar activado (sin sonidos ni notificaciones)"
+    log_warn "Los pasos de precarga de Cámara/WhatsApp (camera_fix.sh) igual encienden la pantalla y abren esas apps un instante — es parte del mecanismo ya probado, no se puede evitar sin reescribirlo"
+}
+
+# ─── Restaurar exactamente el estado previo a device_quiet_mode_enable ───
+device_quiet_mode_disable() {
+    log_step "Restaurando conectividad y notificaciones"
+
+    if [ "${QUIET_ZEN_WAS:-0}" = "0" ]; then
+        adb -s "$DEVICE_SERIAL" shell cmd notification set_dnd off >/dev/null 2>&1
+    fi
+    if [ "${QUIET_WIFI_WAS_ON:-1}" = "1" ]; then
+        adb -s "$DEVICE_SERIAL" shell svc wifi enable >/dev/null 2>&1
+    fi
+    if [ "${QUIET_DATA_WAS_ON:-1}" = "1" ]; then
+        adb -s "$DEVICE_SERIAL" shell svc data enable >/dev/null 2>&1
+    fi
+
+    log_ok "WiFi/datos/notificaciones restaurados al estado previo"
+}
+
 # ─── Obtener apodo del dispositivo ───
 device_get_nickname() {
     db_get_nickname 2>/dev/null || echo "Redmi-1"

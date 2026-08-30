@@ -126,6 +126,16 @@ adb_take_snapshot() {
         echo "date=$(date '+%Y-%m-%d %H:%M:%S')"
     } > "$snap_dir/device_info.txt"
 
+    # Verificación de integridad — si el dispositivo se desconectó a mitad del
+    # snapshot, all_packages.txt queda vacío y el resto del flujo no debe confiar
+    # en este backup para continuar con fases destructivas.
+    if [ ! -s "$snap_dir/all_packages.txt" ]; then
+        log_fail "Snapshot incompleto — sin lista de paquetes (¿se desconectó el dispositivo?)"
+        echo ""
+        return 1
+    fi
+
     log_ok "Snapshot guardado: $(basename "$snap_dir")"
     echo "$snap_dir"
+    return 0
 }

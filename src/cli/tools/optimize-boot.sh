@@ -16,8 +16,13 @@
 set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/config.sh" ]; then
-    source "$SCRIPT_DIR/config.sh"
+# NOTA: config.sh vive en ../core/, no en este directorio. El path anterior
+# ($SCRIPT_DIR/config.sh) nunca existía y el source fallaba en silencio,
+# dejando este script sin CRITICAL_SYSTEM_APPS/is_critical_pkg/THERMAL_MAX_TEMP.
+if [ -f "$SCRIPT_DIR/../core/config.sh" ]; then
+    source "$SCRIPT_DIR/../core/config.sh"
+    source "$SCRIPT_DIR/../core/adb_utils.sh"
+    source "$SCRIPT_DIR/../engines/thermal.sh"
 fi
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -30,12 +35,14 @@ for arg in "$@"; do
     [ "$arg" = "--dry-run" ] && DRY_RUN=1
 done
 
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
+# Colores — ya definidos por config.sh (readonly) si el source de arriba
+# funcionó; se redeclaran acá solo como fallback si config.sh no se encontró.
+: "${RED:=\033[0;31m}"
+: "${GREEN:=\033[0;32m}"
+: "${YELLOW:=\033[1;33m}"
+: "${CYAN:=\033[0;36m}"
+: "${BOLD:=\033[1m}"
+: "${NC:=\033[0m}"
 
 CHANGES=0
 
@@ -79,7 +86,27 @@ fi
 
 DEVICE=$(adb shell getprop ro.product.model 2>/dev/null | tr -d '\r')
 ANDROID=$(adb shell getprop ro.build.version.release 2>/dev/null | tr -d '\r')
+DEVICE_SERIAL=$(adb get-serialno 2>/dev/null | tr -d '\r')
 log -e "  📱 ${BOLD}$DEVICE${NC} (Android $ANDROID)"
+log ""
+
+# ═══════════════════════════════════════════════
+#  0. BACKUP + VERIFICACIÓN TÉRMICA
+# ═══════════════════════════════════════════════
+
+if [ "$DRY_RUN" -eq 0 ] && command -v thermal_gate_check >/dev/null 2>&1; then
+    thermal_gate_check || { fail "Abortando por temperatura crítica."; exit 1; }
+fi
+
+if [ "$DRY_RUN" -eq 0 ] && command -v adb_take_snapshot >/dev/null 2>&1 && [ -n "$DEVICE_SERIAL" ]; then
+    SNAP_PATH=$(adb_take_snapshot "$DEVICE_SERIAL" "${BACKUPS_DIR:-$SCRIPT_DIR/../backups}")
+    if [ -z "$SNAP_PATH" ]; then
+        fail "Abortando — no se pudo crear un backup verificable."
+        exit 1
+    fi
+    ok "Backup: $SNAP_PATH"
+fi
+
 log ""
 
 # ═══════════════════════════════════════════════
@@ -112,7 +139,8 @@ BOOT_APPS=(
     "com.netflix.mediaclient"
     "com.opera.mini.native"
     "com.amazon.appmanager"
-    "com.xiaomi.joyose"
+    # NUNCA com.xiaomi.joyose acá — gestor térmico del Helio G81 Ultra,
+    # desactivarlo causa sobrecalentamiento garantizado. Ver core/config.sh.
     "com.xiaomi.scanner"
     "com.xiaomi.mipicks"
     "com.xiaomi.glgm"
@@ -125,6 +153,13 @@ BOOT_APPS=(
 BOOT_DISABLED=0
 BOOT_ALREADY=0
 for pkg in "${BOOT_APPS[@]}"; do
+    # Defensa en profundidad: nunca tocar apps críticas/joyose aunque
+    # alguien las vuelva a agregar a BOOT_APPS por error.
+    if command -v is_critical_pkg >/dev/null 2>&1 && is_critical_pkg "$pkg"; then
+        warn "PROTEGIDA (crítica): $pkg"
+        continue
+    fi
+
     # Verificar si ya está desactivado
     IS_DISABLED=$(adb shell pm list packages -d 2>/dev/null | grep -c "$pkg" || echo "0")
     if [ "$IS_DISABLED" -gt 0 ]; then
@@ -223,9 +258,11 @@ run_cmd adb shell settings put global verifier_verify_adb_installs 0
 ok "Verificación ADB desactivada"
 
 # Reducir delay de animaciones de inicio
-run_cmd adb shell settings put global window_animation_scale 0.1
-run_cmd adb shell settings put global transition_animation_scale 0.1
-run_cmd adb shell settings put global animator_duration_scale 0.1
+# namespace "system", no "global" — Android 16 bloquea "global" sin
+# WRITE_SECURE_SETTINGS (ver core/config.sh / CLAUDE.md).
+run_cmd adb shell settings put system window_animation_scale 0.1
+run_cmd adb shell settings put system transition_animation_scale 0.1
+run_cmd adb shell settings put system animator_duration_scale 0.1
 ok "Animaciones a 0.1x (boot se siente más rápido)"
 
 log ""

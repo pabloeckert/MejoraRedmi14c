@@ -23,9 +23,13 @@ mode_maintenance() {
 
     # ── Paso 1: Detectar y corregir regresiones OTA ──
     log_step "Detectando regresiones OTA..."
+    local regressions_raw
+    regressions_raw=$(bloatware_fix_regressions "$run_id")
+    log_raw "$regressions_raw"
     local regressions_fixed
-    regressions_fixed=$(bloatware_fix_regressions "$run_id")
-    if [ "${regressions_fixed:-0}" -gt 0 ]; then
+    regressions_fixed=$(printf '%s' "$regressions_raw" | grep -E '^[0-9]+$' | tail -1)
+    regressions_fixed="${regressions_fixed:-0}"
+    if [ "$regressions_fixed" -gt 0 ]; then
         log_ok "$regressions_fixed app(s) re-desactivadas (OTA las había reactivado)"
     else
         log_ok "Sin regresiones OTA detectadas."
@@ -41,7 +45,10 @@ mode_maintenance() {
 
     # ── Paso 4: Re-compilar cámara y WhatsApp ──
     log_step "Re-compilando cámara y WhatsApp..."
-    local cam_compiled; cam_compiled=$(camera_fix_apply "$run_id")
+    local cam_raw; cam_raw=$(camera_fix_apply "$run_id")
+    log_raw "$cam_raw"
+    local cam_compiled; cam_compiled=$(printf '%s' "$cam_raw" | grep -E '^[0-9]+$' | tail -1)
+    cam_compiled="${cam_compiled:-0}"
 
     # ── Paso 5: Score actual vs último run ──
     memory_get_stats

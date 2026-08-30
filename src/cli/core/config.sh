@@ -204,6 +204,16 @@ safe_disable_pkg() {
     # Reversible con: pm install-existing --user 0 <pkg>
     out=$(adb -s "$DEVICE_SERIAL" shell pm uninstall -k --user 0 "$pkg" 2>&1 | tr -d '\r')
     echo "$out" | grep -qi "success" && return 0
+
+    # Intento 3 (fallback Android 16 / parche BP2A.250605.031.A3): los intentos 1 y 2
+    # fallan para paquetes protegidos com.miui.*/com.android.* sin root. No es un
+    # disable real — el paquete sigue instalado y visible — pero le impide iniciar
+    # servicios/jobs en background, que es el vector real de telemetría/ads.
+    # Reversible con: cmd appops set <pkg> RUN_ANY_IN_BACKGROUND allow
+    if adb -s "$DEVICE_SERIAL" shell cmd appops set "$pkg" RUN_ANY_IN_BACKGROUND deny >/dev/null 2>&1; then
+        log_warn "$pkg: no se pudo desactivar — bloqueado en background (RUN_ANY_IN_BACKGROUND deny)"
+        return 0
+    fi
     return 1
 }
 
