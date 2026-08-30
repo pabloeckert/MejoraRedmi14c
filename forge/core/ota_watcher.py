@@ -4,7 +4,7 @@ Motor OTA Watcher para Redmi Forge.
 Chequea cada 14 días si hay una build de HyperOS más nueva que la conocida,
 usando dos fuentes en cascada:
   1. RSS de XiaomiFirmwareUpdater/miui-updates-tracker (GitHub)
-  2. xmfirmwareupdater.com/hyperos/lake/ (scraping HTML)
+  2. xmfirmwareupdater.com/hyperos/pond/ (scraping HTML)
 
 Uso headless (sin Qt/UI): ota_check.py llama should_check() + check_for_update()
 para el chequeo periódico, y scan_tweaks()/reapply_tweaks() para verificar y
@@ -24,7 +24,7 @@ from typing import Optional
 
 # ─── Constantes ───────────────────────────────────────────────────────────────
 
-CODENAME            = "lake"
+CODENAME            = "pond"  # confirmado 30/08/2026: adb shell getprop ro.product.device (Pablo)
 VARIANT             = "WGTMIXM"
 FALLBACK_BUILD      = "OS3.0.20.0.WGTMIXM"
 CHECK_INTERVAL_DAYS = 14
@@ -32,9 +32,9 @@ _HTTP_TIMEOUT       = 10  # segundos
 
 _RSS_GITHUB = (
     "https://raw.githubusercontent.com/XiaomiFirmwareUpdater/"
-    "miui-updates-tracker/master/rss/lake.xml"
+    "miui-updates-tracker/master/rss/pond.xml"
 )
-_XMFIRMWARE_URL = "https://xmfirmwareupdater.com/hyperos/lake/"
+_XMFIRMWARE_URL = "https://xmfirmwareupdater.com/hyperos/pond/"
 
 _BUILD_RE = re.compile(r"OS(\d+\.\d+\.\d+\.\d+)\." + VARIANT)
 

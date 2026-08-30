@@ -46,7 +46,7 @@ _DEVICES = [
     {
         "serial":     "NB5XWCLZSGB6J74D",
         "name":       "Pablo",
-        "codename":   "lake",
+        "codename":   "pond",  # confirmado 30/08/2026: adb shell getprop ro.product.device
         "variant":    "WGTMIXM",
         "known_build": "OS3.0.20.0.WGTMIXM",
         "state_file": "ota_state_pablo.json",
@@ -54,7 +54,10 @@ _DEVICES = [
     {
         "serial":     "VOSWQCOVJVQWT8LR",
         "name":       "Sindy",
-        "codename":   "lake",
+        # Sin confirmar en el dispositivo real -- inferido "pond" porque es el
+        # mismo modelo (Redmi 14C) que el de Pablo, ya confirmado. Verificar con
+        # `adb shell getprop ro.product.device` la próxima vez que se conecte.
+        "codename":   "pond",
         "variant":    "WGTMIXM",
         "known_build": "OS3.0.20.0.WGTMIXM",
         "state_file": "ota_state_sindy.json",

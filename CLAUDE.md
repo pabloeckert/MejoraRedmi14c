@@ -13,7 +13,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Pendiente de la investigación del 29/08/2026 (detalle completo en la sección "Investigación 29/08/2026" más abajo) **y** del merge del 30/08/2026 con el trabajo local no commiteado (detalle en "Merge 30/08/2026" más abajo). Con el Redmi 14C de Pablo (serial `NB5XWCLZSGB6J74D`) conectado por USB, ejecutar **en orden, sin parar entre pasos salvo que alguno falle o la temperatura esté alta**:
 
-0. **🔴 BLOQUEANTE — verificar codename real:** `adb shell getprop ro.product.device`. Hay una inconsistencia sin resolver entre el commit original (`f70fe26`: "Pablo (lake) + Sindy (pond)"), lo que corría en producción hasta hoy (los dos en `pond`) y el fix del merge de hoy (los dos en `lake`). Ver "Merge 30/08/2026" abajo — corregir `forge/services/ota_check.py` y `forge/core/ota_watcher.py` con el valor real antes de confiar en el OTA watcher de cualquiera de los dos dispositivos.
+0. ~~🔴 BLOQUEANTE — verificar codename real~~ **RESUELTO 30/08/2026:** `adb shell getprop ro.product.device` en el teléfono de Pablo (NB5XWCLZSGB6J74D) confirmó **`pond`**. Corregido en `ota_check.py` y `ota_watcher.py`. El de Sindy (VOSWQCOVJVQWT8LR) quedó en `pond` también (inferido — mismo modelo Redmi 14C), pero **sin confirmar en su dispositivo real todavía** — verificar la próxima vez que se conecte.
 1. `adb devices` — confirmar que aparece `NB5XWCLZSGB6J74D`.
 2. `cd src/cli && ./run.sh --scan` — baseline real: RAM, temperatura, batería. Si temp > 38°C, esperar a que enfríe antes de seguir (no forzar).
 3. `bash tools/mega-verificar.sh` — mirar puntualmente la sección GPU: ¿pasa ✅ o falla ❌? Esto resuelve si "Vulkan + MSAA forzado" realmente está aplicado en este build o no (ver nota en "Contexto técnico del dispositivo").
@@ -40,12 +40,12 @@ Repo depurado el 29/08/2026: se eliminó toda interfaz (UI PySide6, web app WebU
 | `forge/core/ota_watcher.py` | ✅ Funcional | Lógica pura de chequeo/reaplicación de tweaks OTA (sin Qt) — usada por `ota_check.py` |
 | `forge/core/usage_stats.py` | ✅ Funcional | Snapshot de uso real vía `dumpsys usagestats` — alimenta `maintenance_check.py` con evidencia para decidir el perfil de debloat de Sindy |
 | `forge/db/database.py` | ✅ Funcional (restaurada 30/08/2026) | SQLite en `%LOCALAPPDATA%/RedmiForge/redmiforge.db` — se había borrado en la purga por creerla solo-UI; `maintenance_check.py` la necesita para `record_metric()`. Conexión ahora vía context manager (cierra siempre, commit/rollback automático). |
-| `forge/services/ota_check.py` | ✅ Producción | OTA watcher autónomo — corre via Task Scheduler, sin UI. Logging a archivo (`ota_check.log`) + manejo de errores por dispositivo (30/08/2026). ⚠️ Codename por dispositivo sin verificar — ver "PRÓXIMO PASO". |
+| `forge/services/ota_check.py` | ✅ Producción | OTA watcher autónomo — corre via Task Scheduler, sin UI. Logging a archivo (`ota_check.log`) + manejo de errores por dispositivo (30/08/2026). Codename `pond` confirmado para Pablo; el de Sindy es inferido, no confirmado en su dispositivo. |
 | `forge/services/maintenance_check.py` | ✅ Producción | Storage/temp/backup WhatsApp + limpieza de caché liviana (24h) + `--maintenance` completo oportunista (7 días) + snapshot de uso — registrado en `setup.ps1` (Task Scheduler, cada 60 min) |
 | `setup.ps1` / `setup.bat` | ✅ Producción | Setup one-command para PC nueva — instala deps headless, ADB, Task Scheduler (OTA cada 15 días + mantenimiento cada 60 min) |
 | `src/cli/modes/sindy_optimize.sh` + `data/profile_sindy.sh` | ⚠️ Funcional, con bloqueo pendiente | Modo whitelist (`./run.sh --sindy`) para el teléfono de Sindy — inversa del modo Pablo: protege lo que está en la whitelist, desactiva TODO el resto de apps de terceros. La whitelist tiene una sección explícita de apps (juegos, redes sociales, 3 apps sin identificar) **bloqueada hasta confirmación de Pablo** — no tocar sin esa confirmación. |
-| **Dispositivo Pablo** | NB5XWCLZSGB6J74D | 75 apps eliminadas, animaciones 0.3x, 90Hz, DEXOPT completo. Baseline: 1141MB RAM libre, 29°C reposo. Build: OS3.0.20.0.WGTMIXM (abr 2026) — la más reciente para MXM. Codename real sin confirmar (ver "PRÓXIMO PASO"). |
-| **Dispositivo Sindy** | VOSWQCOVJVQWT8LR | Monitoreado por OTA watcher (`ota_check.py`) + `maintenance_check.py`. Perfil whitelist armado (`profile_sindy.sh`) pero con bloqueo pendiente de confirmación — no se corrió `--sindy` todavía. |
+| **Dispositivo Pablo** | NB5XWCLZSGB6J74D | 75 apps eliminadas, animaciones 0.3x, 90Hz, DEXOPT completo. Baseline: 1141MB RAM libre, 29°C reposo. Build: OS3.0.20.0.WGTMIXM (abr 2026) — la más reciente para MXM. Codename **pond** (confirmado 30/08/2026). |
+| **Dispositivo Sindy** | VOSWQCOVJVQWT8LR | Monitoreado por OTA watcher (`ota_check.py`) + `maintenance_check.py`. Perfil whitelist armado (`profile_sindy.sh`) pero con bloqueo pendiente de confirmación — no se corrió `--sindy` todavía. Codename `pond` inferido (mismo modelo que Pablo), sin confirmar en su dispositivo real. |
 
 **Eliminado en la purga del 29/08/2026** (ver commit correspondiente para detalle): `forge/ui/` (UI PySide6), `main.py`, `src/web/` (web app WebUSB), `app/` (stub Electron), `forge/dev/` (seed solo usado por la UI), `forge/core/debloat_engine.py` (puente perfil-UI → Bash), `forge/core/device_watcher.py` (poller Qt), `forge/core/game_mode.py` (feature de rendimiento, fuera de alcance de limpieza/mantenimiento — ver hallazgo "Game Mode" abajo), `forge/core/log_parser.py` (parsing para la UI), `.github/workflows/deploy.yml` (publicaba la web app), `SCRIPTS_INVENTORY.md` (planificaba una migración a Tauri, obsoleto). `forge/db/` se borró en la purga y se restauró en el merge del 30/08/2026 (ver abajo) — sí hacía falta, para `maintenance_check.py`.
 
@@ -68,7 +68,7 @@ Una sesión anterior de Claude Code Desktop, corriendo local en la PC de Pablo, 
 - `database.sh`: corrige el cálculo de `total_ram_freed_mb` (usaba una variable de otro scope; ahora subconsulta el valor real por `run_id`).
 - `run.sh`: agrega el flag `--sindy`.
 
-**Codename OTA sin resolver — ver ítem 0 de "PRÓXIMO PASO":** no se puede verificar sin el dispositivo conectado, así que quedó marcado como pendiente en vez de adivinado.
+**Codename OTA — resuelto para Pablo, pendiente para Sindy:** se verificó con el dispositivo de Pablo conectado (`pond`, confirmado con `getprop`, no adivinado). El de Sindy quedó en `pond` también por ser el mismo modelo, pero sin confirmar en su propio dispositivo — ver ítem 0 de "PRÓXIMO PASO".
 
 ---
 
@@ -219,7 +219,7 @@ Ante duda entre "hacer más" y "hacer menos y bien": menos y bien.
 
 ## Contexto técnico del dispositivo
 
-- **Modelo:** Redmi 14C (2409BRN2CL) — serial NB5XWCLZSGB6J74D — codename ⚠️ **sin confirmar** (ver "PRÓXIMO PASO" — el commit original decía "lake", esta línea decía "pond", y el fix del merge del 30/08 puso "lake" en los dos dispositivos; ninguna fuente es confiable sin chequear `adb shell getprop ro.product.device` directo)
+- **Modelo:** Redmi 14C (2409BRN2CL) — serial NB5XWCLZSGB6J74D — codename **pond** (confirmado 30/08/2026 con `adb shell getprop ro.product.device`)
 - **SoC:** Helio G81 Ultra (MediaTek **MT6769J**) — 6× Cortex-A55 @ 1.7 GHz (cpu0–5) + 2× Cortex-A75 @ 2.0 GHz (cpu6–7)
 - **OS:** HyperOS V816 / Android 16
 - **Tweaks validados en v6.0 (NO tocar sin testear):**
@@ -317,7 +317,7 @@ También activa `device_quiet_mode_enable()` (corta WiFi/datos + No Molestar) du
 | **S5 — Benchmark** | Benchmarks reales de RAM, I/O, Game Mode, AOT — todos descartados con evidencia | ✅ Cerrado (ver hallazgos arriba) |
 | **S6 — Release** | Decisión: UI pausada. Entregables: setup.ps1 + OTA como servicio | ✅ Cerrado |
 | **S7 — Purga de interfaces (29/08/2026)** | Se decidió no retomar la UI y eliminar toda interfaz del repo: UI PySide6, web app, stub Electron, plan de migración a Tauri. Se corrigió el BUG 1 (joyose en `optimize-boot.sh`) de paso. | ✅ Cerrado |
-| **S8 — Merge trabajo local + modo Sindy (30/08/2026)** | Se rescató y mergeó trabajo local no commiteado: modo whitelist para Sindy, `usage_stats.py`, fix mejorado del BUG 1, fallback appops ya codeado, `database.py` restaurada. Queda abierto: confirmar codename real del dispositivo (`lake`/`pond`) y destrabar la sección bloqueada de `profile_sindy.sh`. | ⚠️ Abierto — ver "PRÓXIMO PASO" |
+| **S8 — Merge trabajo local + modo Sindy (30/08/2026)** | Se rescató y mergeó trabajo local no commiteado: modo whitelist para Sindy, `usage_stats.py`, fix mejorado del BUG 1, fallback appops ya codeado, `database.py` restaurada. Codename de Pablo confirmado (`pond`) con el dispositivo conectado. Queda abierto: destrabar la sección bloqueada de `profile_sindy.sh` y confirmar el codename de Sindy en su propio dispositivo. | ⚠️ Casi cerrado — ver "PRÓXIMO PASO" |
 
 ---
 
