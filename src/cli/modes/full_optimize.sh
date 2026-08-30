@@ -66,7 +66,12 @@ mode_full_optimize() {
     # ── FASE 3: Performance tweaks ──
     log_section "FASE 3 — Performance + Red + Thermal"
     [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_update_progress 3 9 "Performance"
-    performance_apply_poco_mode "$run_id"
+    local perf_raw
+    perf_raw=$(performance_apply_poco_mode "$run_id")
+    log_raw "$perf_raw"
+    local perf_compiled
+    perf_compiled=$(printf '%s' "$perf_raw" | grep -E '^[0-9]+$' | tail -1)
+    apps_compiled=$(( apps_compiled + ${perf_compiled:-0} ))
     thermal_apply_performance
     network_apply_optimization "$run_id"
 
