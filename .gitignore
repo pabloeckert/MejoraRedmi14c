@@ -1,4 +1,9 @@
-data/devices.db
+src/cli/data/devices.db
+vendor/
+node_modules/
+dist/
+dist-release/
+out/
 .DS_Store
 *.log
 .env
