@@ -40,6 +40,7 @@ PROFILE_SINDY_WHITELIST=(
     "ar.gob.afip.facturador"
     "com.isalud.app"
     "com.centraldepasajes"
+    "com.fiwind.app"            # Fiwind — billetera/inversion argentina, confirmado por Pablo 30/08/2026
 
     # ─── Ofimática / notas / calendario — solo consulta ───
     "com.microsoft.office.word"
@@ -68,6 +69,7 @@ PROFILE_SINDY_WHITELIST=(
     # ─── Transporte ───
     "com.ubercab"
     "com.didiglobal.passenger"
+    "com.ypf.jpm"               # YPF combustible — uso activo confirmado (permiso ubicacion otorgado)
 
     # ─── Utilidades del sistema (Xiaomi/Google) — bajo riesgo ───
     "com.xiaomi.midrop"
@@ -85,6 +87,8 @@ PROFILE_SINDY_WHITELIST=(
     "com.google.android.contactkeys"
     "com.google.android.apps.adm"
     "com.google.android.safetycore"
+    "com.google.android.verifier"  # Android Developer Verifier — servicio propio de Google, sin UI
+    "com.miui.virtualsim"          # eSIM/roaming Xiaomi — utilidad de sistema
 
     # ─── Salud / bienestar ───
     "com.mentallabs.mentalhealth"
@@ -93,30 +97,19 @@ PROFILE_SINDY_WHITELIST=(
     # ─── Noticias ───
     "com.tachanfil.diariosargentinos"
 
-    # ██████████████████████████████████████████████████████████████████
-    # ⚠️ BLOQUEANTE — pendiente de confirmación explícita de Pablo:
-    #
-    # Juegos (9 instalados):
-    # "com.mintgames.wordtrip"
-    # "com.nf.snake"
-    # "com.blackout.word"
-    # "com.ea.game.pvzfree_row"
-    # "com.dreamgames.royalkingdom"
-    # "com.easybrain.number.puzzle.game"
-    # "com.friendlygames.gamecloner"
-    # "com.Earthkwak.Platformer"
-    # "com.unicostudio.braintest2new"
-    #
-    # Redes sociales / entretenimiento:
-    # "com.facebook.katana"
-    # "com.instagram.android"
-    # "com.zhiliaoapp.musically"     # TikTok
-    # "org.telegram.messenger"
-    # "com.spotify.music"
-    #
-    # Sin identificar — confirmar con Sindy qué son:
-    # "com.naturalsoft.personalweb"
-    # "com.fiwind.app"
-    # "io.eist.app"
-    # ██████████████████████████████████████████████████████████████████
+    # ─── Redes sociales / entretenimiento — confirmado por Pablo 30/08/2026 ───
+    "com.facebook.katana"
+    "com.instagram.android"
+    "com.zhiliaoapp.musically"     # TikTok
+    "org.telegram.messenger"
+    "com.spotify.music"
+
+    # ─── Deliberadamente FUERA de la whitelist (se desactivan con --sindy),
+    #     confirmado por Pablo 30/08/2026 — no volver a agregar sin nueva OK:
+    #     - 9 juegos: com.mintgames.wordtrip, com.nf.snake, com.blackout.word,
+    #       com.ea.game.pvzfree_row, com.dreamgames.royalkingdom,
+    #       com.easybrain.number.puzzle.game, com.friendlygames.gamecloner,
+    #       com.Earthkwak.Platformer, com.unicostudio.braintest2new
+    #     - com.naturalsoft.personalweb (NaturalReader)
+    #     - io.eist.app (Eist)
 )
