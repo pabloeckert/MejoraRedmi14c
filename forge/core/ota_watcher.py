@@ -17,10 +17,9 @@ import re
 import subprocess
 import urllib.request
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 # ─── Constantes ───────────────────────────────────────────────────────────────
 
@@ -46,17 +45,17 @@ _STATE_PATH = _STATE_DIR / "ota_state.json"
 
 @dataclass
 class OTAState:
-    last_check_iso: Optional[str] = None
+    last_check_iso: str | None = None
     known_build: str = FALLBACK_BUILD
     ota_detected: bool = False
-    ota_build: Optional[str] = None
-    ota_detected_at: Optional[str] = None
+    ota_build: str | None = None
+    ota_detected_at: str | None = None
     post_ota_scan_done: bool = False
-    disabled_pkg_baseline: Optional[int] = None
+    disabled_pkg_baseline: int | None = None
     pending_adb_notify: bool = False  # True si hay update detectado pero el device no estaba conectado
 
     @classmethod
-    def load(cls, state_path: Optional[Path] = None) -> "OTAState":
+    def load(cls, state_path: Path | None = None) -> OTAState:
         path = state_path or _STATE_PATH
         try:
             if path.exists():
@@ -66,7 +65,7 @@ class OTAState:
             pass
         return cls()
 
-    def save(self, state_path: Optional[Path] = None) -> None:
+    def save(self, state_path: Path | None = None) -> None:
         path = state_path or _STATE_PATH
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(
@@ -78,7 +77,7 @@ class OTAState:
 # ─── Comparación de versiones ─────────────────────────────────────────────────
 
 
-def _parse_version(build: str) -> Optional[tuple[int, ...]]:
+def _parse_version(build: str) -> tuple[int, ...] | None:
     m = _BUILD_RE.search(build)
     if not m:
         return None
@@ -96,7 +95,7 @@ def _is_newer(candidate: str, current: str) -> bool:
 # ─── Fetching de fuentes ──────────────────────────────────────────────────────
 
 
-def _fetch_github_rss(codename: str = CODENAME, variant: str = VARIANT) -> Optional[str]:
+def _fetch_github_rss(codename: str = CODENAME, variant: str = VARIANT) -> str | None:
     """Parsea el RSS del tracker de GitHub y retorna la build más reciente para el codename/variant."""
     build_re = re.compile(r"OS(\d+\.\d+\.\d+\.\d+)\." + variant)
     url = (
@@ -121,7 +120,7 @@ def _fetch_github_rss(codename: str = CODENAME, variant: str = VARIANT) -> Optio
         return None
 
 
-def _fetch_xmfirmware(codename: str = CODENAME, variant: str = VARIANT) -> Optional[str]:
+def _fetch_xmfirmware(codename: str = CODENAME, variant: str = VARIANT) -> str | None:
     """Scraping HTML de xmfirmwareupdater.com para builds del codename/variant."""
     build_re = re.compile(r"OS(\d+\.\d+\.\d+\.\d+)\." + variant)
     url = f"https://xmfirmwareupdater.com/hyperos/{codename}/"
@@ -155,7 +154,7 @@ def check_for_update(
     known_build: str,
     codename: str = CODENAME,
     variant: str = VARIANT,
-) -> Optional[str]:
+) -> str | None:
     """
     Consulta ambas fuentes y retorna la build más nueva si supera known_build.
     Retorna None si no hay update o si no se pudo contactar ninguna fuente.

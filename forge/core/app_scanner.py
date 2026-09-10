@@ -4,12 +4,15 @@ Escanea apps instaladas en el dispositivo y las clasifica.
 
 import os
 import subprocess
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from forge.core.apps_catalog import (
-    DEBLOAT_CATALOG, SAFETYNET_PROTECTED, BUSINESS_CRITICAL, CRITICAL_SYSTEM_APPS,
+    BUSINESS_CRITICAL,
+    CRITICAL_SYSTEM_APPS,
+    DEBLOAT_CATALOG,
+    SAFETYNET_PROTECTED,
 )
-from forge.core.packages_db import PACKAGES_DB, lookup as db_lookup
+from forge.core.packages_db import PACKAGES_DB
 
 JOYOSE_PKG = "com.xiaomi.joyose"
 

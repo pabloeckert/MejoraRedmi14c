@@ -6,9 +6,9 @@ para forge/services/maintenance_check.py (mantenimiento oportunista headless).
 import os
 import shutil
 import subprocess
+from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Generator
 
 # Rutas relativas a la raíz del proyecto
 _ROOT = Path(__file__).parents[2]

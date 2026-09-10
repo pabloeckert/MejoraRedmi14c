@@ -25,7 +25,7 @@ from pathlib import Path
 _ROOT = Path(__file__).parents[2]
 sys.path.insert(0, str(_ROOT))
 
-from forge.core.ota_watcher import OTAState, _STATE_DIR, should_check, check_for_update
+from forge.core.ota_watcher import _STATE_DIR, OTAState, check_for_update, should_check
 
 # ─── Logging — esta tarea corre sin supervisión vía Task Scheduler; sin esto
 # no queda ningún rastro diagnosticable si falla o si una fuente deja de

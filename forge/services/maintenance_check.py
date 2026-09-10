@@ -33,7 +33,6 @@ import sys
 from dataclasses import asdict, dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Optional
 
 _ROOT = Path(__file__).parents[2]
 sys.path.insert(0, str(_ROOT))
@@ -68,11 +67,11 @@ _STATE_DIR = Path.home() / "AppData" / "Local" / "RedmiForge"
 
 @dataclass
 class MaintenanceState:
-    last_cache_clean_iso: Optional[str] = None
-    last_full_maintenance_iso: Optional[str] = None
+    last_cache_clean_iso: str | None = None
+    last_full_maintenance_iso: str | None = None
 
     @classmethod
-    def load(cls, path: Path) -> "MaintenanceState":
+    def load(cls, path: Path) -> MaintenanceState:
         try:
             if path.exists():
                 data = json.loads(path.read_text(encoding="utf-8"))
@@ -86,7 +85,7 @@ class MaintenanceState:
         path.write_text(json.dumps(asdict(self), indent=2, ensure_ascii=False), encoding="utf-8")
 
 
-def _due(last_iso: Optional[str], interval: timedelta) -> bool:
+def _due(last_iso: str | None, interval: timedelta) -> bool:
     if last_iso is None:
         return True
     try:
