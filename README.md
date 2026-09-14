@@ -37,7 +37,6 @@ El Poco Mode equipara el rendimiento del Redmi 14C al 85% de un Poco X7 Pro medi
 - **~80+ apps de bloatware desactivadas** (telemetría, ads, apps Xiaomi/Google/Facebook no usadas)
 - **GPU forzada** con Vulkan + MSAA + sin draw defer
 - **Animaciones 0.3x** (instantáneas, mínimo para HyperOS 3)
-- **Resolución 612x1360 @ 260dpi** (+15% FPS sin diferencia visual notable)
 - **Cámara y WhatsApp compilados en speed mode** + pre-calentados en memoria
 - **Memory Extension HyperOS 3** activada (4GB → 8GB virtual)
 - **Swappiness 20**, LMK agresivo, HWUI cache XL
@@ -67,17 +66,6 @@ El script detecta automáticamente si han pasado 7+ días desde el último run y
 | `measure-boot.sh` | Mide tiempo real de encendido |
 | `mega-verificar.sh` | Verifica si los tweaks se aplicaron |
 
-## Web App alternativa
-
-Si preferís no usar la terminal, abrí `index.html` en Chrome/Edge/Opera:
-
-```bash
-adb kill-server
-python3 -m http.server 8000
-# → http://localhost:8000
-```
-
 ---
 
 Para entender la arquitectura del código, leé [CLAUDE.md](CLAUDE.md).
-Para el tutorial de configuración de ADB, leé [TUTORIAL.md](TUTORIAL.md).

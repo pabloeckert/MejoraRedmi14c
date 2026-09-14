@@ -7,7 +7,7 @@ Este proyecto es un toolkit avanzado de optimización para dispositivos **Redmi 
 - **Bash 4+**: Lenguaje principal para la lógica del CLI.
 - **ADB (Android Debug Bridge)**: Comunicación directa con el dispositivo.
 - **SQLite3**: Base de datos local (`src/cli/data/devices.db`) para el historial de optimizaciones por dispositivo.
-- **WebUSB ADB**: Utilizado en la aplicación web (`src/web/`) para interactuar con el teléfono desde el navegador.
+- **Python 3.11 (headless)**: Servicios de soporte en `forge/` — OTA watcher (Task Scheduler), escaneo/clasificación de apps.
 
 ## Arquitectura del Proyecto
 
@@ -24,8 +24,8 @@ Este proyecto es un toolkit avanzado de optimización para dispositivos **Redmi 
 - **`modes/`**: Orquestadores de motores según el objetivo (Full Optimize, Maintenance, Monitor, Emergency).
 - **`tools/`**: Scripts de utilidad para diagnóstico, benchmarks y verificación.
 
-### 2. Web App (`src/web/`)
-Interfaz alternativa basada en web que replica las funciones del CLI de manera visual utilizando WebUSB.
+### 2. Servicios Python (`forge/`)
+Módulos headless (sin UI) que respaldan al CLI: `forge/core/` (adb_bridge, debloat_engine, app_scanner, ota_watcher), `forge/services/ota_check.py` (watcher autónomo vía Task Scheduler), `forge/db/` (persistencia SQLite).
 
 ## Comandos de Uso
 
@@ -39,9 +39,9 @@ Interfaz alternativa basada en web que replica las funciones del CLI de manera v
 ### Verificación
 - **Mega Verificador**: `bash src/cli/tools/mega-verificar.sh`
 
-### Web App
-1. Iniciar servidor local: `python3 -m http.server 8000` (desde `src/web/`)
-2. Abrir `http://localhost:8000` en Chrome/Edge.
+### Servicios Python
+- **Chequeo OTA puntual**: `python -m forge.services.ota_check`
+- **Escaneo de apps**: `python -m forge.core.app_scanner --scan <SERIAL>`
 
 ## Convenciones de Desarrollo
 - **Seguridad Primero**: No tocar `com.xiaomi.joyose` (gestor térmico). Abortar si la temperatura supera los 42°C.
