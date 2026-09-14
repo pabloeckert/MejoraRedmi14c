@@ -9,7 +9,7 @@ echo.
 
 :: Detectar si ya estamos dentro del repo clonado
 set "INSTALL_DIR=%~dp0"
-if exist "%INSTALL_DIR%main.py" (
+if exist "%INSTALL_DIR%pyproject.toml" (
     echo [INFO] Repo detectado en: %INSTALL_DIR%
     goto :run_setup_ps1
 )
@@ -124,7 +124,7 @@ if errorlevel 1 (
 echo.
 echo ===================================================
 echo  Setup completo. El OTA watcher esta corriendo.
-echo  Para arrancar la UI: python "%INSTALL_DIR%main.py"
+echo  Para optimizar: cd src\cli ^&^& bash run.sh --full
 echo ===================================================
 echo.
 pause

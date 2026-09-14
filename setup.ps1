@@ -73,7 +73,7 @@ if (-not (Test-Path $req)) { Write-Fail "requirements.txt no encontrado en $ROOT
 & $py -m pip install --quiet -r $req
 
 if ($LASTEXITCODE -ne 0) { Write-Fail "pip install falló. Revisá la salida de error." }
-Write-OK "PySide6 + anthropic instalados"
+Write-OK "anthropic + plyer instalados"
 
 # ─── 3. ADB ──────────────────────────────────────────────────────────────────
 Write-Step 3 "Verificando ADB"
@@ -161,10 +161,10 @@ Write-Host @"
 
 === Setup completado ===
 
-  Arrancar UI:       python main.py
-  CLI (optimizar):   cd src/cli && bash run.sh --full
-  CLI (mantenimiento): cd src/cli && bash run.sh --maintenance
-  OTA watcher:       corre automatico cada 14 dias (Task Scheduler)
-                     o manualmente: python forge\services\ota_check.py
+  Optimizar (Poco Mode):    cd src/cli && bash run.sh --full
+  Mantenimiento semanal:    cd src/cli && bash run.sh --maintenance
+  Modo emergencia (revert): cd src/cli && bash run.sh --emergency
+  OTA watcher:               corre automatico cada 14 dias (Task Scheduler)
+                              o manualmente: python forge\services\ota_check.py
 
 "@ -ForegroundColor White
