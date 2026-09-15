@@ -114,15 +114,21 @@ performance_apply_poco_mode() {
     log_ok "$compiled_sys/${#SYSTEM_APPS_COMPILE[@]} apps del sistema compiladas"
 
     # ── Bloque 13: Dexopt apps de terceros ──
-    log_info "Compilando apps de terceros (puede tardar)..."
+    log_info "Compilando apps de terceros (puede tardar, timeout ${DEXOPT_TIMEOUT_SEC}s/app)..."
     local user_apps
     user_apps=$(adb -s "$DEVICE_SERIAL" shell pm list packages -3 2>/dev/null \
         | sed 's/package://' | tr -d '\r')
+    local total_apps_third; total_apps_third=$(echo "$user_apps" | grep -c .)
     local total_third=0
     for app in $user_apps; do
         (( total_third++ ))
+        [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && \
+            display_add_log "Compilando ($total_third/$total_apps_third): $app..." "info"
         if safe_compile "$app" "speed-profile"; then
             (( compiled_third++ ))
+            [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "Compilado: $app" "ok"
+        else
+            [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "Falló/timeout: $app" "warn"
         fi
     done
     log_ok "$compiled_third/$total_third apps de terceros compiladas"

@@ -34,6 +34,7 @@ readonly THERMAL_MAX_TEMP=42
 readonly THERMAL_WARN_TEMP=38
 readonly BATTERY_MIN_PCT=20
 readonly STORAGE_WARN_PCT=85
+readonly DEXOPT_TIMEOUT_SEC=90
 
 # ─── Animaciones (HyperOS 3 — mínimo recomendado 0.3x) ───
 readonly ANIM_POCO_MODE="0.3"
@@ -222,6 +223,11 @@ safe_uninstall_pkg() {
 safe_compile() {
     local pkg="$1"
     local mode="${2:-speed}"
-    adb -s "$DEVICE_SERIAL" shell cmd package compile -m "$mode" -f "$pkg" >/dev/null 2>&1
-    return $?
+    local timeout_sec="${3:-$DEXOPT_TIMEOUT_SEC}"
+    timeout "$timeout_sec" adb -s "$DEVICE_SERIAL" shell cmd package compile -m "$mode" -f "$pkg" >/dev/null 2>&1
+    local rc=$?
+    if [ "$rc" -eq 124 ]; then
+        log_warn "Timeout (${timeout_sec}s) compilando: $pkg — dex2oat puede seguir corriendo en el dispositivo"
+    fi
+    return "$rc"
 }
