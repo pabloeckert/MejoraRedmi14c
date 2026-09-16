@@ -75,6 +75,15 @@ if (-not (Test-Path $req)) { Write-Fail "requirements.txt no encontrado en $ROOT
 if ($LASTEXITCODE -ne 0) { Write-Fail "pip install falló. Revisá la salida de error." }
 Write-OK "anthropic + plyer instalados"
 
+if ([string]::IsNullOrEmpty($env:ANTHROPIC_API_KEY)) {
+    Write-Host "  (i) ANTHROPIC_API_KEY no está configurada en esta sesión." -ForegroundColor Yellow
+    Write-Host "      Sin ella, 'app_scanner.py' funciona igual pero sin descripciones IA de apps desconocidas." -ForegroundColor Yellow
+    Write-Host "      Para configurarla de forma permanente:" -ForegroundColor Yellow
+    Write-Host "        [Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', 'tu-clave-aqui', 'User')" -ForegroundColor Yellow
+} else {
+    Write-OK "ANTHROPIC_API_KEY configurada"
+}
+
 # ─── 3. ADB ──────────────────────────────────────────────────────────────────
 Write-Step 3 "Verificando ADB"
 

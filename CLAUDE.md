@@ -73,7 +73,7 @@ bash src/cli/tools/log-apply.sh           # aplica un log de cambios previo
 
 ## Bugs críticos conocidos
 
-- **BUG 1** `src/cli/tools/optimize-boot.sh:115` — lista directa que desactiva `com.xiaomi.joyose`. El guardrail en `safe_disable_pkg()` de `core/config.sh` lo previene solo si se usa esa función; la lista hardcodeada en ese archivo es peligrosa.
+- ~~**BUG 1** `src/cli/tools/optimize-boot.sh:115` — lista directa que desactiva `com.xiaomi.joyose`~~ — **RESUELTO (14/09/2026)**: `optimize-boot.sh` no sourceaba `core/config.sh` (ruta relativa incorrecta, buscaba en su propio directorio en vez de `../core/`), por lo que `safe_disable_pkg()` nunca estaba disponible y el script llamaba `adb shell pm disable-user` directo. Se corrigió la ruta del `source`, se quitó `com.xiaomi.joyose` del array `BOOT_APPS`, y el loop de desactivación ahora pasa siempre por `safe_disable_pkg()` (que verifica contra `CRITICAL_SYSTEM_APPS` antes de tocar cualquier paquete) como defensa en profundidad.
 
 ## Limitaciones Android 16 — parche BP2A.250605.031.A3 (confirmadas 01/06/2026)
 

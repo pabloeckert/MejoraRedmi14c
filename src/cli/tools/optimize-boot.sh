@@ -16,8 +16,12 @@
 set +e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/config.sh" ]; then
-    source "$SCRIPT_DIR/config.sh"
+CORE_DIR="$(cd "$SCRIPT_DIR/../core" && pwd)"
+if [ -f "$CORE_DIR/config.sh" ]; then
+    source "$CORE_DIR/config.sh"
+else
+    echo "❌ No se encontró core/config.sh — no se puede garantizar el guardrail de joyose. Abortando." >&2
+    exit 1
 fi
 
 TIMESTAMP=$(date +%Y%m%d_%H%M%S)
@@ -29,13 +33,6 @@ DRY_RUN=0
 for arg in "$@"; do
     [ "$arg" = "--dry-run" ] && DRY_RUN=1
 done
-
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-CYAN='\033[0;36m'
-BOLD='\033[1m'
-NC='\033[0m'
 
 CHANGES=0
 
@@ -77,9 +74,16 @@ if ! adb get-state >/dev/null 2>&1; then
     exit 1
 fi
 
+# safe_disable_pkg() (core/config.sh) requiere DEVICE_SERIAL con -s explícito
+DEVICE_SERIAL=$(adb get-serialno 2>/dev/null | tr -d '\r')
+if [ -z "$DEVICE_SERIAL" ] || [ "$DEVICE_SERIAL" = "unknown" ]; then
+    fail "No se pudo obtener el serial del dispositivo."
+    exit 1
+fi
+
 DEVICE=$(adb shell getprop ro.product.model 2>/dev/null | tr -d '\r')
 ANDROID=$(adb shell getprop ro.build.version.release 2>/dev/null | tr -d '\r')
-log -e "  📱 ${BOLD}$DEVICE${NC} (Android $ANDROID)"
+log -e "  📱 ${BOLD}$DEVICE${NC} (Android $ANDROID) — serial $DEVICE_SERIAL"
 log ""
 
 # ═══════════════════════════════════════════════
@@ -112,7 +116,6 @@ BOOT_APPS=(
     "com.netflix.mediaclient"
     "com.opera.mini.native"
     "com.amazon.appmanager"
-    "com.xiaomi.joyose"
     "com.xiaomi.scanner"
     "com.xiaomi.mipicks"
     "com.xiaomi.glgm"
@@ -132,10 +135,11 @@ for pkg in "${BOOT_APPS[@]}"; do
         continue
     fi
 
-    # Desactivar
+    # Desactivar — siempre vía safe_disable_pkg() (core/config.sh), que
+    # verifica contra CRITICAL_SYSTEM_APPS (incluye com.xiaomi.joyose)
+    # antes de tocar nada. Nunca llamar a `pm disable-user` directo acá.
     if [ "$DRY_RUN" -eq 0 ]; then
-        OUT=$(adb shell pm disable-user --user 0 "$pkg" 2>&1)
-        if echo "$OUT" | grep -q "disabled\|new state: disabled"; then
+        if safe_disable_pkg "$pkg"; then
             ok "$pkg"
             BOOT_DISABLED=$((BOOT_DISABLED + 1))
         fi

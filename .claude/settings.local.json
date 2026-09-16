@@ -21,7 +21,7 @@
       "Bash(grep -vFf /tmp/pkgs_disabled.txt)",
       "Bash(tasklist /FI \"IMAGENAME eq bash.exe\")",
       "Read(//tmp/**)",
-      "Read(//c/Users/Pablo/AppData/Local/Temp/**)",
+      "Read(//c/Users/tabeg/AppData/Local/Temp/**)",
       "WebSearch",
       "PowerShell(adb *)",
       "PowerShell(npm *)",
@@ -35,18 +35,18 @@
       "Bash(mkdir -p \"/c/BackupsRedmiForge/Sindy_WhatsAppBusiness_2026-07-06\")",
       "Bash(wmic logicaldisk *)",
       "Read(//c//**)",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe devices *)",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe kill-server *)",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe start-server *)",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell getprop ro.build.display.id)",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell getprop ro.build.version.security_patch)",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell getprop ro.build.version.release)",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell df /data)",
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe devices *)",
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe kill-server *)",
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe start-server *)",
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell getprop ro.build.display.id)",
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell getprop ro.build.version.security_patch)",
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell getprop ro.build.version.release)",
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell df /data)",
       "Bash(export MSYS_NO_PATHCONV=1)",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell getprop ro.mi.os.version.name)",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell getprop ro.mi.os.version.incremental)",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell 'df /data | tail -1')",
-      "Bash(/c/Users/Pablo/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell 'dumpsys battery | grep temperature')"
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell getprop ro.mi.os.version.name)",
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell getprop ro.mi.os.version.incremental)",
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell 'df /data | tail -1')",
+      "Bash(/c/Users/tabeg/AppData/Local/Microsoft/WinGet/Packages/Google.PlatformTools_Microsoft.Winget.Source_8wekyb3d8bbwe/platform-tools/adb.exe -s NB5XWCLZSGB6J74D shell 'dumpsys battery | grep temperature')"
     ]
   }
 }
