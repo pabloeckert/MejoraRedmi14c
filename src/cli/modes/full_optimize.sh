@@ -55,6 +55,18 @@ mode_full_optimize() {
     apps_disabled=$(printf '%s' "$_bloat_raw" | grep -E '^[0-9]+$' | tail -1)
     apps_disabled="${apps_disabled:-0}"
 
+    # Telemetría/analytics/ads de Xiaomi: siempre se saca, no es opcional
+    # (ver comentario en data/bloatware_db.sh). No estaba incluida en este
+    # modo — sólo corría en profile_optimize.sh — quedaba pendiente en runs
+    # hechos con --full.
+    log_info "Eliminando telemetría Xiaomi (siempre, sin excepción)..."
+    local _telemetry_raw
+    _telemetry_raw=$(bloatware_run "PROFILE_XIAOMI_TELEMETRY" "$run_id")
+    log_raw "$_telemetry_raw"
+    local _telemetry_disabled
+    _telemetry_disabled=$(printf '%s' "$_telemetry_raw" | grep -E '^[0-9]+$' | tail -1)
+    apps_disabled=$(( apps_disabled + ${_telemetry_disabled:-0} ))
+
     # ── FASE 3: Performance tweaks ──
     log_section "FASE 3 — Performance + Red + Thermal"
     [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_update_progress 3 9 "Performance"
