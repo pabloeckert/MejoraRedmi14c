@@ -15,7 +15,8 @@ import json
 from pathlib import Path
 
 from forge.core.apps_catalog import (
-    BUSINESS_CRITICAL, SAFETYNET_PROTECTED, WORK_INDICATOR_APPS, pkg_to_name,
+    BUSINESS_CRITICAL, SAFETYNET_PROTECTED, STRICT_WHITELIST,
+    WORK_INDICATOR_APPS, pkg_to_name,
 )
 from forge.db.database import get_device
 
@@ -103,6 +104,7 @@ def build_debloat_list(serial: str) -> tuple[list[str], list[str]]:
     banking:   bool     = bool(profile.get("banking", False))
 
     protected = set(apps_keep)
+    protected |= STRICT_WHITELIST
     if banking:
         protected |= SAFETYNET_PROTECTED
     if banking or _is_work_user(profile):
@@ -162,7 +164,9 @@ def dry_run_report(serial: str) -> str:
             "  " + "─" * 60,
         ]
         for pkg in sorted(excluded, key=pkg_to_name):
-            if pkg in SAFETYNET_PROTECTED:
+            if pkg in STRICT_WHITELIST:
+                reason = "lista blanca estricta (intocable)"
+            elif pkg in SAFETYNET_PROTECTED:
                 reason = "SafetyNet / banca"
             elif pkg in BUSINESS_CRITICAL:
                 reason = "crítica de negocio (automática)"
@@ -173,7 +177,7 @@ def dry_run_report(serial: str) -> str:
     lines += [
         "",
         "  Modo real: pm disable-user --user 0 <pkg>  (reversible)",
-        "  Revertir:  pm enable <pkg>  o  pm install-existing --user 0 <pkg>",
+        "  Revertir:  pm enable <pkg>  o  cmd package install-existing --user 0 <pkg>",
     ]
 
     return "\n".join(lines)

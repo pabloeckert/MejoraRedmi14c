@@ -64,35 +64,85 @@ PROFILE_POCO_MODE=(
     "com.microsoft.bing"
 )
 
-# ─── Telemetría Xiaomi / MIUI — se elimina siempre, sin opción de proteger ───
-# El usuario no elige mantener esto. No hay caso legítimo para querer analytics
-# y anuncios de Xiaomi activos.
+# ─── Perfil de Producción: Debloat Silencioso ────────────────────────────────
+# Desactiva GetApps, telemetría (MSA, Analytics, Daemon), Xiaomi Cloud,
+# herramientas de publicidad y servicios invasivos sin romper notificaciones.
+# NUNCA toca: com.xiaomi.joyose, com.xiaomi.xmsf, com.miui.securitycenter,
+# ni apps de la lista blanca estricta (dialer, contactos, SIM, WA, Google).
 
+PROFILE_SILENT_DEBLOAT=(
+    # GetApps (tienda secundaria Xiaomi con notificaciones agresivas)
+    "com.xiaomi.mipicks"
+
+    # Telemetría y publicidad Xiaomi / HyperOS
+    "com.miui.msa.global"               # MIUI Ad Solution
+    "com.miui.analytics"                # Analíticas y telemetría
+    "com.miui.AnalyticsCore"            # Core de análisis
+    "com.miui.daemon"                   # Daemon de reporte en background
+    "com.miui.systemAdSolution"         # Inyector de anuncios
+    "com.miui.bugreport"                # Crash report / telemetría
+    "com.miui.miservice"                # Servicios y comentarios con telemetría
+
+    # Xiaomi Cloud y sincronización
+    "com.miui.cloudservice"             # Servicio base Mi Cloud
+    "com.miui.cloudbackup"              # Copia de seguridad Mi Cloud
+    "com.miui.micloudsync"              # Sincronización continua Mi Cloud
+    "com.miui.cloudservice.sysbase"     # Servicio de sistema Mi Cloud
+
+    # Módulos de publicidad y bloatware asociados a Security Center / Sistema
+    "com.miui.cleanmaster"              # Limpiador con SDK publicitario Cheetah
+    "com.miui.hybrid"                   # Quick Apps / WebView con anuncios
+    "com.miui.hybrid.accessory"         # Accesorio Quick Apps
+    "com.mi.globalminusscreen"          # Pantalla -1 / App Vault con publicidad
+    "com.xiaomi.payment"                # Mi Pay
+    "com.xiaomi.gamecenter"             # Game Center Xiaomi
+    "com.xiaomi.glgm"                   # Juegos promocionales Xiaomi
+    "com.xiaomi.drivemode"              # Modo conductor
+    "com.xiaomi.scanner"                # Escáner Xiaomi con publicidad
+
+    # Telemetría en background de Meta / Facebook
+    "com.facebook.services"             # Servicios en segundo plano
+    "com.facebook.system"               # App de sistema Facebook
+    "com.facebook.appmanager"           # Gestor de instalación en segundo plano
+)
+
+# ─── Telemetría Xiaomi / MIUI — se elimina siempre en full y profile ─────────
 PROFILE_XIAOMI_TELEMETRY=(
     "com.miui.analytics"
     "com.miui.msa.global"
     "com.miui.systemAdSolution"
     "com.miui.daemon"
     "com.miui.AnalyticsCore"
+    "com.miui.bugreport"
+    "com.miui.miservice"
     "com.miui.hybrid"
+    "com.miui.hybrid.accessory"
+    "com.miui.cleanmaster"
     "com.miui.cloudservice"
     "com.miui.cloudbackup"
-    "com.xiaomi.mipicks"            # GetApps — tienda Xiaomi con ads
-    "com.xiaomi.payment"            # Mi Pay (si no lo usa)
-    "com.xiaomi.drivemode"          # Modo conductor
+    "com.miui.micloudsync"
+    "com.miui.cloudservice.sysbase"
+    "com.mi.globalminusscreen"
+    "com.xiaomi.mipicks"
+    "com.xiaomi.payment"
+    "com.xiaomi.gamecenter"
+    "com.xiaomi.glgm"
+    "com.xiaomi.drivemode"
+    "com.xiaomi.scanner"
 )
 
 # ─── Perfil mantenimiento (más conservador) ───────────────────────────────────
-# Solo apps que definitivamente nadie en Argentina usa activamente.
-
 PROFILE_MAINTENANCE=(
     "com.facebook.services"
     "com.facebook.system"
+    "com.facebook.appmanager"
     "com.miui.analytics"
     "com.miui.msa.global"
     "com.miui.systemAdSolution"
     "com.miui.daemon"
     "com.miui.AnalyticsCore"
+    "com.xiaomi.mipicks"
+    "com.miui.cleanmaster"
 )
 
 # ─── Helper: nombre legible desde package (para logging) ─────────────────────
@@ -105,8 +155,10 @@ pkg_name() {
         com.facebook.lite)                echo "Facebook Lite" ;;
         com.facebook.services)            echo "Servicios Facebook" ;;
         com.facebook.system)              echo "Sistema Facebook" ;;
+        com.facebook.appmanager)          echo "Facebook App Manager" ;;
         com.instagram.android)            echo "Instagram" ;;
         com.whatsapp)                     echo "WhatsApp" ;;
+        com.whatsapp.w4b)                 echo "WhatsApp Business" ;;
         com.zhiliaoapp.musically)         echo "TikTok" ;;
         com.ss.android.ugc.trill)         echo "TikTok (regional)" ;;
         com.twitter.android)              echo "X (Twitter)" ;;
@@ -136,16 +188,26 @@ pkg_name() {
         com.microsoft.teams)              echo "Teams" ;;
         com.microsoft.bing)               echo "Bing" ;;
         com.miui.analytics)               echo "Analíticas Xiaomi" ;;
-        com.miui.msa.global)              echo "Anuncios MIUI" ;;
+        com.miui.msa.global)              echo "Anuncios MIUI (MSA)" ;;
         com.miui.systemAdSolution)        echo "Sistema de anuncios" ;;
-        com.miui.daemon)                  echo "Telemetría MIUI" ;;
+        com.miui.daemon)                  echo "Telemetría MIUI Daemon" ;;
         com.miui.AnalyticsCore)           echo "Core análisis MIUI" ;;
-        com.miui.hybrid)                  echo "WebView MIUI" ;;
-        com.miui.cloudservice)            echo "Nube Xiaomi" ;;
-        com.miui.cloudbackup)             echo "Backup nube Xiaomi" ;;
-        com.xiaomi.mipicks)               echo "GetApps" ;;
+        com.miui.bugreport)               echo "Reporte de bugs Xiaomi" ;;
+        com.miui.miservice)               echo "Servicios y comentarios Xiaomi" ;;
+        com.miui.cleanmaster)             echo "Limpiador Cheetah Ads" ;;
+        com.miui.hybrid)                  echo "Quick Apps / WebView Ads" ;;
+        com.miui.hybrid.accessory)        echo "Quick Apps Accessory" ;;
+        com.mi.globalminusscreen)         echo "App Vault / Pantalla -1" ;;
+        com.miui.cloudservice)            echo "Mi Cloud Service" ;;
+        com.miui.cloudbackup)             echo "Mi Cloud Backup" ;;
+        com.miui.micloudsync)             echo "Mi Cloud Sync" ;;
+        com.miui.cloudservice.sysbase)    echo "Mi Cloud Sysbase" ;;
+        com.xiaomi.mipicks)               echo "GetApps (tienda ads)" ;;
         com.xiaomi.payment)               echo "Mi Pay" ;;
+        com.xiaomi.gamecenter)            echo "Game Center Xiaomi" ;;
+        com.xiaomi.glgm)                  echo "Juegos Xiaomi" ;;
         com.xiaomi.drivemode)             echo "Modo conductor Xiaomi" ;;
+        com.xiaomi.scanner)               echo "Escáner Xiaomi" ;;
         *)                                echo "$pkg" ;;
     esac
 }

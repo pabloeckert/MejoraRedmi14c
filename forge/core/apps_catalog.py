@@ -142,6 +142,59 @@ WIZARD_APPS: list[tuple[str, str]] = sorted(
 
 # ─── Nombre legible desde package name ───────────────────────────────────────
 
+# ─── Lista Blanca Estricta — NUNCA tocar bajo ninguna circunstancia ──────────
+STRICT_WHITELIST: frozenset[str] = frozenset({
+    # Telefonía / Contactos / SIM
+    "com.google.android.dialer",
+    "com.android.dialer",
+    "com.google.android.contacts",
+    "com.android.contacts",
+    "com.android.providers.contacts",
+    "com.android.phone",
+    "com.android.providers.telephony",
+    "com.android.server.telecom",
+    "com.android.stk",
+    "com.android.stk2",
+
+    # Mensajería
+    "com.whatsapp",
+    "com.whatsapp.w4b",
+    "com.google.android.apps.messaging",
+    "com.android.mms",
+
+    # Servicios Google esenciales (GMS, Play Store, Sync, Keep, Calendar)
+    "com.google.android.gms",
+    "com.android.vending",
+    "com.google.android.gsf",
+    "com.google.android.syncadapters.contacts",
+    "com.google.android.syncadapters.calendar",
+    "com.google.android.keep",
+    "com.google.android.calendar",
+    "com.google.android.as",
+    "com.google.android.as.oss",
+    "com.google.android.inputmethod.latin",
+
+    # Reproducción multimedia y galería
+    "com.miui.gallery",
+    "com.google.android.apps.photos",
+    "com.miui.videoplayer",
+    "com.miui.player",
+    "com.android.providers.media",
+    "com.android.providers.media.module",
+    "com.google.android.providers.media.module",
+    "com.android.camera",
+
+    # Core del Sistema y Estabilidad de Notificaciones HyperOS
+    "com.android.systemui",
+    "com.android.settings",
+    "com.miui.home",
+    "com.miui.securitycenter",
+    "com.xiaomi.joyose",
+    "com.xiaomi.xmsf",
+    "com.xiaomi.account",
+})
+
+
 # ─── Escudo SafetyNet — NUNCA tocar cuando banking=True ─────────────────────
 # Estas apps son prerequisito de Play Integrity / SafetyNet. Desactivarlas
 # rompe la verificación de integridad que usan las apps bancarias argentinas.

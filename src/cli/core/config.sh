@@ -103,22 +103,56 @@ HEAVY_APPS=(
     "com.pinterest"
 )
 
-# ─── Apps críticas del sistema — NUNCA desactivar ───
+# ─── Apps críticas del sistema (LISTA BLANCA ESTRICTA) — NUNCA desactivar ───
 CRITICAL_SYSTEM_APPS=(
+    # Telefonía, Contactos y SIM
+    "com.google.android.dialer"
+    "com.android.dialer"
+    "com.google.android.contacts"
+    "com.android.contacts"
+    "com.android.providers.contacts"
+    "com.android.phone"
+    "com.android.providers.telephony"
+    "com.android.server.telecom"
+    "com.android.stk"               # SIM Toolkit
+    "com.android.stk2"
+
+    # Mensajería (WhatsApp y SMS)
+    "com.whatsapp"
+    "com.whatsapp.w4b"
+    "com.google.android.apps.messaging"
+    "com.android.mms"
+
+    # Servicios Google esenciales (GMS, Play Store, Sync, Keep, Calendar)
+    "com.google.android.gms"
+    "com.android.vending"
+    "com.google.android.gsf"
+    "com.google.android.syncadapters.contacts"
+    "com.google.android.syncadapters.calendar"
+    "com.google.android.keep"
+    "com.google.android.calendar"
+    "com.google.android.as"
+    "com.google.android.as.oss"     # Private Compute Core
+    "com.google.android.inputmethod.latin"
+
+    # Reproducción multimedia y galería
+    "com.miui.gallery"
+    "com.google.android.apps.photos"
+    "com.miui.videoplayer"
+    "com.miui.player"
+    "com.android.providers.media"
+    "com.android.providers.media.module"
+    "com.google.android.providers.media.module"
+    "com.android.camera"
+
+    # Core del Sistema y Estabilidad de Notificaciones HyperOS
     "com.android.systemui"
     "com.android.settings"
-    "com.android.phone"
     "com.miui.home"
-    "com.android.vending"
-    "com.google.android.gms"
-    "com.android.dialer"
-    "com.android.contacts"
-    "com.android.mms"
-    "com.android.camera"
-    "com.xiaomi.account"
-    "com.xiaomi.joyose"     # NUNCA — gestor térmico del Helio G81 Ultra
-    "com.android.stk"       # SIM Toolkit — necesario para la SIM
-    "com.google.android.as.oss" # Private Compute Core
+    "com.miui.securitycenter"       # Base de permisos y autostart
+    "com.xiaomi.joyose"             # NUNCA — gestor térmico del Helio G81 Ultra
+    "com.xiaomi.xmsf"               # Xiaomi Service Framework — estabilidad MiPush
+    "com.xiaomi.account"            # Autenticación Xiaomi
 )
 
 # ─── Funciones de logging ───

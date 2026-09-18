@@ -98,9 +98,13 @@ adb_take_snapshot() {
 
     log_info "Creando snapshot → $snap_dir"
 
-    # Lista de paquetes
+    # Lista de paquetes activos
     adb -s "$serial" shell pm list packages 2>/dev/null \
         | sed 's/package://' | tr -d '\r' | sort > "$snap_dir/all_packages.txt"
+
+    # Universo completo de paquetes (incluye desinstalados a nivel de usuario para reversión canónica)
+    adb -s "$serial" shell pm list packages -u 2>/dev/null \
+        | sed 's/package://' | tr -d '\r' | sort > "$snap_dir/packages_universe.txt"
 
     # Paquetes desactivados
     adb -s "$serial" shell pm list packages -d 2>/dev/null \

@@ -52,12 +52,14 @@ mode_profile_optimize() {
 
     # ── FASE 2: Debloat personalizado ──
     log_section "FASE 2 — Debloat personalizado"
-    local apps_disabled
-    apps_disabled=$(bloatware_run "PROFILE_RUNTIME" "$run_id")
-    log_ok "Apps desactivadas: $apps_disabled"
+    local _raw_output
+    _raw_output=$(bloatware_run "PROFILE_RUNTIME" "$run_id")
+    log_raw "$_raw_output"
     # bloatware_run mezcla log ANSI + número en stdout; extraer solo el entero para DB
-    apps_disabled=$(printf '%s' "$apps_disabled" | grep -E '^[0-9]+$' | tail -1)
+    local apps_disabled
+    apps_disabled=$(printf '%s' "$_raw_output" | grep -E '^[0-9]+$' | tail -1)
     apps_disabled="${apps_disabled:-0}"
+    log_ok "Apps desactivadas (perfil): $apps_disabled"
 
     # ── Telemetría Xiaomi — siempre, sin opción de proteger ──
     log_section "FASE 2b — Telemetría Xiaomi"
