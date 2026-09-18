@@ -180,8 +180,10 @@ def scan_device(serial: str) -> ScanResult:
 
     _, wm_size_raw, _ = _adb("shell", "wm", "size",    serial=serial)
     _, wm_dpi_raw,  _ = _adb("shell", "wm", "density", serial=serial)
+    # Animaciones en namespace system (Android 16 / HyperOS 3), con fallback a global
+    anim_val = _get("system", "window_animation_scale") or _get("global", "window_animation_scale")
     tweaks = {
-        "animations":    _get("global", "window_animation_scale"),
+        "animations":    anim_val,
         "gpu_forced":    _get("global", "force_gpu_rendering") == "1",
         "refresh_rate":  _get("system", "peak_refresh_rate"),
         "blur_disabled": _get("global", "disable_window_blurs") == "1",

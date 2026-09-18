@@ -5,43 +5,37 @@
 #  Target: Helio G81 Ultra, 4GB RAM + HyperOS Memory Extension
 # ═══════════════════════════════════════════════════════════════
 
-# ─── Aplicar todos los tweaks de memoria ───
+# ─── Aplicar saneamiento y optimización real de memoria ───
 memory_apply_optimization() {
     local run_id="${1:-0}"
 
-    log_step "MEMORIA — Helio G81 Ultra"
+    log_step "MEMORIA — Saneamiento y optimización real (Android 16 / HyperOS 3)"
 
-    # Swappiness agresiva para Poco Mode
-    adb_setting_put sys_swappiness "$SWAPPINESS_PERFORMANCE"
-    log_ok "Swappiness: $SWAPPINESS_PERFORMANCE (menos swap, más RAM real)"
+    # 1. Recorte de caché LRU a nivel de sistema y aplicaciones
+    log_info "Recortando cachés de aplicaciones (pm trim-caches 2G)..."
+    adb -s "$DEVICE_SERIAL" shell pm trim-caches 2G 2>/dev/null
+    log_ok "Caché de sistema y apps recortada"
 
-    # LMK agresivo (liberar RAM rápido)
-    adb_setting_put lmk_minfree_levels "$LMK_PERFORMANCE"
-    log_ok "LMK: thresholds altos (libera RAM más rápido)"
+    # 2. Limpieza de caché específica para apps pesadas
+    log_info "Limpiando caché de aplicaciones pesadas..."
+    local cleaned_apps=0
+    for app in "${HEAVY_APPS[@]}"; do
+        if adb -s "$DEVICE_SERIAL" shell pm clear --cache-only "$app" 2>/dev/null | grep -qi "success"; then
+            (( cleaned_apps++ ))
+        fi
+    done
+    log_ok "Caché limpiada para $cleaned_apps aplicaciones pesadas"
 
-    # Max cached processes
-    adb_setting_put activity_manager_constants \
-        "max_cached_processes=${MAX_CACHED_PROCESSES},background_settle_time=60000"
-    log_ok "Max cached processes: $MAX_CACHED_PROCESSES"
+    # 3. Limpieza de thumbnails y archivos temporales de usuario
+    adb -s "$DEVICE_SERIAL" shell "rm -rf /sdcard/DCIM/.thumbnails/*" 2>/dev/null
+    adb -s "$DEVICE_SERIAL" shell "rm -rf /sdcard/Pictures/.thumbnails/*" 2>/dev/null
+    adb -s "$DEVICE_SERIAL" shell "rm -rf /data/local/tmp/*" 2>/dev/null
+    log_ok "Archivos temporales y thumbnails limpiados"
 
-    # Dalvik/ART heap ampliado
-    adb_setting_put dalvik_vm_heapsize      "$DALVIK_HEAP"
-    adb_setting_put dalvik_vm_heapgrowthlimit "$DALVIK_GROWTH"
-    log_ok "Dalvik heap: $DALVIK_HEAP / growth: $DALVIK_GROWTH"
+    # 4. Detener procesos pesados en background que consumen RAM
+    memory_kill_heavy_apps >/dev/null
 
-    # HWUI cache XL (scrolling suave)
-    adb_setting_put hwui_texture_cache_size  "$HWUI_TEXTURE"
-    adb_setting_put hwui_layer_cache_size    "$HWUI_LAYER"
-    adb_setting_put hwui_r_buffer_cache_size 12
-    adb_setting_put hwui_gradient_cache_size 4
-    log_ok "HWUI cache XL: texturas=${HWUI_TEXTURE}MB layers=${HWUI_LAYER}MB"
-
-    # Memory Extension HyperOS 3 (RAM virtual 4GB → 8GB)
-    adb_setting_put miui_memory_expand_enable 1
-    adb_setting_put memory_expand_size        4096
-    log_ok "HyperOS Memory Extension: activada (+4GB virtual)"
-
-    [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "Memoria optimizada" "ok"
+    [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "Memoria saneada y optimizada" "ok"
 }
 
 # ─── Leer estadísticas de RAM del dispositivo ───
@@ -88,10 +82,8 @@ memory_clean_cache() {
     adb -s "$DEVICE_SERIAL" shell "rm -rf /sdcard/Pictures/.thumbnails/*" 2>/dev/null
     log_ok "Thumbnails eliminados"
 
-    # Temp y logs del sistema
+    # Temp y logs accesibles
     adb -s "$DEVICE_SERIAL" shell "rm -rf /data/local/tmp/*"       2>/dev/null
-    adb -s "$DEVICE_SERIAL" shell "rm -rf /data/tombstones/*"      2>/dev/null
-    adb -s "$DEVICE_SERIAL" shell "rm -rf /data/anr/*"             2>/dev/null
     adb -s "$DEVICE_SERIAL" shell "rm -rf /sdcard/MIUI/debug_log/*" 2>/dev/null
     log_ok "Temp files y logs de debug eliminados"
 
@@ -106,16 +98,16 @@ memory_clean_cache() {
 
 # ─── Revertir tweaks de memoria a defaults ───
 memory_restore_defaults() {
-    adb_shell settings delete global sys_swappiness
-    adb_shell settings delete global lmk_minfree_levels
-    adb_shell settings delete global activity_manager_constants
-    adb_shell settings delete global dalvik_vm_heapsize
-    adb_shell settings delete global dalvik_vm_heapgrowthlimit
-    adb_shell settings delete global hwui_texture_cache_size
-    adb_shell settings delete global hwui_layer_cache_size
-    adb_shell settings delete global hwui_r_buffer_cache_size
-    adb_shell settings delete global hwui_gradient_cache_size
-    adb_shell settings delete global miui_memory_expand_enable
-    adb_shell settings delete global memory_expand_size
+    adb_shell settings delete global sys_swappiness 2>/dev/null
+    adb_shell settings delete global lmk_minfree_levels 2>/dev/null
+    adb_shell settings delete global activity_manager_constants 2>/dev/null
+    adb_shell settings delete global dalvik_vm_heapsize 2>/dev/null
+    adb_shell settings delete global dalvik_vm_heapgrowthlimit 2>/dev/null
+    adb_shell settings delete global hwui_texture_cache_size 2>/dev/null
+    adb_shell settings delete global hwui_layer_cache_size 2>/dev/null
+    adb_shell settings delete global hwui_r_buffer_cache_size 2>/dev/null
+    adb_shell settings delete global hwui_gradient_cache_size 2>/dev/null
+    adb_shell settings delete global miui_memory_expand_enable 2>/dev/null
+    adb_shell settings delete global memory_expand_size 2>/dev/null
     log_ok "Memoria restaurada a defaults."
 }

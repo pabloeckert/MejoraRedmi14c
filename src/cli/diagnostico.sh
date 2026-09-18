@@ -44,8 +44,11 @@ echo "║  ESTADO DEL SISTEMA                        ║"
 echo "╚═══════════════════════════════════════════╝"
 echo ""
 
-# Animaciones
-ANIM=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')
+# Animaciones (namespace system en Android 16 / HyperOS 3, fallback a global)
+ANIM=$(adb shell settings get system window_animation_scale 2>/dev/null | tr -d '\r')
+if [ -z "$ANIM" ] || [ "$ANIM" = "null" ]; then
+    ANIM=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')
+fi
 if [ "$ANIM" = "1" ] || [ "$ANIM" = "null" ] || [ -z "$ANIM" ]; then
     echo "  🎬 Animaciones:       $ANIMx (normal)"
 elif [ "$(echo "$ANIM < 1" | bc 2>/dev/null)" = "1" ]; then

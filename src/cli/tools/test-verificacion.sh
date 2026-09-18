@@ -45,9 +45,12 @@ echo "╔═══════════════════════�
 echo "║  1. ANIMACIONES                            ║"
 echo "╚═══════════════════════════════════════════╝"
 
-WIN=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')
-TRANS=$(adb shell settings get global transition_animation_scale 2>/dev/null | tr -d '\r')
-ANIM=$(adb shell settings get global animator_duration_scale 2>/dev/null | tr -d '\r')
+WIN=$(adb shell settings get system window_animation_scale 2>/dev/null | tr -d '\r')
+[ -z "$WIN" ] || [ "$WIN" = "null" ] && WIN=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')
+TRANS=$(adb shell settings get system transition_animation_scale 2>/dev/null | tr -d '\r')
+[ -z "$TRANS" ] || [ "$TRANS" = "null" ] && TRANS=$(adb shell settings get global transition_animation_scale 2>/dev/null | tr -d '\r')
+ANIM=$(adb shell settings get system animator_duration_scale 2>/dev/null | tr -d '\r')
+[ -z "$ANIM" ] || [ "$ANIM" = "null" ] && ANIM=$(adb shell settings get global animator_duration_scale 2>/dev/null | tr -d '\r')
 
 # Verificar que las 3 escalas son iguales
 if [ "$WIN" = "$TRANS" ] && [ "$TRANS" = "$ANIM" ]; then

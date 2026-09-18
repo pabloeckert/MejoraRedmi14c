@@ -400,10 +400,13 @@ echo "" >> "$REPORT_FILE"
 # ═══════════════════════════════════════════════
 section "9/10" "CONFIGURACIÓN ACTUAL"
 
-# Animaciones
-WIN=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')
-TRANS=$(adb shell settings get global transition_animation_scale 2>/dev/null | tr -d '\r')
-ANIM_DUR=$(adb shell settings get global animator_duration_scale 2>/dev/null | tr -d '\r')
+# Animaciones (namespace system en Android 16 / HyperOS 3, fallback a global)
+WIN=$(adb shell settings get system window_animation_scale 2>/dev/null | tr -d '\r')
+[ -z "$WIN" ] || [ "$WIN" = "null" ] && WIN=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')
+TRANS=$(adb shell settings get system transition_animation_scale 2>/dev/null | tr -d '\r')
+[ -z "$TRANS" ] || [ "$TRANS" = "null" ] && TRANS=$(adb shell settings get global transition_animation_scale 2>/dev/null | tr -d '\r')
+ANIM_DUR=$(adb shell settings get system animator_duration_scale 2>/dev/null | tr -d '\r')
+[ -z "$ANIM_DUR" ] || [ "$ANIM_DUR" = "null" ] && ANIM_DUR=$(adb shell settings get global animator_duration_scale 2>/dev/null | tr -d '\r')
 info "Animaciones:  window=$WIN, transition=$TRANS, animator=$ANIM_DUR"
 
 # GPU

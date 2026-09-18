@@ -202,9 +202,22 @@ safe_disable_pkg() {
     fi
     # Intento 2: uninstall -k para paquetes del sistema que Android 16 / HyperOS 3
     # bloquea con SecurityException: Cannot disable system packages.
-    # Reversible con: pm install-existing --user 0 <pkg>
+    # Reversible con: cmd package install-existing --user 0 <pkg>
     out=$(adb -s "$DEVICE_SERIAL" shell pm uninstall -k --user 0 "$pkg" 2>&1 | tr -d '\r')
-    echo "$out" | grep -qi "success" && return 0
+    if echo "$out" | grep -qi "success"; then
+        return 0
+    fi
+
+    # Intento 3 (Fallback HyperOS/Android 16): Neutralización vía AppOps
+    # Para servicios del sistema protegidos (com.miui.*) que rechazan desinstalación.
+    # Deniega el inicio de servicios en background y fuerza el cierre inmediato del proceso.
+    adb -s "$DEVICE_SERIAL" shell cmd appops set "$pkg" RUN_ANY_IN_BACKGROUND deny 2>/dev/null
+    adb -s "$DEVICE_SERIAL" shell am force-stop "$pkg" 2>/dev/null
+    local appop_state
+    appop_state=$(adb -s "$DEVICE_SERIAL" shell cmd appops get "$pkg" RUN_ANY_IN_BACKGROUND 2>/dev/null | tr -d '\r')
+    if echo "$appop_state" | grep -qi "deny\|ignore"; then
+        return 0
+    fi
     return 1
 }
 
@@ -222,7 +235,7 @@ safe_uninstall_pkg() {
 
 safe_compile() {
     local pkg="$1"
-    local mode="${2:-speed}"
+    local mode="${2:-speed-profile}"
     local timeout_sec="${3:-$DEXOPT_TIMEOUT_SEC}"
     timeout "$timeout_sec" adb -s "$DEVICE_SERIAL" shell cmd package compile -m "$mode" -f "$pkg" >/dev/null 2>&1
     local rc=$?

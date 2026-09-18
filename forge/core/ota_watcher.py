@@ -184,14 +184,14 @@ _TWEAKS_SPEC: list[dict] = [
         "name": "Animaciones 0.3x",
         "readonly": False,
         "checks": [
-            ("settings get global window_animation_scale", "0.3"),
-            ("settings get global transition_animation_scale", "0.3"),
-            ("settings get global animator_duration_scale", "0.3"),
+            ("settings get system window_animation_scale", "0.3"),
+            ("settings get system transition_animation_scale", "0.3"),
+            ("settings get system animator_duration_scale", "0.3"),
         ],
         "fixes": [
-            "settings put global window_animation_scale 0.3",
-            "settings put global transition_animation_scale 0.3",
-            "settings put global animator_duration_scale 0.3",
+            "settings put system window_animation_scale 0.3",
+            "settings put system transition_animation_scale 0.3",
+            "settings put system animator_duration_scale 0.3",
         ],
     },
     {

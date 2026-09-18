@@ -226,11 +226,11 @@ ok "Max cached processes: 32"
 run_cmd adb shell settings put global verifier_verify_adb_installs 0
 ok "Verificación ADB desactivada"
 
-# Reducir delay de animaciones de inicio
-run_cmd adb shell settings put global window_animation_scale 0.1
-run_cmd adb shell settings put global transition_animation_scale 0.1
-run_cmd adb shell settings put global animator_duration_scale 0.1
-ok "Animaciones a 0.1x (boot se siente más rápido)"
+# Reducir delay de animaciones de inicio (namespace system para compatibilidad Android 16 / HyperOS 3)
+run_cmd adb shell settings put system window_animation_scale 0.3
+run_cmd adb shell settings put system transition_animation_scale 0.3
+run_cmd adb shell settings put system animator_duration_scale 0.3
+ok "Animaciones a 0.3x en namespace system (boot fluido)"
 
 log ""
 

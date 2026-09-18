@@ -39,11 +39,14 @@ ANDROID=$(adb shell getprop ro.build.version.release 2>/dev/null | tr -d '\r')
 echo -e "  📱 $DEVICE (Android $ANDROID)"
 echo ""
 
-# ANIMACIONES
+# ANIMACIONES (namespace system en Android 16 / HyperOS 3, fallback a global)
 echo -e "${CYAN}  🎬 ANIMACIONES${NC}"
-WIN=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')
-TRANS=$(adb shell settings get global transition_animation_scale 2>/dev/null | tr -d '\r')
-ANIM=$(adb shell settings get global animator_duration_scale 2>/dev/null | tr -d '\r')
+WIN=$(adb shell settings get system window_animation_scale 2>/dev/null | tr -d '\r')
+[ -z "$WIN" ] || [ "$WIN" = "null" ] && WIN=$(adb shell settings get global window_animation_scale 2>/dev/null | tr -d '\r')
+TRANS=$(adb shell settings get system transition_animation_scale 2>/dev/null | tr -d '\r')
+[ -z "$TRANS" ] || [ "$TRANS" = "null" ] && TRANS=$(adb shell settings get global transition_animation_scale 2>/dev/null | tr -d '\r')
+ANIM=$(adb shell settings get system animator_duration_scale 2>/dev/null | tr -d '\r')
+[ -z "$ANIM" ] || [ "$ANIM" = "null" ] && ANIM=$(adb shell settings get global animator_duration_scale 2>/dev/null | tr -d '\r')
 check "Window animation" "$ANIM_POCO_MODE" "$WIN"
 check "Transition animation" "$ANIM_POCO_MODE" "$TRANS"
 check "Animator duration" "$ANIM_POCO_MODE" "$ANIM"

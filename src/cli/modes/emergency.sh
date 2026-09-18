@@ -16,10 +16,10 @@ mode_emergency() {
     echo -e "${RED}${BOLD}╚══════════════════════════════════════════════════════╝${NC}"
     echo ""
 
-    # ── 1: Reactivar TODOS los paquetes desactivados ──
-    log_step "Paso 1/8 — Reactivando todas las apps..."
+    # ── 1: Reactivar TODOS los paquetes desactivados y desinstalados ──
+    log_step "Paso 1/8 — Reactivando y reinstalando todas las apps..."
     local restored; restored=$(bloatware_restore_all)
-    log_ok "$restored app(s) reactivadas."
+    log_ok "$restored app(s) reactivadas/reinstaladas."
 
     # ── 2: Restaurar animaciones ──
     log_step "Paso 2/8 — Restaurando animaciones..."
@@ -56,15 +56,15 @@ mode_emergency() {
     adb_setting_put        bluetooth_always_scanning 1
     adb_setting_put        nfc_enabled               1
     adb_setting_put        wifi_scan_always_enabled  1
-    adb_setting_put        captive_portal_mode       1
+    adb_shell settings delete global captive_portal_mode 2>/dev/null
     adb_setting_put        auto_time                 1
     adb_setting_put        auto_time_zone            1
     log_ok "Pantalla y notificaciones: restauradas"
 
     # ── 8: Reparar permisos SystemUI ──
     log_step "Paso 8/8 — Reparando permisos del sistema..."
-    adb_shell pm grant com.android.systemui android.permission.SYSTEM_ALERT_WINDOW 2>/dev/null
-    adb_shell pm grant com.android.systemui android.permission.READ_PHONE_STATE     2>/dev/null
+    adb_shell cmd appops set com.android.systemui SYSTEM_ALERT_WINDOW allow 2>/dev/null
+    adb_shell pm grant com.android.systemui android.permission.READ_PHONE_STATE 2>/dev/null
     log_ok "Permisos: reparados"
 
     # Registrar en DB
@@ -75,7 +75,7 @@ mode_emergency() {
     echo -e "${GREEN}${BOLD}╔══════════════════════════════════════════════════════╗${NC}"
     echo -e "${GREEN}${BOLD}║  ✅ SISTEMA RESTAURADO                               ║${NC}"
     echo -e "${GREEN}${BOLD}╠══════════════════════════════════════════════════════╣${NC}"
-    printf  "${GREEN}${BOLD}║  Apps reactivadas:  %-4d                              ║${NC}\n" "${restored:-0}"
+    printf  "${GREEN}${BOLD}║  Apps restauradas:  %-4d                              ║${NC}\n" "${restored:-0}"
     echo -e "${GREEN}${BOLD}║  Animaciones:       1x (normal)                      ║${NC}"
     echo -e "${GREEN}${BOLD}║  GPU:               defaults                          ║${NC}"
     echo -e "${GREEN}${BOLD}║  Resolución:        nativa                           ║${NC}"

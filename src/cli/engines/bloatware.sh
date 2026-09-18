@@ -110,37 +110,85 @@ bloatware_fix_regressions() {
     echo "$fixed"
 }
 
-# ─── Reactivar TODOS los paquetes desactivados (restauración) ───
+# ─── Reactivar TODOS los paquetes desactivados y desinstalados (restauración) ───
 bloatware_restore_all() {
-    log_step "Restaurando TODOS los paquetes desactivados..."
+    log_step "Restaurando TODOS los paquetes (desactivados y desinstalados)..."
 
+    local restored=0
+    local -A seen_pkgs
+
+    # 1. Reactivar paquetes deshabilitados (pm disable / disable-user)
     local disabled_pkgs
     disabled_pkgs=$(adb -s "$DEVICE_SERIAL" shell pm list packages -d 2>/dev/null \
         | sed 's/package://' | tr -d '\r')
 
-    local restored=0
     for pkg in $disabled_pkgs; do
         pkg=$(echo "$pkg" | tr -d '\r')
         [ -z "$pkg" ] && continue
+        seen_pkgs["$pkg"]=1
 
         # Intentar enable
         local out
         out=$(adb -s "$DEVICE_SERIAL" shell pm enable "$pkg" 2>&1 | tr -d '\r')
         if echo "$out" | grep -qi "enabled\|new state: enabled"; then
+            adb -s "$DEVICE_SERIAL" shell cmd appops set "$pkg" RUN_ANY_IN_BACKGROUND allow 2>/dev/null
             (( restored++ ))
-            continue
         fi
-
-        # Fallback: install-existing (para paquetes desinstalados con -k)
-        out=$(adb -s "$DEVICE_SERIAL" shell pm install-existing --user 0 "$pkg" 2>&1 | tr -d '\r')
-        echo "$out" | grep -qi "success" && (( restored++ ))
     done
 
-    log_ok "$restored app(s) reactivadas."
+    # 2. Reinstalar paquetes desinstalados a nivel de usuario (pm uninstall -k --user 0)
+    # Comparar el universo total (-u) contra los instalados actualmente
+    local installed_pkgs
+    installed_pkgs=$(adb -s "$DEVICE_SERIAL" shell pm list packages 2>/dev/null \
+        | sed 's/package://' | tr -d '\r')
+
+    local -A installed_map
+    while IFS= read -r line; do
+        line=$(echo "$line" | tr -d '\r')
+        [ -n "$line" ] && installed_map["$line"]=1
+    done <<< "$installed_pkgs"
+
+    local all_pkgs_u
+    all_pkgs_u=$(adb -s "$DEVICE_SERIAL" shell pm list packages -u 2>/dev/null \
+        | sed 's/package://' | tr -d '\r')
+
+    while IFS= read -r pkg; do
+        pkg=$(echo "$pkg" | tr -d '\r')
+        [ -z "$pkg" ] && continue
+        # Si está en -u pero no está instalado activamente
+        if [ -z "${installed_map[$pkg]}" ] && [ -z "${seen_pkgs[$pkg]}" ]; then
+            seen_pkgs["$pkg"]=1
+            # Mecanismo canónico en Android HyperOS: cmd package install-existing --user 0 <pkg>
+            local out
+            out=$(adb -s "$DEVICE_SERIAL" shell cmd package install-existing --user 0 "$pkg" 2>&1 | tr -d '\r')
+            if echo "$out" | grep -qi "installed\|success"; then
+                adb -s "$DEVICE_SERIAL" shell cmd appops set "$pkg" RUN_ANY_IN_BACKGROUND allow 2>/dev/null
+                (( restored++ ))
+            fi
+        fi
+    done <<< "$all_pkgs_u"
+
+    # 3. Restablecer AppOps de fondo para catálogos conocidos
+    if [ -n "${PROFILE_POCO_MODE[*]}" ]; then
+        for pkg in "${PROFILE_POCO_MODE[@]}" "${PROFILE_XIAOMI_TELEMETRY[@]}"; do
+            adb -s "$DEVICE_SERIAL" shell cmd appops set "$pkg" RUN_ANY_IN_BACKGROUND allow 2>/dev/null
+        done
+    fi
+
+    log_ok "$restored app(s) reactivadas/reinstaladas."
     echo "$restored"
 }
 
-# ─── Cantidad actual de apps desactivadas en el dispositivo ───
+# ─── Cantidad actual de apps desactivadas/desinstaladas en el dispositivo ───
 bloatware_get_count() {
-    adb -s "$DEVICE_SERIAL" shell pm list packages -d 2>/dev/null | wc -l | tr -d ' '
+    local disabled_count
+    disabled_count=$(adb -s "$DEVICE_SERIAL" shell pm list packages -d 2>/dev/null | grep -c "package:" || echo 0)
+    
+    local total_u installed uninstalled_count
+    total_u=$(adb -s "$DEVICE_SERIAL" shell pm list packages -u 2>/dev/null | grep -c "package:" || echo 0)
+    installed=$(adb -s "$DEVICE_SERIAL" shell pm list packages 2>/dev/null | grep -c "package:" || echo 0)
+    uninstalled_count=$(( total_u - installed ))
+    [ "$uninstalled_count" -lt 0 ] && uninstalled_count=0
+
+    echo $(( disabled_count + uninstalled_count ))
 }

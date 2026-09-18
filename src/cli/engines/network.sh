@@ -24,10 +24,6 @@ network_apply_optimization() {
     adb_setting_put wifi_scan_always_enabled 0
     log_ok "WiFi scan always: desactivado (ahorra batería + evita lag)"
 
-    # WiFi sleep policy: no dormir durante carga
-    adb_setting_put wifi_sleep_policy 2
-    log_ok "WiFi: activo durante suspensión"
-
     # Data roaming off
     adb_setting_put data_roaming 0
     log_ok "Data roaming: desactivado"
@@ -36,24 +32,20 @@ network_apply_optimization() {
     adb_setting_put network_scoring_ui_enabled 0
     log_ok "Network scoring: desactivado"
 
-    # Captive portal off (ahorra requests al conectar redes)
-    adb_setting_put captive_portal_mode 0
-    log_ok "Captive portal checks: desactivado"
-
     [ "${DISPLAY_INITIALIZED:-0}" -eq 1 ] && display_add_log "Red optimizada" "ok"
 }
 
 # ─── Revertir configuración de red a defaults ───
 network_restore_defaults() {
-    adb_shell settings delete global dns_resolver_sample_validity_seconds
-    adb_shell settings delete global dns_resolver_min_samples
-    adb_shell settings delete global dns_resolver_max_samples
-    adb_shell settings delete global tcp_default_init_rwnd
+    adb_shell settings delete global dns_resolver_sample_validity_seconds 2>/dev/null
+    adb_shell settings delete global dns_resolver_min_samples 2>/dev/null
+    adb_shell settings delete global dns_resolver_max_samples 2>/dev/null
+    adb_shell settings delete global tcp_default_init_rwnd 2>/dev/null
     adb_setting_put wifi_scan_always_enabled 1
-    adb_shell settings delete global wifi_sleep_policy
+    adb_shell settings delete global wifi_sleep_policy 2>/dev/null
     adb_setting_put data_roaming 0
-    adb_shell settings delete global network_scoring_ui_enabled
-    adb_setting_put captive_portal_mode 1
+    adb_shell settings delete global network_scoring_ui_enabled 2>/dev/null
+    adb_shell settings delete global captive_portal_mode 2>/dev/null
     log_ok "Red restaurada a defaults."
 }
 
