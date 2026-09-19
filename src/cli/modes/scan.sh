@@ -34,27 +34,40 @@ mode_scan() {
 
     if [ -f "$runtime_profile" ]; then
         source "$runtime_profile"
-        local all_pkgs disabled_pkgs
+        local all_pkgs disabled_pkgs all_u_pkgs
         all_pkgs=$(adb -s "$serial" shell pm list packages 2>/dev/null \
             | sed 's/package://' | tr -d '\r')
         disabled_pkgs=$(adb -s "$serial" shell pm list packages -d 2>/dev/null \
             | sed 's/package://' | tr -d '\r')
+        all_u_pkgs=$(adb -s "$serial" shell pm list packages -u 2>/dev/null \
+            | sed 's/package://' | tr -d '\r')
 
         for pkg in "${PROFILE_RUNTIME[@]}"; do
             if echo "$disabled_pkgs" | grep -qxF "$pkg"; then
-                log_ok  "YA DESACTIVADA:  $pkg"
+                log_ok  "YA DESACTIVADA:       $pkg"
+                (( count_done++ ))
+            elif echo "$all_u_pkgs" | grep -qxF "$pkg" && ! echo "$all_pkgs" | grep -qxF "$pkg"; then
+                log_ok  "YA DESINSTALADA (u0): $pkg"
                 (( count_done++ ))
             elif echo "$all_pkgs" | grep -qxF "$pkg"; then
-                log_warn "PENDIENTE:       $pkg"
-                (( count_pending++ ))
+                # Verificar si tiene AppOps RUN_ANY_IN_BACKGROUND deny
+                local appop
+                appop=$(adb -s "$serial" shell cmd appops get "$pkg" RUN_ANY_IN_BACKGROUND 2>/dev/null | tr -d '\r')
+                if echo "$appop" | grep -qi "deny\|ignore"; then
+                    log_ok  "YA RESTRINGIDA (Ops): $pkg"
+                    (( count_done++ ))
+                else
+                    log_warn "ACTIVA / PENDIENTE:   $pkg"
+                    (( count_pending++ ))
+                fi
             else
-                log_info "NO INSTALADA:    $pkg"
+                log_info "NO PRESENTE EN ROM:   $pkg"
                 (( count_missing++ ))
             fi
         done
-        log_info "Resumen: $count_done ya hechas | $count_pending pendientes | $count_missing no instaladas"
+        log_info "Resumen: $count_done neutralizadas | $count_pending pendientes | $count_missing no en ROM"
     else
-        log_warn "profile_runtime.sh no encontrado — generalo con la app Redmi Forge primero"
+        log_warn "profile_runtime.sh no encontrado"
     fi
 
     # ── Tweaks de performance actuales ───────────────────────────
