@@ -1,15 +1,16 @@
 <#
 .SYNOPSIS
-    Registra la tarea programada en Windows para el Demonio MejoraRedmi14c.
+    Registra la persistencia en Windows para el Demonio MejoraRedmi14c.
 .DESCRIPTION
-    Crea, actualiza o remueve una tarea en el Programador de Tareas de Windows llamada
-    'MejoraRedmi14c-Listener'. Se ejecuta de forma invisible (-WindowStyle Hidden)
-    al iniciar sesion cualquier usuario en Windows.
+    Configura el inicio automatico al iniciar sesion:
+    1. Intenta en el Programador de Tareas de Windows ('MejoraRedmi14c-Listener').
+    2. Si no hay permisos de Administrador, configura la persistencia garantizada
+       de inicio de sesion en el registro de usuario (HKCU:\Software\Microsoft\Windows\CurrentVersion\Run).
 .EXAMPLE
-    .\register-task.ps1              # Registra o actualiza la tarea (solicita elevacion si es necesario)
+    .\register-task.ps1              # Registra la persistencia al iniciar sesion
     .\register-task.ps1 -Status      # Consulta el estado actual
-    .\register-task.ps1 -Unregister  # Elimina la tarea
-    .\register-task.ps1 -RunNow      # Inicia la tarea de inmediato
+    .\register-task.ps1 -Unregister  # Elimina la persistencia
+    .\register-task.ps1 -RunNow      # Inicia el listener de inmediato
 #>
 
 [CmdletBinding()]
@@ -22,130 +23,92 @@ param(
 )
 
 Set-StrictMode -Version Latest
-$ErrorActionPreference = "Stop"
+$ErrorActionPreference = "Continue"
 
 $Root = $PSScriptRoot
 $ListenerScript = Join-Path $Root "listener.ps1"
+$regPath = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Run"
+$pwshExe = (Get-Command "powershell.exe").Source
+$taskArgs = "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$ListenerScript`""
+$fullCmd = "`"$pwshExe`" $taskArgs"
 
 Write-Host ""
 Write-Host "==================================================================" -ForegroundColor Cyan
-Write-Host " [Windows Task Scheduler] Gestor de Demonio: $TaskName            " -ForegroundColor White
+Write-Host " [Windows Persistencia] Gestor de Demonio: $TaskName              " -ForegroundColor White
 Write-Host "==================================================================" -ForegroundColor Cyan
 
-# 1. Consultar estado (no requiere admin)
+# 1. Consultar estado
 if ($Status) {
-    $existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-    if ($existing) {
-        Write-Host "[*] Tarea encontrada: $TaskName" -ForegroundColor Green
-        Write-Host "    - Estado:       $($existing.State)" -ForegroundColor White
-        Write-Host "    - Ejecutable:   $($existing.Actions.Execute) $($existing.Actions.Arguments)" -ForegroundColor Gray
-        Write-Host "    - Oculta:       $($existing.Settings.Hidden)" -ForegroundColor White
+    $existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+    $existingReg = (Get-ItemProperty -Path $regPath -Name $TaskName -ErrorAction SilentlyContinue).$TaskName
+
+    if ($existingTask) {
+        Write-Host "[*] Tarea en Task Scheduler: $TaskName" -ForegroundColor Green
+        Write-Host "    - Estado: $($existingTask.State)" -ForegroundColor White
     } else {
-        Write-Host "[!] La tarea '$TaskName' NO se encuentra registrada en Windows." -ForegroundColor Yellow
+        Write-Host "[-] No registrada en Task Scheduler (requiere permisos de Administrador)." -ForegroundColor Gray
+    }
+
+    if ($existingReg) {
+        Write-Host "[*] Clave en Inicio de Usuario (HKCU Run): ACTIVA" -ForegroundColor Green
+        Write-Host "    - Comando: $existingReg" -ForegroundColor White
+    } else {
+        Write-Host "[-] No registrada en Inicio de Usuario (HKCU Run)." -ForegroundColor Gray
     }
     return
 }
 
-# 2. Verificar permisos de Administrador
-$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
-
-if (-not $isAdmin -and -not $NoElevate) {
-    Write-Host "[*] El Programador de Tareas de Windows requiere privilegios de Administrador." -ForegroundColor Yellow
-    Write-Host "[*] Solicitando elevacion UAC..." -ForegroundColor Cyan
-
-    $scriptPath = $PSCommandPath
-    $argList = "-NoProfile -ExecutionPolicy Bypass -File `"$scriptPath`" -NoElevate"
-    if ($Unregister) { $argList += " -Unregister" }
-    if ($RunNow)     { $argList += " -RunNow" }
-    if ($TaskName -ne "MejoraRedmi14c-Listener") { $argList += " -TaskName `"$TaskName`"" }
-
-    try {
-        $p = Start-Process -FilePath "powershell.exe" -ArgumentList $argList -Verb RunAs -PassThru -Wait
-        if ($p.ExitCode -eq 0) {
-            Write-Host "[OK] Operacion completada con privilegios de Administrador." -ForegroundColor Green
-        } else {
-            Write-Host "[!] La operacion finalizo con codigo: $($p.ExitCode)" -ForegroundColor Yellow
-        }
-    } catch {
-        Write-Host "[ERROR] No se pudo elevar la sesion: $_" -ForegroundColor Red
-        Write-Host "Por favor, abre PowerShell como Administrador y vuelve a ejecutar: .\register-task.ps1" -ForegroundColor Yellow
-    }
-    return
-}
-
-# 3. Desregistrar tarea
+# 2. Desregistrar
 if ($Unregister) {
-    $existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-    if ($existing) {
+    $existingTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+    if ($existingTask) {
         Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
-        Write-Host "[OK] Tarea '$TaskName' eliminada exitosamente del Programador de Tareas." -ForegroundColor Green
-    } else {
-        Write-Host "[!] La tarea '$TaskName' no existe, nada que remover." -ForegroundColor Yellow
+        Write-Host "[OK] Tarea '$TaskName' eliminada de Task Scheduler." -ForegroundColor Green
+    }
+    if ((Get-ItemProperty -Path $regPath -Name $TaskName -ErrorAction SilentlyContinue).$TaskName) {
+        Remove-ItemProperty -Path $regPath -Name $TaskName -ErrorAction SilentlyContinue
+        Write-Host "[OK] Entrada '$TaskName' eliminada de Inicio de Usuario (HKCU Run)." -ForegroundColor Green
     }
     return
 }
 
-# 4. Ejecutar tarea de inmediato
+# 3. Iniciar ahora
 if ($RunNow) {
-    $existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-    if (-not $existing) {
-        Write-Host "[!] La tarea '$TaskName' no esta registrada. Creandola primero..." -ForegroundColor Yellow
-    } else {
-        Start-ScheduledTask -TaskName $TaskName
-        Write-Host "[OK] Tarea '$TaskName' iniciada en segundo plano." -ForegroundColor Green
-        return
-    }
-}
-
-# 5. Registrar / Recrear la tarea
-if (-not (Test-Path $ListenerScript)) {
-    Write-Error "No se encontro el archivo $ListenerScript. Verifica la ruta."
+    Start-Process -FilePath $pwshExe -ArgumentList $taskArgs -WorkingDirectory $Root
+    Write-Host "[OK] Demonio iniciado en segundo plano." -ForegroundColor Green
     return
 }
 
-$pwshExe = (Get-Command "powershell.exe").Source
-$taskArgs = "-WindowStyle Hidden -ExecutionPolicy Bypass -File `"$ListenerScript`""
-
-# Eliminar version previa si ya existe
-$existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
-if ($existing) {
-    Write-Host "[*] Tarea previa detectada. Actualizando configuracion..." -ForegroundColor Yellow
-    Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+# 4. Registrar persistencia
+if (-not (Test-Path $ListenerScript)) {
+    Write-Error "No se encontro el archivo $ListenerScript."
+    return
 }
 
-$action = New-ScheduledTaskAction `
-    -Execute $pwshExe `
-    -Argument $taskArgs `
-    -WorkingDirectory $Root
+# Intento en Scheduled Tasks si se dispone de privilegios
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+$taskCreated = $false
 
-$trigger = New-ScheduledTaskTrigger -AtLogOn
-
-$settings = New-ScheduledTaskSettingsSet `
-    -AllowStartIfOnBatteries `
-    -DontStopIfGoingOnBatteries `
-    -ExecutionTimeLimit ([System.TimeSpan]::Zero) `
-    -Priority 7
-
-Register-ScheduledTask `
-    -TaskName $TaskName `
-    -Action $action `
-    -Trigger $trigger `
-    -Settings $settings `
-    -RunLevel Limited `
-    -Description "Demonio ADB para mantenimiento automatico y optimizacion Workspace de Xiaomi Redmi 14C." | Out-Null
-
-try {
-    $registered = Get-ScheduledTask -TaskName $TaskName
-    $registered.Settings.Hidden = $true
-    Set-ScheduledTask -InputObject $registered | Out-Null
-} catch {
+if ($isAdmin) {
+    try {
+        $existing = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+        if ($existing) {
+            Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+        }
+        $action = New-ScheduledTaskAction -Execute $pwshExe -Argument $taskArgs -WorkingDirectory $Root
+        $trigger = New-ScheduledTaskTrigger -AtLogOn
+        $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries -ExecutionTimeLimit ([System.TimeSpan]::Zero)
+        Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Settings $settings -Description "Demonio ADB MejoraRedmi14c" | Out-Null
+        Write-Host "[OK] Registrado en el Programador de Tareas de Windows (Task Scheduler)." -ForegroundColor Green
+        $taskCreated = $true
+    } catch {
+        Write-Host "[!] Error registrando en Task Scheduler: $_" -ForegroundColor Yellow
+    }
 }
 
-Write-Host @"
-[OK] Tarea '$TaskName' registrada exitosamente.
-  - Disparador: Al iniciar sesion ($env:USERNAME)
-  - Ejecutable: $pwshExe
-  - Parametros: $taskArgs
-  - Directorio: $Root
-  - Modo:       Segundo plano (Hidden)
-"@ -ForegroundColor Green
+# Garantizar inicio automatico mediante HKCU Run (100% funcional sin requerir admin)
+Set-ItemProperty -Path $regPath -Name $TaskName -Value $fullCmd
+Write-Host "[OK] Registrado en el Inicio de Sesion de Usuario (HKCU Run):" -ForegroundColor Green
+Write-Host "  - Entrada:   $TaskName" -ForegroundColor White
+Write-Host "  - Comando:   $fullCmd" -ForegroundColor White
+Write-Host "  - Ejecucion: Invisible (-WindowStyle Hidden) al iniciar sesion de $env:USERNAME." -ForegroundColor Green

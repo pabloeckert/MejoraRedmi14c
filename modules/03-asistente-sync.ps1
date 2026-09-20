@@ -21,7 +21,7 @@ $adbCmd = if ([string]::IsNullOrWhiteSpace($Serial)) { "adb" } else { "adb -s $S
 function Invoke-AdbShell {
     param([string]$Command)
     $fullCmd = "$adbCmd shell `"$Command`""
-    $res = cmd.exe /c $fullCmd 2>&1
+    $res = cmd.exe /c "$fullCmd 2>&1"
     return ($res -join "`n").Trim()
 }
 
@@ -70,6 +70,7 @@ $workspacePackages = @(
     @{ Pkg = "com.google.android.googlequicksearchbox"; Name = "Google / Gemini / Searchbox" },
     @{ Pkg = "com.google.android.keep";                 Name = "Google Keep" },
     @{ Pkg = "com.google.android.calendar";             Name = "Google Calendar" },
+    @{ Pkg = "com.google.android.syncadapters.calendar";Name = "Google Calendar Sync Adapter" },
     @{ Pkg = "com.google.android.apps.docs";            Name = "Google Drive / Docs" }
 )
 

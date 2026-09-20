@@ -89,19 +89,35 @@ function Show-DeviceStatus {
 
     Write-Host "  - Numero de Serie:       $s" -ForegroundColor Green
     Write-Host "  - Version de Android:    $android (Parche: $security)" -ForegroundColor White
-    Write-Host "  - Escala de Animaciones: ${winAnim}x" -ForegroundColor White
-    Write-Host "  - Refresh Rate Maximo:   ${peakHz}Hz" -ForegroundColor White
-    Write-Host "  - Asistente Configurado: $assist" -ForegroundColor White
-    Write-Host "  - Titular de Rol Asist.: $roleHolder" -ForegroundColor White
-    Write-Host "  - Sync en Roaming:       $roamSync" -ForegroundColor White
+    Write-Host "  - Escala de Animaciones: ${winAnim}x" -ForegroundColor Green
+    Write-Host "  - Refresh Rate Maximo:   ${peakHz}Hz" -ForegroundColor Green
+    Write-Host "  - Asistente Configurado: $assist" -ForegroundColor Green
+    Write-Host "  - Titular de Rol Asist.: $roleHolder" -ForegroundColor Green
+    Write-Host "  - Sync en Roaming:       $roamSync" -ForegroundColor Green
     Write-Host "`n  [Verificacion Whitelist Doze]:" -ForegroundColor Cyan
     
-    $checkPkgs = @("com.google.android.googlequicksearchbox", "com.google.android.keep", "com.google.android.calendar", "com.google.android.apps.docs")
-    foreach ($p in $checkPkgs) {
+    $checkPkgs = @(
+        @{ Pkg = "com.google.android.googlequicksearchbox"; Name = "Google / Gemini / Searchbox" },
+        @{ Pkg = "com.google.android.keep";                 Name = "Google Keep" },
+        @{ Pkg = "com.google.android.syncadapters.calendar";Name = "Google Calendar Sync Engine" },
+        @{ Pkg = "com.google.android.calendar";             Name = "Google Calendar App (opcional)" },
+        @{ Pkg = "com.google.android.apps.docs";            Name = "Google Drive / Docs" }
+    )
+
+    foreach ($item in $checkPkgs) {
+        $p = $item.Pkg
+        $name = $item.Name
         $isWhitelisted = $whitelist -match [regex]::Escape($p)
-        $badge = if ($isWhitelisted) { "[OK] EXENTO DE DOZE" } else { "[!] NO EXENTO" }
-        $color = if ($isWhitelisted) { "Green" } else { "Yellow" }
-        Write-Host "    * $p : $badge" -ForegroundColor $color
+        if ($isWhitelisted) {
+            Write-Host "    * $name ($p): [OK] EXENTO DE DOZE" -ForegroundColor Green
+        } else {
+            $isInst = (& adb -s $s shell pm list packages $p 2>&1) -match [regex]::Escape("package:$p")
+            if ($isInst) {
+                Write-Host "    * $name ($p): [!] NO EXENTO" -ForegroundColor Yellow
+            } else {
+                Write-Host "    * $name ($p): [-] NO INSTALADO (abierto en Play Store)" -ForegroundColor DarkGray
+            }
+        }
     }
 }
 
